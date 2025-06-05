@@ -3,6 +3,14 @@ name: Build and Push Docker Image to GHCR
 on:
   push:
     branches: [ "master" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+    
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -10,6 +18,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -21,9 +30,15 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
@@ -31,8 +46,6 @@ jobs:
           context: src/GameOnTonight
           file: src/GameOnTonight/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/gameontonight:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/gameontonight:latest
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
