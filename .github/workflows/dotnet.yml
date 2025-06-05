@@ -2,9 +2,9 @@ name: .NET Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master ] # Corrected to master branch
   pull_request:
-    branches: [ master ]
+    branches: [ master ] # Corrected to master branch
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
         dotnet-version: '8.0.x' # Specify your .NET version
 
     - name: Restore dependencies
-      run: dotnet restore src/GameOnTonight/GameOnTonight.csproj
+      run: dotnet restore src/GameOnTonight.sln # Changed to restore solution
 
     - name: Build
-      run: dotnet build src/GameOnTonight/GameOnTonight.csproj --no-restore
+      run: dotnet build src/GameOnTonight.sln --no-restore # Changed to build solution
