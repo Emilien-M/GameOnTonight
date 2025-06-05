@@ -1,0 +1,81 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="card p-3">
+    <h2>Connexion</h2>
+    
+    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        
+        <div class="mb-3">
+            <label>Email</label>
+            <InputText @bind-Value="loginModel.Email" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Email)" />
+        </div>
+        
+        <div class="mb-3">
+            <label>Mot de passe</label>
+            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
+        </div>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+        
+        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+            @(isLoading ? "Connexion..." : "Se connecter")
+        </button>
+        
+        <div class="mt-3">
+            <a href="/register">Créer un compte</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+            
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Email ou mot de passe incorrect";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "L'email est requis")]
+        [EmailAddress(ErrorMessage = "Email invalide")]
+        public string Email { get; set; } = "";
+        
+        [Required(ErrorMessage = "Le mot de passe est requis")]
+        public string Password { get; set; } = "";
+    }
+}

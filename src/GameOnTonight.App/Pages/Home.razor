@@ -1,0 +1,26 @@
+﻿@page "/"
+
+<PageTitle>Filtrer</PageTitle>
+
+<h1>Quelle partie ce soir ?</h1>
+
+<div class="card p-3 mb-3">
+    <div class="mb-3">
+        <label class="form-label">Nombre de joueurs</label>
+        <input class="form-control" type="number" min="1" placeholder="Ex: 4" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Temps disponible (minutes)</label>
+        <input class="form-control" type="number" min="5" step="5" placeholder="Ex: 45" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Type de jeu</label>
+        <select class="form-select">
+            <option>— Sélectionnez —</option>
+            <option>Ambiance</option>
+            <option>Stratégie</option>
+            <option>Familial</option>
+        </select>
+    </div>
+    <button class="btn btn-primary w-100" type="button">Trouver un jeu</button>
+</div>

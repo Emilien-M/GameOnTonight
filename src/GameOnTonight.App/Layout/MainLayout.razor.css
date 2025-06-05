@@ -1,0 +1,14 @@
+.page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+}
+
+main {
+    flex: 1;
+}
+
+article.content {
+    padding: 1rem 1rem calc(var(--tabbar-height) + 1rem);
+}
