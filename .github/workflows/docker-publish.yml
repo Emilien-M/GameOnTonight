@@ -1,0 +1,35 @@
+name: Build and Push Docker Image to GHCR
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/GameOnTonight
+          file: src/GameOnTonight/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/gameontonight:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/gameontonight:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
