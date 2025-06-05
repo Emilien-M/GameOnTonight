@@ -1,0 +1,53 @@
+# .gitignore pour un projet Blazor WebAssembly + .NET + Rider
+
+# Fichiers et dossiers générés par Visual Studio/Rider
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# Fichiers de logs
+*.log
+
+# Fichiers de configuration utilisateur
+*.swp
+*.bak
+*.tmp
+*.userprefs
+
+# Fichiers de publication
+/app/publish/
+
+# Fichiers de dépendances NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Fichiers de test
+TestResults/
+
+# Fichiers de cache
+*.dbmdl
+*.dbproj.schemaview
+*.pdb
+*.cache
+*.mdb
+
+# Fichiers secrets
+secrets.json
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Dossiers de configuration Nginx
+nginx.conf
+

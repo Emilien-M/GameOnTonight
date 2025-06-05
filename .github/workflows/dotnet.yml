@@ -1,0 +1,26 @@
+name: .NET Build
+
+on:
+  push:
+    branches: [ master ] # Corrected to master branch
+  pull_request:
+    branches: [ master ] # Corrected to master branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x' # Specify your .NET version
+
+    - name: Restore dependencies
+      run: dotnet restore src/GameOnTonight.sln # Changed to restore solution
+
+    - name: Build
+      run: dotnet build src/GameOnTonight.sln --no-restore # Changed to build solution
