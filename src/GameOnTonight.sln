@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight", "GameOnTonight\GameOnTonight.csproj", "{17FCD8A3-0210-451F-8972-00B794E7E909}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{40C80263-2919-4A37-A33A-B63347A396FF}"
@@ -10,7 +9,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{B27B9A40-6838-41CF-851B-E1C9D8E062C5}"
 	ProjectSection(SolutionItems) = preProject
-		Dockerfile = Dockerfile
+		..\docker\.env = ..\docker\.env
+		..\docker\docker-compose.yml = ..\docker\docker-compose.yml
+		..\docker\Dockerfile.Api = ..\docker\Dockerfile.Api
+		..\docker\Dockerfile.App = ..\docker\Dockerfile.App
+		..\docker\nginx.conf = ..\docker\nginx.conf
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight.Domain", "GameOnTonight.Domain\GameOnTonight.Domain.csproj", "{FDB40DC4-1B93-4127-9C4B-0193982C0B57}"

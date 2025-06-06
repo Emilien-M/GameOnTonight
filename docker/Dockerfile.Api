@@ -1,0 +1,20 @@
+# Étape 1 : Build et publication de l'API
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["GameOnTonight.Api/GameOnTonight.Api.csproj", "GameOnTonight.Api/"]
+COPY ["GameOnTonight.Application/GameOnTonight.Application.csproj", "GameOnTonight.Application/"]
+COPY ["GameOnTonight.Infrastructure/GameOnTonight.Infrastructure.csproj", "GameOnTonight.Infrastructure/"]
+COPY ["GameOnTonight.Domain/GameOnTonight.Domain.csproj", "GameOnTonight.Domain/"]
+RUN dotnet restore "GameOnTonight.Api/GameOnTonight.Api.csproj"
+COPY . .
+WORKDIR "/src/GameOnTonight.Api"
+RUN dotnet build "GameOnTonight.Api.csproj" -c Release -o /app/build
+RUN dotnet publish "GameOnTonight.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Étape 2 : Image finale
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
+ENTRYPOINT ["dotnet", "GameOnTonight.Api.dll"]
