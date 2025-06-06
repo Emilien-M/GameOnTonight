@@ -24,7 +24,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{1296
 		..\README.md = ..\README.md
 		..\ROADMAP.md = ..\ROADMAP.md
 		..\Spec.md = ..\Spec.md
+		..\.gitignore = ..\.gitignore
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight.Api", "GameOnTonight.Api\GameOnTonight.Api.csproj", "{33FC552C-E487-4EDC-97E6-A25EA1E69B29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +87,18 @@ Global
 		{CFE2A35B-C550-4307-B60D-6D4596498F31}.Release|x64.Build.0 = Release|Any CPU
 		{CFE2A35B-C550-4307-B60D-6D4596498F31}.Release|x86.ActiveCfg = Release|Any CPU
 		{CFE2A35B-C550-4307-B60D-6D4596498F31}.Release|x86.Build.0 = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|x64.Build.0 = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Debug|x86.Build.0 = Debug|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|x64.ActiveCfg = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|x64.Build.0 = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|x86.ActiveCfg = Release|Any CPU
+		{33FC552C-E487-4EDC-97E6-A25EA1E69B29}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
