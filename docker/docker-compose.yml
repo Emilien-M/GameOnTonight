@@ -1,11 +1,10 @@
-version: '3.8'
-
 services:
   # Service Frontend (Blazor WebAssembly via Nginx)
   frontend:
     build:
       context: ../src
       dockerfile: ../docker/Dockerfile.App
+      no_cache: true
     container_name: gameontonight-frontend
     ports:
       - "3000:80"
@@ -21,7 +20,10 @@ services:
     build:
       context: ../src
       dockerfile: ../docker/Dockerfile.Api
+      no_cache: true
     container_name: gameontonight-api
+    ports:
+      - "5235:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
@@ -31,7 +33,28 @@ services:
       - JwtSettings__ExpiryMinutes=${JWT_EXPIRY_MINUTES:-60}
     networks:
       - gameontonight-network
+    depends_on:
+      - postgres
+  
+  # Service PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: gameontonight-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-gameadmin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-gamepassword}
+      - POSTGRES_DB=${POSTGRES_DB:-gameontonight}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gameontonight-network
 
 networks:
   gameontonight-network:
     driver: bridge
+
+volumes:
+  postgres_data:
