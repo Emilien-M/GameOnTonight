@@ -1,0 +1,77 @@
+@page "/login"
+@using GameOnTonight.RestClient.Generated
+@inject IGameOnTonightApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<h3>Connexion</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
+                        <ValidationMessage For="@(() => loginModel.Email)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+                        <ValidationMessage For="@(() => loginModel.Password)" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span> Connexion...</span>
+                        }
+                        else
+                        {
+                            <span>Se connecter</span>
+                        }
+                    </button>
+                </EditForm>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3">
+                        @errorMessage
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest loginModel = new LoginRequest();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        isLoading = true;
+
+        try
+        {
+            await ApiClient.LoginAsync(loginModel);
+            // Redirection après connexion réussie
+            NavigationManager.NavigateTo("/");
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors de la connexion: {ex.StatusCode} - {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
