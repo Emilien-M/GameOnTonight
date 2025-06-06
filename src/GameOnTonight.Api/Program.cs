@@ -4,12 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using GameOnTonight.Infrastructure.Persistence;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+});
 
 // Configurer les services DB et Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -81,7 +85,6 @@ app.UseForwardedHeaders();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseCors("DevelopmentPolicy");
 }
 else
@@ -89,6 +92,12 @@ else
     app.UseHsts();
     app.UseCors("AllowFrontend");
 }
+
+// Ajout du support des fichiers statiques (pour Swagger UI)
+app.UseStaticFiles();
+
+// Configuration de l'OpenAPI pour tous les environnements
+app.MapOpenApi("/openapi/v1.json");
 
 // app.UseHttpsRedirection(); // Commenté car nous utilisons HTTP entre les conteneurs
 app.UseAuthentication();
