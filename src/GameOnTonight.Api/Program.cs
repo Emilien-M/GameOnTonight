@@ -8,6 +8,9 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurer Docker pour PostgreSQL en environnement de développement
+builder.Host.UseDockerDatabase();
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
@@ -17,7 +20,7 @@ builder.Services.AddOpenApi(options =>
 
 // Configurer les services DB et Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
@@ -78,6 +81,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+// Appliquer automatiquement les migrations
+app.MigrateDatabase<ApplicationDbContext>();
 
 // Configuration pour gérer les forwarded headers du proxy
 app.UseForwardedHeaders();
