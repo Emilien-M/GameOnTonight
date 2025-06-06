@@ -19,6 +19,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight.Application",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight.Infrastructure", "GameOnTonight.Infrastructure\GameOnTonight.Infrastructure.csproj", "{CFE2A35B-C550-4307-B60D-6D4596498F31}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{12967DD7-3626-43EA-8435-35028EA09980}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+		..\ROADMAP.md = ..\ROADMAP.md
+		..\Spec.md = ..\Spec.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
