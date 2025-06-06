@@ -52,21 +52,31 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configurer CORS pour le développement
+// Configurer CORS pour accepter les requêtes du frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevelopmentPolicy", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:5001", "http://localhost:5000")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
+});
+
+// Configuration pour le proxy et le forwarded headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
+                                Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
 });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+// Configuration pour gérer les forwarded headers du proxy
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -77,9 +87,10 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseHsts();
+    app.UseCors("AllowFrontend");
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Commenté car nous utilisons HTTP entre les conteneurs
 app.UseAuthentication();
 app.UseAuthorization();
 
