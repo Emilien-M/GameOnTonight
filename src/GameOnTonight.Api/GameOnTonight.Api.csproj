@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GameOnTonight.Application\GameOnTonight.Application.csproj" />
     <ProjectReference Include="..\GameOnTonight.Infrastructure\GameOnTonight.Infrastructure.csproj" />
   </ItemGroup>
 
