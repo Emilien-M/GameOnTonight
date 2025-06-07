@@ -1,6 +1,9 @@
+using GameOnTonight.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using GameOnTonight.Infrastructure.Configurations;
+using GameOnTonight.Infrastructure.Interceptors;
 
 namespace GameOnTonight.Infrastructure.Persistence;
 
@@ -10,19 +13,29 @@ namespace GameOnTonight.Infrastructure.Persistence;
 /// </summary>
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly AuditableEntityInterceptor _auditableEntityInterceptor;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        AuditableEntityInterceptor auditableEntityInterceptor)
         : base(options)
     {
+        _auditableEntityInterceptor = auditableEntityInterceptor;
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.AddInterceptors(_auditableEntityInterceptor);
+        base.OnConfiguring(optionsBuilder);
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         
-        // Ajouter ici les configurations personnalisées pour les entités métier
-        // Par exemple : builder.ApplyConfiguration(new GameConfiguration());
+        builder.ApplyConfiguration(new GameConfiguration());
     }
     
     // Définir ici les DbSet pour les entités métier
-    // Par exemple : public DbSet<Game> Games { get; set; }
+    public DbSet<Game> Games { get; set; }
 }

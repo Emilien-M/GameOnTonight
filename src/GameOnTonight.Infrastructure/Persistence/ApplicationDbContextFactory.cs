@@ -1,4 +1,5 @@
 using System;
+using GameOnTonight.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -24,7 +25,10 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         builder.UseNpgsql(connectionString);
+        
+        // Créer une instance temporaire de l'intercepteur pour le contexte de design-time
+        var auditInterceptor = new AuditableEntityInterceptor(TimeProvider.System);
 
-        return new ApplicationDbContext(builder.Options);
+        return new ApplicationDbContext(builder.Options, auditInterceptor);
     }
 }

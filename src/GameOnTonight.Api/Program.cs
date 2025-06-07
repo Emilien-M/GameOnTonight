@@ -1,5 +1,7 @@
 using System.Text;
+using GameOnTonight.Api.Middlewares;
 using GameOnTonight.Application.Auth.Commands;
+using GameOnTonight.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,9 @@ builder.Services.AddOpenApi(options =>
 // Configurer les services DB et Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Ajouter les repositories et l'UnitOfWork
+builder.Services.AddRepositories();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
@@ -113,6 +118,10 @@ app.UseStaticFiles();
 app.MapOpenApi("/openapi/v1.json");
 
 // app.UseHttpsRedirection(); // Commenté car nous utilisons HTTP entre les conteneurs
+
+// Ajouter le middleware UnitOfWork avant l'authentification et l'autorisation
+app.UseUnitOfWork();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
