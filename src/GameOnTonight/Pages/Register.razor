@@ -76,7 +76,7 @@
 </AuthorizeView>
 
 @code {
-    private RegisterRequest registerModel = new RegisterRequest();
+    private RegisterUserCommand registerModel = new();
     private bool isLoading = false;
     private string? errorMessage;
     private bool registrationSuccess = false;
@@ -91,7 +91,7 @@
         {
             await ApiClient.RegisterAsync(registerModel);
             registrationSuccess = true;
-            registerModel = new RegisterRequest(); // Réinitialise le formulaire
+            registerModel = new RegisterUserCommand(); // Réinitialise le formulaire
         }
         catch (ApiException ex)
         {

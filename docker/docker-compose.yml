@@ -23,7 +23,7 @@ services:
       no_cache: true
     container_name: gameontonight-api
     ports:
-      - "5235:8080"
+      - "5235:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
