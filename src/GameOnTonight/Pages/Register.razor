@@ -1,10 +1,7 @@
-@page "/login"
+@page "/register"
 @using GameOnTonight.RestClient.Generated
-@using GameOnTonight.Services
-@using Microsoft.AspNetCore.Components.Authorization
 @inject IGameOnTonightApiClient ApiClient
 @inject NavigationManager NavigationManager
-@inject IAuthService AuthService
 
 <AuthorizeView Context="authContext">
     <Authorized>
@@ -13,37 +10,43 @@
         </div>
     </Authorized>
     <NotAuthorized>
-        <h3>Connexion</h3>
+        <h3>Inscription</h3>
 
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
-                                <ValidationMessage For="@(() => loginModel.Email)" />
+                                <InputText id="email" class="form-control" @bind-Value="registerModel.Email" />
+                                <ValidationMessage For="@(() => registerModel.Email)" />
                             </div>
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">Mot de passe</label>
-                                <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
-                                <ValidationMessage For="@(() => loginModel.Password)" />
+                                <InputText id="password" type="password" class="form-control" @bind-Value="registerModel.Password" />
+                                <ValidationMessage For="@(() => registerModel.Password)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                                <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="registerModel.ConfirmPassword" />
+                                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
                             </div>
 
                             <button type="submit" class="btn btn-primary" disabled="@isLoading">
                                 @if (isLoading)
                                 {
                                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                    <span> Connexion...</span>
+                                    <span> Inscription en cours...</span>
                                 }
                                 else
                                 {
-                                    <span>Se connecter</span>
+                                    <span>S'inscrire</span>
                                 }
                             </button>
                         </EditForm>
@@ -54,9 +57,16 @@
                                 @errorMessage
                             </div>
                         }
+
+                        @if (registrationSuccess)
+                        {
+                            <div class="alert alert-success mt-3">
+                                Inscription réussie ! Vous pouvez maintenant vous <a href="login">connecter</a>.
+                            </div>
+                        }
                         
                         <div class="mt-3">
-                            Pas encore de compte ? <a href="register">S'inscrire</a>
+                            Déjà un compte ? <a href="login">Se connecter</a>
                         </div>
                     </div>
                 </div>
@@ -66,30 +76,26 @@
 </AuthorizeView>
 
 @code {
-    private LoginRequest loginModel = new LoginRequest();
+    private RegisterRequest registerModel = new RegisterRequest();
     private bool isLoading = false;
     private string? errorMessage;
+    private bool registrationSuccess = false;
 
-    private async Task HandleLogin()
+    private async Task HandleRegister()
     {
         errorMessage = null;
+        registrationSuccess = false;
         isLoading = true;
 
         try
         {
-            // Effectuer la requête de connexion avec la méthode correcte
-            var token = await ApiClient.LoginAsync(loginModel);
-           
-            await AuthService.LoginAsync(token);
-            NavigationManager.NavigateTo("/", true);
+            await ApiClient.RegisterAsync(registerModel);
+            registrationSuccess = true;
+            registerModel = new RegisterRequest(); // Réinitialise le formulaire
         }
         catch (ApiException ex)
         {
-            errorMessage = $"Erreur lors de la connexion: {ex.StatusCode} - {ex.Message}";
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+            errorMessage = $"Erreur lors de l'inscription: {ex.StatusCode} - {ex.Message}";
         }
         finally
         {
