@@ -1,9 +1,346 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authorization
+@using GameOnTonight.RestClient.Generated
 @attribute [Authorize]
+@inject IGameOnTonightApiClient ApiClient
+@inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Game On Tonight - Filtrer</PageTitle>
 
-<h1>Bienvenue sur GameOnTonight</h1>
+<h1 class="mb-4">Quelle partie ce soir ?</h1>
 
-<p>Vous êtes connecté et pouvez accéder au contenu protégé de l'application.</p>
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filtrer ma ludothèque</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="playerCount" class="form-label">Nombre de joueurs</label>
+                    <input type="number" class="form-control" id="playerCount" min="1" @bind="playerCount" @bind:event="oninput" />
+                    <small class="form-text text-muted">Combien de personnes vont jouer?</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="maxDuration" class="form-label">Temps disponible (minutes)</label>
+                    <input type="number" class="form-control" id="maxDuration" min="0" step="15" @bind="maxDuration" @bind:event="oninput" />
+                    <small class="form-text text-muted">Durée maximum souhaitée</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Type de jeu</label>
+                    @if (gameTypes == null || !gameTypes.Any())
+                    {
+                        <p><em>Chargement des types de jeu...</em></p>
+                    }
+                    else
+                    {
+                        <select class="form-select" @bind="selectedGameType">
+                            <option value="">Tous les types</option>
+                            @foreach (var type in gameTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    }
+                </div>
+
+                <button class="btn btn-primary w-100" @onclick="FilterGames" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span> Recherche en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Trouver un jeu</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @errorMessage
+                <button type="button" class="btn-close float-end" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+
+        @if (filteredGames != null)
+        {
+            @if (!filteredGames.Any())
+            {
+                <div class="alert alert-info" role="alert">
+                    <h4>Aucun jeu correspondant</h4>
+                    <p>Essayez de modifier vos critères de recherche.</p>
+                    
+                    @if (playerCount.HasValue)
+                    {
+                        <p>
+                            <span class="badge bg-primary">@playerCount joueur(s)</span>
+                        </p>
+                    }
+                    
+                    @if (maxDuration.HasValue)
+                    {
+                        <p>
+                            <span class="badge bg-secondary">Max @maxDuration minutes</span>
+                        </p>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(selectedGameType))
+                    {
+                        <p>
+                            <span class="badge bg-info">Type: @selectedGameType</span>
+                        </p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Jeux correspondants (@filteredGames.Count)</h5>
+                        @if (filteredGames.Count > 1)
+                        {
+                            <button class="btn btn-success" @onclick="ChooseRandomGame" disabled="@isRandomizing">
+                                @if (isRandomizing)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                }
+                                🎲 Choisir au hasard
+                            </button>
+                        }
+                    </div>
+                    <div class="list-group list-group-flush">
+                        @foreach (var game in filteredGames)
+                        {
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">@game.Name</h5>
+                                    <div class="mb-1">
+                                        <span class="badge bg-primary me-1">@game.MinPlayers-@game.MaxPlayers joueurs</span>
+                                        <span class="badge bg-secondary me-1">@game.DurationMinutes min</span>
+                                        <span class="badge bg-info">@game.GameType</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(game.Description))
+                                    {
+                                        <small class="text-muted d-block">@(game.Description.Length > 100 ? game.Description.Substring(0, 100) + "..." : game.Description)</small>
+                                    }
+                                </div>
+                                <button class="btn btn-outline-primary" @onclick="() => SelectGame(game.Id)">Choisir</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        @if (selectedGame != null)
+        {
+            <div class="modal fade show" style="display:block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-center">Jeu sélectionné</h5>
+                            <button type="button" class="btn-close" @onclick="CloseGameModal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <h2 class="display-4 mb-4">@selectedGame.Name</h2>
+                            
+                            @if (!string.IsNullOrEmpty(selectedGame.ImageUrl))
+                            {
+                                <img src="@selectedGame.ImageUrl" style="max-width: 100%; max-height: 300px; object-fit: contain;" alt="@selectedGame.Name" class="mb-4" />
+                            }
+                            
+                            <div class="d-flex justify-content-center mb-3">
+                                <span class="badge bg-primary mx-1 fs-6">@selectedGame.MinPlayers-@selectedGame.MaxPlayers joueurs</span>
+                                <span class="badge bg-secondary mx-1 fs-6">@selectedGame.DurationMinutes min</span>
+                                <span class="badge bg-info mx-1 fs-6">@selectedGame.GameType</span>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(selectedGame.Description))
+                            {
+                                <p class="mb-4">@selectedGame.Description</p>
+                            }
+
+                            <p class="lead mt-4">Ajouter cette partie à l'historique ?</p>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseGameModal">Fermer</button>
+                            <button type="button" class="btn btn-primary" @onclick="RecordGameSession" disabled="@isRecording">
+                                @if (isRecording)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span> Enregistrement...</span>
+                                }
+                                else
+                                {
+                                    <span>Enregistrer cette partie</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private int? playerCount;
+    private int? maxDuration;
+    private string? selectedGameType = string.Empty;
+    private ICollection<string>? gameTypes;
+    private ICollection<BoardGameViewModel>? filteredGames;
+    private BoardGameViewModel? selectedGame;
+    
+    private bool isLoading = false;
+    private bool isRandomizing = false;
+    private bool isRecording = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            gameTypes = await ApiClient.TypesAsync();
+        }
+        catch
+        {
+            // Si l'API de types échoue, on continue avec un champ texte libre
+        }
+    }
+
+    private async Task FilterGames()
+    {
+        isLoading = true;
+        errorMessage = null;
+        filteredGames = null;
+        selectedGame = null;
+
+        try
+        {
+            filteredGames = await ApiClient.FilterAsync(playerCount, maxDuration, selectedGameType);
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors du filtrage: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ChooseRandomGame()
+    {
+        if (filteredGames == null || !filteredGames.Any())
+            return;
+
+        isRandomizing = true;
+        
+        try
+        {
+            // Récupérer les IDs des jeux filtrés
+            var gameIds = filteredGames.Select(g => g.Id).ToList();
+            
+            // Appeler l'API pour choisir un jeu aléatoire
+            selectedGame = await ApiClient.RandomAsync(gameIds);
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors du choix aléatoire: {ex.Message}";
+            
+            // Fallback: choix aléatoire côté client si l'API échoue
+            if (filteredGames.Any())
+            {
+                var random = new Random();
+                selectedGame = filteredGames.ElementAt(random.Next(filteredGames.Count));
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+            
+            // Fallback: choix aléatoire côté client
+            if (filteredGames.Any())
+            {
+                var random = new Random();
+                selectedGame = filteredGames.ElementAt(random.Next(filteredGames.Count));
+            }
+        }
+        finally
+        {
+            isRandomizing = false;
+        }
+    }
+
+    private async Task SelectGame(int gameId)
+    {
+        try
+        {
+            selectedGame = await ApiClient.BoardGamesGETAsync(gameId);
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors de la sélection du jeu: {ex.Message}";
+        }
+    }
+
+    private void CloseGameModal()
+    {
+        selectedGame = null;
+    }
+
+    private async Task RecordGameSession()
+    {
+        if (selectedGame == null) return;
+
+        isRecording = true;
+        
+        try
+        {
+            // Créer une nouvelle session de jeu
+            var gameSession = new CreateGameSessionCommand
+            {
+                BoardGameId = selectedGame.Id,
+                PlayedAt = DateTime.Now,
+                PlayerCount = playerCount ?? selectedGame.MinPlayers,
+                Notes = $"Partie choisie via le filtre: {playerCount} joueurs, {maxDuration} minutes max, {(string.IsNullOrEmpty(selectedGameType) ? "Tous types" : selectedGameType)}"
+            };
+
+            // Enregistrer la session
+            await ApiClient.GameSessionsPOSTAsync(gameSession);
+            
+            // Fermer la modal et afficher un message de confirmation
+            selectedGame = null;
+            
+            // Afficher un message de confirmation
+            errorMessage = null;
+            filteredGames = null;
+            
+            // Rediriger vers l'historique
+            NavigationManager.NavigateTo("/history");
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors de l'enregistrement de la partie: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
+        finally
+        {
+            isRecording = false;
+        }
+    }
+}

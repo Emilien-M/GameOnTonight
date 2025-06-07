@@ -97,6 +97,10 @@
         {
             errorMessage = $"Erreur lors de l'inscription: {ex.StatusCode} - {ex.Message}";
         }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
         finally
         {
             isLoading = false;

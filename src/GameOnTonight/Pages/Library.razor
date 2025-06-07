@@ -1,0 +1,172 @@
+@page "/library"
+@using GameOnTonight.RestClient.Generated
+@attribute [Authorize]
+@inject IGameOnTonightApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<PageTitle>Ma Ludothèque</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Ma Ludothèque</h1>
+    <button class="btn btn-primary" @onclick="NavigateToAddGame">
+        <i class="oi oi-plus me-2"></i> Ajouter un jeu
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+}
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger">
+        @errorMessage
+        <button type="button" class="btn-close float-end" @onclick="() => errorMessage = null"></button>
+    </div>
+}
+else if (boardGames == null || !boardGames.Any())
+{
+    <div class="alert alert-info">
+        <p>Vous n'avez pas encore ajouté de jeux à votre ludothèque.</p>
+        <button class="btn btn-primary" @onclick="NavigateToAddGame">Ajouter mon premier jeu</button>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var game in boardGames)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(game.ImageUrl))
+                    {
+                        <img src="@game.ImageUrl" class="card-img-top" alt="@game.Name" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span class="text-white">Pas d'image</span>
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@game.Name</h5>
+                        <p class="card-text">
+                            <span class="badge bg-primary me-2">@game.MinPlayers-@game.MaxPlayers joueurs</span>
+                            <span class="badge bg-secondary me-2">@game.DurationMinutes min</span>
+                            <span class="badge bg-info">@game.GameType</span>
+                        </p>
+                        @if (!string.IsNullOrEmpty(game.Description))
+                        {
+                            <p class="card-text">@(game.Description.Length > 100 ? game.Description.Substring(0, 100) + "..." : game.Description)</p>
+                        }
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => EditGame(game.Id)">Modifier</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteGamePrompt(game)">Supprimer</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" @onclick="() => showDeleteConfirm = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer <strong>@(gameToDelete?.Name)</strong> de votre ludothèque ?</p>
+                    <p class="text-danger"><strong>Cette action est irréversible.</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => showDeleteConfirm = false">Annuler</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteGame">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private ICollection<BoardGameViewModel>? boardGames;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool showDeleteConfirm = false;
+    private BoardGameViewModel? gameToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBoardGames();
+    }
+
+    private async Task LoadBoardGames()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            boardGames = await ApiClient.BoardGamesAllAsync();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors du chargement des jeux: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToAddGame()
+    {
+        NavigationManager.NavigateTo("/library/add");
+    }
+
+    private void EditGame(int id)
+    {
+        NavigationManager.NavigateTo($"/library/edit/{id}");
+    }
+
+    private void DeleteGamePrompt(BoardGameViewModel game)
+    {
+        gameToDelete = game;
+        showDeleteConfirm = true;
+    }
+
+    private async Task ConfirmDeleteGame()
+    {
+        if (gameToDelete == null) return;
+
+        try
+        {
+            await ApiClient.BoardGamesDELETEAsync(gameToDelete.Id);
+            showDeleteConfirm = false;
+            gameToDelete = null;
+            await LoadBoardGames();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors de la suppression: {ex.Message}";
+            showDeleteConfirm = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+            showDeleteConfirm = false;
+        }
+    }
+}

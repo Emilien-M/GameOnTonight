@@ -1,0 +1,250 @@
+@page "/library/edit/{Id:int}"
+@using GameOnTonight.RestClient.Generated
+@attribute [Authorize]
+@inject IGameOnTonightApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<PageTitle>Modifier un jeu</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Modifier un jeu</h1>
+        <button class="btn btn-outline-secondary" @onclick='() => NavigationManager.NavigateTo("/library")'>
+            Retour à la ludothèque
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @errorMessage
+            <button type="button" class="btn btn-outline-secondary ms-3" @onclick='() => NavigationManager.NavigateTo("/library")'>
+                Retour à la ludothèque
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <EditForm Model="@boardGame" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nom du jeu *</label>
+                                <InputText id="name" class="form-control" @bind-Value="boardGame.Name" />
+                                <ValidationMessage For="@(() => boardGame.Name)" />
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="minPlayers" class="form-label">Nombre min. de joueurs *</label>
+                                    <InputNumber id="minPlayers" class="form-control" @bind-Value="boardGame.MinPlayers" min="1" />
+                                    <ValidationMessage For="@(() => boardGame.MinPlayers)" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="maxPlayers" class="form-label">Nombre max. de joueurs *</label>
+                                    <InputNumber id="maxPlayers" class="form-control" @bind-Value="boardGame.MaxPlayers" min="1" />
+                                    <ValidationMessage For="@(() => boardGame.MaxPlayers)" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="durationMinutes" class="form-label">Durée (en minutes) *</label>
+                                <InputNumber id="durationMinutes" class="form-control" @bind-Value="boardGame.DurationMinutes" min="1" />
+                                <ValidationMessage For="@(() => boardGame.DurationMinutes)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="gameType" class="form-label">Type de jeu *</label>
+                                @if (gameTypes == null || !gameTypes.Any())
+                                {
+                                    <InputText id="gameType" class="form-control" @bind-Value="boardGame.GameType" placeholder="Ex: Stratégie, Cartes, Famille..." />
+                                }
+                                else
+                                {
+                                    <InputSelect id="gameType" class="form-select" @bind-Value="boardGame.GameType">
+                                        <option value="">-- Sélectionner un type --</option>
+                                        @foreach (var type in gameTypes)
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    </InputSelect>
+                                }
+                                <ValidationMessage For="@(() => boardGame.GameType)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <InputTextArea id="description" class="form-control" @bind-Value="boardGame.Description" rows="4" />
+                                <ValidationMessage For="@(() => boardGame.Description)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="imageUrl" class="form-label">URL de l'image</label>
+                                <InputText id="imageUrl" class="form-control" @bind-Value="boardGame.ImageUrl" />
+                                <small class="form-text text-muted">Entrez l'URL d'une image représentant le jeu</small>
+                                <ValidationMessage For="@(() => boardGame.ImageUrl)" />
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary" @onclick='() => NavigationManager.NavigateTo("/library")'>
+                                    Annuler
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span> Enregistrement...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Enregistrer les modifications</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+
+                        @if (!string.IsNullOrEmpty(submitErrorMessage))
+                        {
+                            <div class="alert alert-danger mt-3">
+                                @submitErrorMessage
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Aperçu</h5>
+                        <div class="preview-card border rounded p-3 mt-3">
+                            @if (!string.IsNullOrEmpty(boardGame.ImageUrl))
+                            {
+                                <img src="@boardGame.ImageUrl" style="max-width: 100%; max-height: 200px; object-fit: contain;" alt="Aperçu de l'image" />
+                            }
+                            else
+                            {
+                                <div class="bg-secondary text-white text-center py-5">
+                                    <span>Pas d'image</span>
+                                </div>
+                            }
+                            <h5 class="mt-3">@(string.IsNullOrEmpty(boardGame.Name) ? "Nom du jeu" : boardGame.Name)</h5>
+                            <div class="mt-2">
+                                <span class="badge bg-primary">@boardGame.MinPlayers-@boardGame.MaxPlayers joueurs</span>
+                                <span class="badge bg-secondary ms-1">@boardGame.DurationMinutes min</span>
+                                <span class="badge bg-info ms-1">@(string.IsNullOrEmpty(boardGame.GameType) ? "Type" : boardGame.GameType)</span>
+                            </div>
+                            <p class="mt-2 small">
+                                @(string.IsNullOrEmpty(boardGame.Description) ? "Description du jeu..." : boardGame.Description)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateBoardGameCommand boardGame = new();
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private string? submitErrorMessage;
+    private ICollection<string>? gameTypes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGameData();
+        
+        try
+        {
+            gameTypes = await ApiClient.TypesAsync();
+        }
+        catch
+        {
+            // Si l'API de types échoue, on continue sans les types prédéfinis
+        }
+    }
+
+    private async Task LoadGameData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var game = await ApiClient.BoardGamesGETAsync(Id);
+            
+            // Mappage vers le modèle de mise à jour
+            boardGame = new UpdateBoardGameCommand
+            {
+                Id = game.Id,
+                Name = game.Name,
+                MinPlayers = game.MinPlayers,
+                MaxPlayers = game.MaxPlayers,
+                DurationMinutes = game.DurationMinutes,
+                GameType = game.GameType,
+                Description = game.Description,
+                ImageUrl = game.ImageUrl
+            };
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = $"Erreur lors du chargement du jeu: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (boardGame.MaxPlayers < boardGame.MinPlayers)
+        {
+            submitErrorMessage = "Le nombre maximum de joueurs doit être supérieur ou égal au nombre minimum.";
+            return;
+        }
+
+        isSubmitting = true;
+        submitErrorMessage = null;
+
+        try
+        {
+            await ApiClient.BoardGamesPUTAsync(Id, boardGame);
+            NavigationManager.NavigateTo("/library");
+        }
+        catch (ApiException ex)
+        {
+            submitErrorMessage = $"Erreur lors de la mise à jour du jeu: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            submitErrorMessage = $"Une erreur inattendue s'est produite: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
