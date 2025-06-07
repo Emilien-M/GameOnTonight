@@ -1,9 +1,8 @@
 using System.Linq.Expressions;
-using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Entities.Common;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using GameOnTonight.Infrastructure.Persistence;
-using GameOnTonight.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameOnTonight.Infrastructure.Repositories;

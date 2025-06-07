@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GameOnTonight.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250607195357_AddGameEntity")]
-    partial class AddGameEntity
+    [Migration("20250607201116_AddBoardGamesAndSessions")]
+    partial class AddBoardGamesAndSessions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GameOnTonight.Domain.Entities.Game", b =>
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.BoardGame", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -40,15 +40,28 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("GameType")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("MaxPlayers")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MinPlayers")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -60,13 +73,58 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsActive");
+                    b.HasIndex("GameType");
 
                     b.HasIndex("Name");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Games", (string)null);
+                    b.HasIndex("MinPlayers", "MaxPlayers");
+
+                    b.ToTable("BoardGames", (string)null);
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BoardGameId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("PlayedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PlayerCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoardGameId");
+
+                    b.HasIndex("PlayedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GameSessions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -265,6 +323,17 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSession", b =>
+                {
+                    b.HasOne("GameOnTonight.Domain.Entities.BoardGame", "BoardGame")
+                        .WithMany("GameSessions")
+                        .HasForeignKey("BoardGameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BoardGame");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -314,6 +383,11 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.BoardGame", b =>
+                {
+                    b.Navigation("GameSessions");
                 });
 #pragma warning restore 612, 618
         }

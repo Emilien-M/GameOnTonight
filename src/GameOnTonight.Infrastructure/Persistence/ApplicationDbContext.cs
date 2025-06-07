@@ -2,8 +2,8 @@ using GameOnTonight.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using GameOnTonight.Infrastructure.Configurations;
 using GameOnTonight.Infrastructure.Interceptors;
+using GameOnTonight.Infrastructure.Configurations;
 
 namespace GameOnTonight.Infrastructure.Persistence;
 
@@ -33,9 +33,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(builder);
         
-        builder.ApplyConfiguration(new GameConfiguration());
+        // Appliquer les configurations d'entités
+        builder.ApplyConfiguration(new BoardGameConfiguration());
+        builder.ApplyConfiguration(new GameSessionConfiguration());
     }
     
     // Définir ici les DbSet pour les entités métier
-    public DbSet<Game> Games { get; set; }
+    public DbSet<BoardGame> BoardGames { get; set; }
+    public DbSet<GameSession> GameSessions { get; set; }
 }

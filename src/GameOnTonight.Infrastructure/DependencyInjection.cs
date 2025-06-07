@@ -1,4 +1,5 @@
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using GameOnTonight.Infrastructure.Interceptors;
 using GameOnTonight.Infrastructure.Repositories;
 using GameOnTonight.Infrastructure.Services;
@@ -27,7 +28,8 @@ public static class DependencyInjection
         
         // Enregistrement des repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<IGameRepository, GameRepository>();
+        services.AddScoped<IBoardGameRepository, BoardGameRepository>();
+        services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         
         // Enregistrement de l'UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
