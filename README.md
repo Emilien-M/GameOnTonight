@@ -1,4 +1,4 @@
-# Board Game Assistant
+# Game on Tonight 
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Project Status](https://img.shields.io/badge/status-in%20development-green.svg)

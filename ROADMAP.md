@@ -1,6 +1,6 @@
 # Project Roadmap
 
-This document describes the objectives and planned features for future versions of the Board Game Assistant. The roadmap is divided into several phases, starting with the Minimum Viable Product (MVP) up to longer-term ambitions.
+This document describes the objectives and planned features for future versions of the Game on Tonight. The roadmap is divided into several phases, starting with the Minimum Viable Product (MVP) up to longer-term ambitions.
 
 > **Note**: This roadmap is a living document. It may evolve based on community feedback and technical challenges encountered.
 
