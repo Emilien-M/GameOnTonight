@@ -1,4 +1,5 @@
 using System.Text;
+using GameOnTonight.Application.Auth.Commands;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,7 @@ builder.Services.AddAuthentication(options =>
 // Configurer CORS pour accepter les requêtes du frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("DevelopmentPolicy", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyHeader()
@@ -75,6 +76,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
                                 Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+});
+
+builder.Services.AddMediator(options =>
+{
+    options.Assemblies = [typeof(RegisterUserCommand), typeof(Program)];
+    options.ServiceLifetime = ServiceLifetime.Scoped;
 });
 
 builder.Services.AddControllers();

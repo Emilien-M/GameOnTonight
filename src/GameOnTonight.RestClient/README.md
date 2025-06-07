@@ -31,11 +31,7 @@ dotnet tool install NSwag.ConsoleCore
 Pour générer le client API, exécutez le script PowerShell :
 
 ```bash
-# Version par défaut (API sur http://localhost:5235)
 pwsh ./generate-client.ps1
-
-# Avec des paramètres personnalisés
-pwsh ./generate-client.ps1 -ApiUrl "https://api.gametonight.example.com" -OpenApiEndpoint "/openapi/v1.json"
 ```
 
 Le script générera un fichier `ApiClient.cs` dans le dossier `Generated/`.
