@@ -1,60 +1,43 @@
 ﻿@using GameOnTonight.Services
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">GameOnTonight</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Accueil
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <a class="nav-link" href="javascript:void(0)" @onclick="Logout">
-                        <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span> Déconnexion
-                    </a>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="login">
-                        <span class="bi bi-box-arrow-in-right-nav-menu" aria-hidden="true"></span> Connexion
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="register">
-                        <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> Inscription
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
+<AuthorizeView>
+    <Authorized>
+        <nav class="mobile-tab-bar">
+            <NavLink class="tab-item" href="" Match="NavLinkMatch.All">
+                <i class="tab-icon filter-icon"></i>
+                <span>Filtrer</span>
+            </NavLink>
+            <NavLink class="tab-item" href="library">
+                <i class="tab-icon library-icon"></i>
+                <span>Ludothèque</span>
+            </NavLink>
+            <NavLink class="tab-item" href="history">
+                <i class="tab-icon history-icon"></i>
+                <span>Historique</span>
+            </NavLink>
+            <NavLink class="tab-item" href="profile">
+                <i class="tab-icon profile-icon"></i>
+                <span>Profil</span>
+            </NavLink>
+        </nav>
+    </Authorized>
+    <NotAuthorized>
+        <nav class="mobile-tab-bar">
+            <NavLink class="tab-item" href="login">
+                <i class="tab-icon login-icon"></i>
+                <span>Connexion</span>
+            </NavLink>
+            <NavLink class="tab-item" href="register">
+                <i class="tab-icon register-icon"></i>
+                <span>Inscription</span>
+            </NavLink>
+        </nav>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
-    private bool collapseNavMenu = true;
-
-    [Inject]
-    private IAuthService AuthService { get; set; } = default!;
-    
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-
     private async Task Logout()
     {
         await AuthService.LogoutAsync();
