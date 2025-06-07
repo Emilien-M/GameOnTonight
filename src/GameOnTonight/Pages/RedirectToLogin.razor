@@ -1,0 +1,17 @@
+@page "/authentication/login-redirect"
+@layout MainLayout
+@inject NavigationManager Navigation
+
+<div class="alert alert-warning">
+    <h3>Authentification requise</h3>
+    <p>Vous devez être connecté pour accéder à cette page.</p>
+    <a class="btn btn-primary" href="login">Se connecter</a>
+    <a class="btn btn-outline-secondary" href="register">S'inscrire</a>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo($"login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", false);
+    }
+}

@@ -45,6 +45,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [Produces(typeof(string))]
     public async Task<IActionResult> Login([FromBody] LoginRequest model)
     {
         if (!ModelState.IsValid)
@@ -62,7 +63,7 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(model.Email);
         var token = GenerateJwtToken(user);
 
-        return Ok(new { token });
+        return Ok(token);
     }
 
     private string GenerateJwtToken(IdentityUser user)
