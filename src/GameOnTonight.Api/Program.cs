@@ -70,9 +70,23 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.AllowAnyOrigin() // Permissive for local development
               .AllowAnyHeader()
               .AllowAnyMethod();
+    });
+
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://yourfrontenddomain.com",  // Replace with your actual production frontend URL
+                           "http://localhost:3000",          // Common Blazor local dev URL via Docker frontend
+                           "https://localhost:3001"          // Common Blazor local https dev URL (if applicable)
+                           )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // If your frontend sends credentials (e.g., cookies, auth headers)
+                                   // and you need to support them with CORS.
+                                   // If not, this can be omitted.
+                                   // If using .AllowCredentials(), .AllowAnyOrigin() cannot be used for this policy.
     });
 });
 
@@ -99,6 +113,9 @@ app.MigrateDatabase<ApplicationDbContext>();
 
 // Configuration pour gérer les forwarded headers du proxy
 app.UseForwardedHeaders();
+
+// Register global exception handling middleware early in the pipeline
+app.UseGlobalExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

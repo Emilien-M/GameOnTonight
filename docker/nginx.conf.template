@@ -1,0 +1,53 @@
+# /docker/nginx.conf.template
+# Default Nginx configuration for serving a Blazor WebAssembly application.
+# Copy this to nginx.conf in the same directory and customize if needed.
+
+events {
+    worker_connections 1024; # Default, adjust if necessary
+}
+
+http {
+    include       /etc/nginx/mime.types; # Include standard MIME types
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on; # Consider enabling Gzip for better performance
+
+    server {
+        listen 80;
+        server_name localhost; # Can be adjusted
+
+        # Root directory for Blazor WASM static files
+        # This path matches the WORKDIR in the Dockerfile.App's final stage
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+
+        location / {
+            # Try to serve the requested file directly, otherwise fall back to index.html
+            # This is crucial for Blazor's client-side routing to work correctly.
+            try_files $uri $uri/ /index.html =404;
+        }
+
+        # Optional: Add cache control headers for Blazor assets
+        # Adjust cache durations as needed
+        location ~* \.(css|js|wasm|dll|dat|blat|pdb|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|ico)$ {
+            expires 1y; # Cache static assets for a long time
+            add_header Cache-Control "public, no-transform";
+        }
+
+        # Optional: Deny access to sensitive files if any were accidentally published
+        # location ~ /\. {
+        #     deny all;
+        # }
+        # location ~ /appsettings\.json$ {
+        #     deny all;
+        # }
+        # location ~ /web\.config$ {
+        #     deny all;
+        # }
+    }
+}
