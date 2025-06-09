@@ -7,6 +7,7 @@ This document serves as a guide for implementing the GameOnTonight project accor
 1. [Global Architecture](#global-architecture)
 2. [Backend Guidelines](#backend-guidelines)
    - [Patterns and Principles](#patterns-and-principles-backend)
+   - [Error Handling](#error-handling)
    - [File and Folder Structure](#file-and-folder-structure-backend)
    - [Naming Conventions](#naming-conventions-backend)
    - [Dependency Injection](#dependency-injection-backend)
@@ -72,6 +73,46 @@ The project follows Clean Architecture with the following layers:
 - Input validation is done in Mediator handlers
 - Verify authorizations and access rights in handlers
 - Return appropriate exceptions in case of error
+- Domain entities should validate their own business rules by using DomainError pattern
+
+### Error Handling
+
+#### 1. Global Error Handling
+- All exceptions are caught by the `ErrorHandlingMiddleware` and transformed into standardized API responses
+- Never handle exceptions manually in controllers, let the middleware handle them
+- API responses follow a consistent error format using the `ErrorResponse` model
+
+#### 2. Domain Validation
+- Domain entities inherit from `BaseEntity` which provides error collection capabilities
+- Entities validate their own state by adding domain errors via `AddDomainError` methods
+- Use provided helper methods like `ValidateString` and `ValidateNumber` for common validations
+- Complex validations involving multiple properties should be defined in dedicated validation methods
+- Always validate domain invariants in setters or business method calls
+
+#### 3. Domain Errors and Exceptions
+- `DomainError`: Value object representing a business rule violation, stored in entities
+- `DomainException`: Exception containing one or more DomainErrors, thrown at transaction boundaries
+- Domain errors are caught and converted to HTTP 400 Bad Request responses
+- Other exceptions are treated as HTTP 500 Internal Server Errors by default
+
+#### 4. Error Persistance Prevention
+- The UnitOfWork checks all tracked entities for domain errors before saving to database
+- If domain errors are detected, a `DomainException` is thrown and changes are not persisted
+- This ensures that invalid entities are never stored in the database
+
+#### 5. Error Response Format
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "Validation Error Title",
+  "status": 400,
+  "traceId": "c7a27145-8352-4267-9238-b3148ce41e32",
+  "errors": {
+    "propertyName1": ["Error message 1", "Error message 2"],
+    "propertyName2": ["Error message 3"]
+  }
+}
+```
 
 ### File and Folder Structure (Backend)
 

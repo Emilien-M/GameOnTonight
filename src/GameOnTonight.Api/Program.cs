@@ -100,6 +100,9 @@ app.MigrateDatabase<ApplicationDbContext>();
 // Configuration pour gérer les forwarded headers du proxy
 app.UseForwardedHeaders();
 
+// Ajouter le middleware de gestion globale des erreurs en premier dans le pipeline
+app.UseErrorHandling();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
