@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Net;
+using Microsoft.AspNetCore.Http;
 
 namespace GameOnTonight.Api.Models;
 
@@ -13,7 +15,7 @@ public class ErrorResponse
     public string TraceId { get; set; }
     public Dictionary<string, string[]> Errors { get; set; }
 
-    public ErrorResponse(string title, HttpStatusCode status, Dictionary<string, string[]> errors = null)
+    public ErrorResponse(string title, HttpStatusCode status, Dictionary<string, string[]> errors = null, HttpContext httpContext = null)
     {
         Type = status switch
         {
@@ -26,7 +28,13 @@ public class ErrorResponse
         
         Title = title;
         Status = (int)status;
-        TraceId = Guid.NewGuid().ToString();
+        
+        // Utilise Activity.Current?.Id en priorité, puis HttpContext.TraceIdentifier comme fallback
+        // et enfin générer un nouveau GUID si rien n'est disponible
+        TraceId = Activity.Current?.Id 
+            ?? httpContext?.TraceIdentifier 
+            ?? Guid.NewGuid().ToString();
+            
         Errors = errors ?? new Dictionary<string, string[]>();
     }
 }

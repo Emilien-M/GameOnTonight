@@ -1,4 +1,5 @@
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Api.Attributes;
 
 namespace GameOnTonight.Api.Middlewares;
 
@@ -23,19 +24,21 @@ public class UnitOfWorkMiddleware
             // Traitement de la requête
             await _next(context);
 
-            // Si la requête est GET ou OPTIONS, on ne sauvegarde pas car elles sont considérées comme en lecture seule
-            if (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsOptions(context.Request.Method) || 
-                HttpMethods.IsHead(context.Request.Method) || HttpMethods.IsTrace(context.Request.Method))
+            // Si la requête s'est terminée avec succès (statut 2xx)
+            if (context.Response.StatusCode is >= 200 and < 300)
             {
-                return;
-            }
-
-            // Si la requête s'est terminée avec succès (statut 2xx), on applique l'UnitOfWork
-            if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
-            {
-                await unitOfWork.SaveChangesAsync();
-                _logger.LogDebug("UnitOfWork applied successfully for request {Method} {Path}", 
-                    context.Request.Method, context.Request.Path);
+                // Vérifier si on doit appliquer l'UnitOfWork
+                if (ShouldApplyUnitOfWork(context))
+                {
+                    await unitOfWork.SaveChangesAsync();
+                    _logger.LogDebug("UnitOfWork applied successfully for request {Method} {Path}", 
+                        context.Request.Method, context.Request.Path);
+                }
+                else
+                {
+                    _logger.LogDebug("UnitOfWork skipped for request {Method} {Path} based on attribute settings", 
+                        context.Request.Method, context.Request.Path);
+                }
             }
         }
         catch (Exception ex)
@@ -43,6 +46,46 @@ public class UnitOfWorkMiddleware
             _logger.LogError(ex, "Error occurred during UnitOfWork middleware execution");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Détermine si l'UnitOfWork doit être appliqué en fonction des attributs et de la méthode HTTP
+    /// </summary>
+    /// <param name="context">Le contexte HTTP de la requête</param>
+    /// <returns>Vrai si l'UnitOfWork doit être appliqué, faux sinon</returns>
+    private bool ShouldApplyUnitOfWork(HttpContext context)
+    {
+        // Récupérer l'endpoint correspondant à la requête
+        var endpoint = context.GetEndpoint();
+        if (endpoint == null)
+        {
+            // Si pas d'endpoint, on se base sur la méthode HTTP par défaut
+            return !IsReadOnlyHttpMethod(context.Request.Method);
+        }
+
+        // Vérifier si l'attribut UnitOfWork est présent sur le endpoint
+        var unitOfWorkAttribute = endpoint.Metadata.GetMetadata<UnitOfWorkAttribute>();
+        if (unitOfWorkAttribute != null)
+        {
+            // Si l'attribut est présent, on applique sa configuration
+            return unitOfWorkAttribute.Enabled;
+        }
+
+        // Par défaut, on applique l'UnitOfWork uniquement pour les méthodes non-lecture seule (POST, PUT, DELETE, etc.)
+        return !IsReadOnlyHttpMethod(context.Request.Method);
+    }
+
+    /// <summary>
+    /// Vérifie si la méthode HTTP est en lecture seule (GET, HEAD, OPTIONS, TRACE)
+    /// </summary>
+    /// <param name="httpMethod">La méthode HTTP à vérifier</param>
+    /// <returns>Vrai si la méthode est en lecture seule, faux sinon</returns>
+    private bool IsReadOnlyHttpMethod(string httpMethod)
+    {
+        return HttpMethods.IsGet(httpMethod) || 
+               HttpMethods.IsHead(httpMethod) || 
+               HttpMethods.IsOptions(httpMethod) || 
+               HttpMethods.IsTrace(httpMethod);
     }
 }
 

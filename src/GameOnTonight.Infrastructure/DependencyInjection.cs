@@ -23,6 +23,9 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         
+        // Enregistrement du service de validation d'entités
+        services.AddScoped<IEntityValidationService, EntityValidationService>();
+        
         // Enregistrement de l'intercepteur pour gérer les propriétés d'audit
         services.AddScoped<AuditableEntityInterceptor>();
         
