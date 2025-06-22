@@ -3,11 +3,13 @@ using GameOnTonight.Application.Auth.Queries;
 using GameOnTonight.Application.Auth.ViewModels;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace GameOnTonight.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -18,6 +20,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -27,11 +30,11 @@ public class AuthController : ControllerBase
 
         await _mediator.Send(command, cancellationToken);
 
-        return Ok(new { message = "Utilisateur créé avec succès" });
+        return Ok();
     }
 
     [HttpPost("login")]
-    [Produces(typeof(TokenViewModel))]
+    [ProducesResponseType(typeof(TokenViewModel), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> Login([FromBody] LoginQuery query, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

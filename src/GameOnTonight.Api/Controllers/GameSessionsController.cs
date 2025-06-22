@@ -4,12 +4,14 @@ using GameOnTonight.Application.GameSessions.ViewModels;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace GameOnTonight.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // Applique l'authentification à toutes les actions du contrôleur
+[Produces("application/json")]
 public class GameSessionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -20,6 +22,7 @@ public class GameSessionsController : ControllerBase
     }
 
     [HttpGet("history")]
+    [ProducesResponseType(typeof(IEnumerable<GameSessionViewModel>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<GameSessionViewModel>>> GetHistory([FromQuery] int? count = null)
     {
         var result = await _mediator.Send(new GetSessionHistoryQuery(count));
@@ -27,6 +30,7 @@ public class GameSessionsController : ControllerBase
     }
 
     [HttpGet("game/{boardGameId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<GameSessionViewModel>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<GameSessionViewModel>>> GetByGame(int boardGameId)
     {
         var result = await _mediator.Send(new GetSessionsByGameQuery(boardGameId));
@@ -34,20 +38,24 @@ public class GameSessionsController : ControllerBase
     }
 
     [HttpGet("counts")]
-    public async Task<ActionResult<IDictionary<int, int>>> GetGamePlayCounts()
+    [ProducesResponseType(typeof(IDictionary<string, int>), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<IDictionary<string, int>>> GetGamePlayCounts()
     {
         var result = await _mediator.Send(new GetGamePlayCountsQuery());
         return Ok(result);
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<int>> Create(CreateGameSessionCommand command)
     {
         var id = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id }, new { Id = id });
+        return Ok(id);
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(GameSessionViewModel), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<GameSessionViewModel>> GetById(int id)
     {
         // Nous n'avons pas encore implémenté cette requête - à ajouter
@@ -55,6 +63,8 @@ public class GameSessionsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> Update(int id, UpdateGameSessionCommand command)
     {
         if (id != command.Id)
@@ -65,10 +75,12 @@ public class GameSessionsController : ControllerBase
         if (!result)
             return NotFound();
             
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         var result = await _mediator.Send(new DeleteGameSessionCommand(id));
@@ -76,6 +88,6 @@ public class GameSessionsController : ControllerBase
         if (!result)
             return NotFound();
             
-        return NoContent();
+        return Ok();
     }
 }

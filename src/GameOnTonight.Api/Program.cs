@@ -1,5 +1,7 @@
 using System.Text;
-using GameOnTonight.Api.Middlewares;
+using GameOnTonight.Api.Config.Middlewares;
+using GameOnTonight.Api.Config.OpenApi;
+using GameOnTonight.Api.Config.Security;
 using GameOnTonight.Application.Auth.Commands;
 using GameOnTonight.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using GameOnTonight.Infrastructure.Persistence;
 using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +22,9 @@ builder.Host.UseDockerDatabase();
 builder.Services.AddOpenApi(options =>
 {
     options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddDocumentTransformer<SecurityRequirementsTransformer>();
+    options.AddDocumentTransformer<OperationIdTransformer>(); // Ajout du transformateur pour les operationId uniques
 });
 
 // Configurer les services DB et Identity
@@ -114,11 +120,9 @@ else
     app.UseCors("AllowFrontend");
 }
 
-// Ajout du support des fichiers statiques (pour Swagger UI)
-app.UseStaticFiles();
-
 // Configuration de l'OpenAPI pour tous les environnements
 app.MapOpenApi("/openapi/v1.json");
+app.MapScalarApiReference();
 
 // app.UseHttpsRedirection(); // Commenté car nous utilisons HTTP entre les conteneurs
 

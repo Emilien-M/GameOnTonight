@@ -3,7 +3,7 @@ using System.Text.Json;
 using GameOnTonight.Api.Models;
 using GameOnTonight.Domain.Exceptions;
 
-namespace GameOnTonight.Api.Middlewares;
+namespace GameOnTonight.Api.Config.Middlewares;
 
 /// <summary>
 /// Middleware pour la gestion globale des exceptions dans l'API

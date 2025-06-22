@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Filters;
-
-namespace GameOnTonight.Api.Attributes;
+namespace GameOnTonight.Api.Config.Attributes;
 
 /// <summary>
 /// Attribut qui indique si l'UnitOfWork doit être appliqué pour une action ou un contrôleur donné.

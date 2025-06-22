@@ -31,6 +31,11 @@ public class DomainException : Exception
         Errors = new List<DomainError> { new DomainError(message, propertyName) };
     }
 
+    public DomainException(IEnumerable<(string propertyName, string message)> errors)
+    {
+        Errors = errors.Select(e => new DomainError(e.message, e.propertyName)).ToList().AsReadOnly();
+    }
+
     /// <summary>
     /// Crée une nouvelle exception du domaine avec une liste d'erreurs
     /// </summary>

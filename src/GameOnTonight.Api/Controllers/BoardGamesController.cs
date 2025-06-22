@@ -4,12 +4,14 @@ using GameOnTonight.Application.BoardGames.ViewModels;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace GameOnTonight.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // Applique l'authentification à toutes les actions du contrôleur
+[Produces("application/json")]
 public class BoardGamesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -20,6 +22,7 @@ public class BoardGamesController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<BoardGameViewModel>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<BoardGameViewModel>>> GetAll()
     {
         var result = await _mediator.Send(new GetAllBoardGamesQuery());
@@ -27,6 +30,8 @@ public class BoardGamesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(BoardGameViewModel), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<BoardGameViewModel>> GetById(int id)
     {
         var result = await _mediator.Send(new GetBoardGameByIdQuery(id));
@@ -38,13 +43,16 @@ public class BoardGamesController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<int>> Create(CreateBoardGameCommand command)
     {
         var id = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id }, new { Id = id });
+        return Ok(id);
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> Update(int id, UpdateBoardGameCommand command)
     {
         if (id != command.Id)
@@ -55,10 +63,12 @@ public class BoardGamesController : ControllerBase
         if (!result)
             return NotFound();
             
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         var result = await _mediator.Send(new DeleteBoardGameCommand(id));
@@ -66,10 +76,11 @@ public class BoardGamesController : ControllerBase
         if (!result)
             return NotFound();
             
-        return NoContent();
+        return Ok();
     }
 
     [HttpGet("filter")]
+    [ProducesResponseType(typeof(IEnumerable<BoardGameViewModel>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<BoardGameViewModel>>> Filter([FromQuery] int playerCount, [FromQuery] int maxDuration, [FromQuery] string? gameType = null)
     {
         var result = await _mediator.Send(new FilterBoardGamesQuery(playerCount, maxDuration, gameType));
@@ -77,6 +88,7 @@ public class BoardGamesController : ControllerBase
     }
 
     [HttpGet("types")]
+    [ProducesResponseType(typeof(IEnumerable<string>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetDistinctTypes()
     {
         var result = await _mediator.Send(new GetDistinctGameTypesQuery());
@@ -84,6 +96,8 @@ public class BoardGamesController : ControllerBase
     }
 
     [HttpPost("random")]
+    [ProducesResponseType(typeof(BoardGameViewModel), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult<BoardGameViewModel>> GetRandom([FromBody] IEnumerable<int> gameIds)
     {
         var result = await _mediator.Send(new GetRandomBoardGameQuery(gameIds));

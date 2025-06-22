@@ -12,7 +12,7 @@ namespace GameOnTonight.Application.Behaviors;
 /// <typeparam name="TRequest">Type de la requête</typeparam>
 /// <typeparam name="TResponse">Type de la réponse</typeparam>
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : notnull
+    where TRequest : notnull, IMessage
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -22,16 +22,16 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     }
 
     public async ValueTask<TResponse> Handle(
-        TRequest request, 
-        CancellationToken cancellationToken, 
-        MessageHandlerDelegate<TRequest, TResponse> next)
+        TRequest message,
+        MessageHandlerDelegate<TRequest, TResponse> next,
+        CancellationToken cancellationToken)
     {
         if (!_validators.Any())
         {
-            return await next(request, cancellationToken);
+            return await next(message, cancellationToken);
         }
 
-        var context = new ValidationContext<TRequest>(request);
+        var context = new ValidationContext<TRequest>(message);
         var validationResults = await Task.WhenAll(
             _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
@@ -40,23 +40,16 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
             .Where(f => f != null)
             .ToList();
 
-        if (failures.Any())
+        if (failures.Count != 0)
         {
             ThrowValidationException(failures);
         }
 
-        return await next(request, cancellationToken);
+        return await next(message, cancellationToken);
     }
 
     private static void ThrowValidationException(List<ValidationFailure> failures)
     {
-        var errors = failures
-            .GroupBy(e => e.PropertyName)
-            .ToDictionary(
-                g => g.Key, 
-                g => g.Select(e => e.ErrorMessage).ToArray()
-            );
-
-        throw new DomainException("Des erreurs de validation sont survenues", errors);
+        throw new DomainException(failures.Select(x => (x.PropertyName, x.ErrorMessage)));
     }
 }

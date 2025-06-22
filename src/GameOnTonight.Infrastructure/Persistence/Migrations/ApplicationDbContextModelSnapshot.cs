@@ -34,20 +34,17 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("text");
 
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("integer");
 
                     b.Property<string>("GameType")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("text");
 
                     b.Property<int>("MaxPlayers")
                         .HasColumnType("integer");
@@ -57,28 +54,18 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameType");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("MinPlayers", "MaxPlayers");
-
-                    b.ToTable("BoardGames", (string)null);
+                    b.ToTable("BoardGames");
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSession", b =>
@@ -96,8 +83,7 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("PlayedAt")
                         .HasColumnType("timestamp with time zone");
@@ -110,18 +96,13 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BoardGameId");
 
-                    b.HasIndex("PlayedAt");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GameSessions", (string)null);
+                    b.ToTable("GameSessions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

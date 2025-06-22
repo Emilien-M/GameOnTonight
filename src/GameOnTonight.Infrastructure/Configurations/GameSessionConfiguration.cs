@@ -7,7 +7,7 @@ namespace GameOnTonight.Infrastructure.Configurations;
 /// <summary>
 /// Configuration EF Core pour l'entité GameSession
 /// </summary>
-public class GameSessionConfiguration : IEntityTypeConfiguration<GameSession>
+public class GameSessionConfiguration : BaseConfiguration<GameSession>
 {
     public void Configure(EntityTypeBuilder<GameSession> builder)
     {

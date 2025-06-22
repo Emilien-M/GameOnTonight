@@ -1,7 +1,7 @@
+using GameOnTonight.Api.Config.Attributes;
 using GameOnTonight.Domain.Repositories;
-using GameOnTonight.Api.Attributes;
 
-namespace GameOnTonight.Api.Middlewares;
+namespace GameOnTonight.Api.Config.Middlewares;
 
 /// <summary>
 /// Middleware qui applique automatiquement le UnitOfWork à la fin de chaque requête HTTP

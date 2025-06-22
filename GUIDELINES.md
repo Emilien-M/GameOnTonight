@@ -12,6 +12,9 @@ This document serves as a guide for implementing the GameOnTonight project accor
    - [Naming Conventions](#naming-conventions-backend)
    - [Dependency Injection](#dependency-injection-backend)
    - [Namespaces](#namespaces-backend)
+   - [Code Quality Guidelines](#code-quality-guidelines)
+   - [C# Coding Rules](#csharp-coding-rules)
+   - [Code Organization](#code-organization)
 3. [PWA Guidelines](#pwa-guidelines)
    - [Coming Soon...](#coming-soon)
 
@@ -181,6 +184,71 @@ GameOnTonight.Api/
 - GameOnTonight.Application.*
 - GameOnTonight.Infrastructure.*
 - GameOnTonight.Api.*
+
+### Code Quality Guidelines
+
+#### 1. SOLID Principles
+- **Single Responsibility Principle**: Limit each class/function to one well-defined task or area of concern
+- **Open/Closed Principle**: Design extensible abstractions and avoid modifications to existing, tested code
+- **Liskov Substitution Principle**: Ensure derived types preserve the behavior contracts of base types
+- **Interface Segregation Principle**: Create focused, minimal interfaces with only the methods a client needs
+- **Dependency Inversion Principle**: Inject dependencies and program to interfaces, not implementations
+
+#### 2. Comments and Documentation
+- Add comments only to explain 'why' something is done, not 'what' is being done
+- Code should be self-documenting through clear variable names and function signatures
+- Use comments only for:
+  - Explaining complex algorithms or business logic
+  - Documenting non-obvious edge cases or workarounds
+  - Providing context for future developers when the solution isn't immediately intuitive
+- Avoid redundant comments that merely restate what the code clearly shows
+
+#### 3. General Principles
+- Respect the DRY (Don't Repeat Yourself) principle to avoid code duplication
+- Iterate on existing code before writing new functionality
+- Check for similar existing functionality and analyze base classes before implementing
+- Adopt a fail-fast approach instead of using fallback values or fallback applications
+- If configuration does not work, throw exceptions and terminate the program
+- Keep files short (fewer than 300 lines)
+- When adding logging to classes, focus on logging errors only
+
+### C# Coding Rules
+
+#### 1. Data Structures and Collections
+- Do not use Enumerable methods on indexable collections; use the collection directly
+- Prefer comparing 'Count' to 0 rather than using 'Any()' for both clarity and performance
+
+#### 2. Object-Oriented Design
+- Do not use marker interfaces or base classes
+- Make methods static if they don't use class attributes
+- Use 'await using' instead of 'using' whenever possible
+
+#### 3. Exception Handling
+- Use ArgumentNullException.ThrowIfNull and similar methods whenever possible
+- Either log the exception and handle it, OR rethrow it with contextual information
+- Don't combine exception logging and rethrowing without adding context
+
+#### 4. Naming and Methods
+- Use "Async" suffix in names of methods that return an awaitable type
+- Inherit from ControllerBase instead of Controller for API controllers
+- A method should have a maximum of 7 parameters
+
+#### 5. Date and Time
+- Always set the "DateTimeKind" when creating new "DateTime" instances
+
+#### 6. Code Quality
+- Try to fix Sonar & Roslyn errors and warnings if any
+- Do not test private methods using reflection; test functionality through public methods instead
+
+### Code Organization
+
+#### 1. Step-Down Rule
+- Write code that follows the step-down rule:
+  - Each function should be followed by functions at the next level of abstraction
+  - High-level functions appear first, with their implementation details following
+  - A reader can read the code from top to bottom, with each function introducing concepts used by those that follow
+  - Functions should be organized in descending order of abstraction
+  - Ensure clear separation between different levels of abstraction
 
 ## PWA Guidelines
 

@@ -1,0 +1,8 @@
+# Configuration AutoRest pour GameOnTonight API Client
+input-file: swagger.json
+output-folder: ./Generated
+namespace: GameOnTonight.AutoRest
+add-credentials: true
+override-client-name: GameOnTonightClient
+csharp: true
+v3: true
