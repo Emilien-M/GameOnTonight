@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace GameOnTonight.Infrastructure.Repositories;
 
 /// <summary>
-/// Implémentation du repository pour l'entité BoardGame
+/// Implementation of the repository for the BoardGame entity.
 /// </summary>
 public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
 {

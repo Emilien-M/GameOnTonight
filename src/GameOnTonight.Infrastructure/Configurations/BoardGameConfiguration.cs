@@ -5,19 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace GameOnTonight.Infrastructure.Configurations;
 
 /// <summary>
-/// Configuration EF Core pour l'entité BoardGame
+/// EF Core configuration for the BoardGame entity.
 /// </summary>
 public class BoardGameConfiguration : BaseConfiguration<BoardGame>
 {
     public void Configure(EntityTypeBuilder<BoardGame> builder)
     {
-        // Configuration de la table
         builder.ToTable("BoardGames");
         
-        // Clé primaire
         builder.HasKey(g => g.Id);
         
-        // Propriétés de base
         builder.Property(g => g.Id)
             .UseIdentityColumn()
             .IsRequired();
@@ -28,12 +25,10 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
         builder.Property(g => g.UpdatedAt)
             .IsRequired(false);
             
-        // Propriété du UserOwnedEntity
         builder.Property(g => g.UserId)
             .IsRequired()
-            .HasMaxLength(450); // Correspond à la taille de l'ID dans ASP.NET Identity
+            .HasMaxLength(450); 
         
-        // Propriétés spécifiques au jeu
         builder.Property(g => g.Name)
             .IsRequired()
             .HasMaxLength(200);
@@ -59,13 +54,11 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
             .IsRequired(false)
             .HasMaxLength(500);
             
-        // Relation avec les sessions de jeu
         builder.HasMany(g => g.GameSessions)
             .WithOne(s => s.BoardGame)
             .HasForeignKey(s => s.BoardGameId)
             .OnDelete(DeleteBehavior.Cascade);
             
-        // Index
         builder.HasIndex(g => g.UserId);
         builder.HasIndex(g => g.Name);
         builder.HasIndex(g => g.GameType);

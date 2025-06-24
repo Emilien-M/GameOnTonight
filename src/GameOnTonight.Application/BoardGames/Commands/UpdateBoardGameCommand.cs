@@ -5,7 +5,7 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Commands;
 
 /// <summary>
-/// Command pour mettre à jour un jeu de société existant
+/// Command to update an existing board game.
 /// </summary>
 public record UpdateBoardGameCommand(
     int Id,
@@ -19,7 +19,7 @@ public record UpdateBoardGameCommand(
 ) : IRequest<bool>;
 
 /// <summary>
-/// Handler pour UpdateBoardGameCommand
+/// Handler for UpdateBoardGameCommand.
 /// </summary>
 public class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameCommand, bool>
 {

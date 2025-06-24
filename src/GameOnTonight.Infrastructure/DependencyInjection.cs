@@ -8,33 +8,28 @@ using Microsoft.Extensions.DependencyInjection;
 namespace GameOnTonight.Infrastructure;
 
 /// <summary>
-/// Extensions pour configurer les services liés aux repositories
+/// Extensions for configuring services related to repositories.
 /// </summary>
 public static class DependencyInjection
 {
     /// <summary>
-    /// Ajoute les repositories au conteneur de services
+    /// Adds repositories to the service container.
     /// </summary>
-    /// <param name="services">Collection de services</param>
-    /// <returns>Collection de services mise à jour</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The updated service collection.</returns>
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        // Enregistrement du service d'accès à l'utilisateur courant
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         
-        // Enregistrement du service de validation d'entités
         services.AddScoped<IEntityValidationService, EntityValidationService>();
         
-        // Enregistrement de l'intercepteur pour gérer les propriétés d'audit
         services.AddScoped<AuditableEntityInterceptor>();
         
-        // Enregistrement des repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IBoardGameRepository, BoardGameRepository>();
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         
-        // Enregistrement de l'UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;

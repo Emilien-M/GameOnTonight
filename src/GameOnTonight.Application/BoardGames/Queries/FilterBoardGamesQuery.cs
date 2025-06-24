@@ -6,7 +6,7 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Queries;
 
 /// <summary>
-/// Query pour filtrer les jeux selon des critères (nombre de joueurs, durée, type)
+/// Query to filter games based on criteria (player count, duration, type).
 /// </summary>
 public record FilterBoardGamesQuery(
     int PlayerCount,
@@ -15,7 +15,7 @@ public record FilterBoardGamesQuery(
 ) : IRequest<IEnumerable<BoardGameViewModel>>;
 
 /// <summary>
-/// Handler pour FilterBoardGamesQuery
+/// Handler for FilterBoardGamesQuery.
 /// </summary>
 public class FilterBoardGamesQueryHandler : IRequestHandler<FilterBoardGamesQuery, IEnumerable<BoardGameViewModel>>
 {

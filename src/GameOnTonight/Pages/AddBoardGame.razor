@@ -1,7 +1,7 @@
 @page "/library/add"
-@using GameOnTonight.RestClient.Generated
+@using GameOnTonight.RestClient
 @attribute [Authorize]
-@inject IGameOnTonightApiClient ApiClient
+@inject Client ApiClient
 @inject NavigationManager NavigationManager
 
 <PageTitle>Ajouter un jeu</PageTitle>
@@ -147,7 +147,7 @@
     {
         try
         {
-            gameTypes = await ApiClient.TypesAsync();
+            gameTypes = await ApiClient.BoardGamesGetDistinctTypesAsync();
         }
         catch (Exception)
         {
@@ -168,7 +168,7 @@
 
         try
         {
-            int newGameId = await ApiClient.BoardGamesPOSTAsync(boardGame);
+            await ApiClient.BoardGamesPostAsync(boardGame);
             NavigationManager.NavigateTo("/library");
         }
         catch (ApiException ex)

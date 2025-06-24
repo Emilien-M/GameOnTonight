@@ -4,32 +4,32 @@ using GameOnTonight.Domain.Entities.Common;
 namespace GameOnTonight.Domain.Entities;
 
 /// <summary>
-/// Classe représentant une partie jouée
+/// Represents a played game session.
 /// </summary>
 public class GameSession : UserOwnedEntity
 {
     /// <summary>
-    /// ID du jeu auquel cette partie fait référence
+    /// ID of the game to which this session refers.
     /// </summary>
     public int BoardGameId { get; set; }
     
     /// <summary>
-    /// Référence au jeu de société
+    /// Reference to the board game.
     /// </summary>
     public virtual BoardGame? BoardGame { get; set; }
     
     /// <summary>
-    /// Date à laquelle la partie a été jouée
+    /// Date the game was played.
     /// </summary>
     public DateTime PlayedAt { get; set; }
     
     /// <summary>
-    /// Nombre de joueurs ayant participé à cette partie
+    /// Number of players who participated in this game.
     /// </summary>
     public int PlayerCount { get; set; }
     
     /// <summary>
-    /// Notes ou commentaires sur la partie (optionnel)
+    /// Notes or comments about the game (optional).
     /// </summary>
     public string? Notes { get; set; }
 }

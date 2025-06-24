@@ -1,22 +1,22 @@
 using System.Net.Http.Headers;
-using GameOnTonight.Services;
+using Blazored.LocalStorage;
 
 namespace GameOnTonight.Services;
 
-public class AuthorizationMessageHandler : DelegatingHandler
+public class AuthHeaderHandler : DelegatingHandler
 {
-    private readonly IAuthService _authService;
+    private readonly ILocalStorageService _localStorage;
 
-    public AuthorizationMessageHandler(IAuthService authService)
+    public AuthHeaderHandler(ILocalStorageService localStorage)
     {
-        _authService = authService;
+        _localStorage = localStorage;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var token = await _authService.GetTokenAsync();
-        
-        if (!string.IsNullOrEmpty(token))
+        var token = await _localStorage.GetItemAsync<string>("authToken", cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }

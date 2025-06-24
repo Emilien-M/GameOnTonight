@@ -1,7 +1,7 @@
 @page "/library/edit/{Id:int}"
-@using GameOnTonight.RestClient.Generated
+@using GameOnTonight.RestClient
 @attribute [Authorize]
-@inject IGameOnTonightApiClient ApiClient
+@inject Client ApiClient
 @inject NavigationManager NavigationManager
 
 <PageTitle>Modifier un jeu</PageTitle>
@@ -174,7 +174,7 @@
         
         try
         {
-            gameTypes = await ApiClient.TypesAsync();
+            gameTypes = await ApiClient.BoardGamesGetDistinctTypesAsync();
         }
         catch
         {
@@ -189,7 +189,7 @@
 
         try
         {
-            var game = await ApiClient.BoardGamesGETAsync(Id);
+            var game = await ApiClient.BoardGamesGetByIdByIdAsync(Id);
             
             // Mappage vers le modèle de mise à jour
             boardGame = new UpdateBoardGameCommand
@@ -231,7 +231,7 @@
 
         try
         {
-            await ApiClient.BoardGamesPUTAsync(Id, boardGame);
+            await ApiClient.BoardGamesPutByIdAsync(Id, boardGame);
             NavigationManager.NavigateTo("/library");
         }
         catch (ApiException ex)

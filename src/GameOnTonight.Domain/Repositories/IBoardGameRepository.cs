@@ -3,32 +3,32 @@ using GameOnTonight.Domain.Entities;
 namespace GameOnTonight.Domain.Repositories;
 
 /// <summary>
-/// Interface du repository pour l'entité BoardGame
+/// Repository interface for the BoardGame entity.
 /// </summary>
 public interface IBoardGameRepository : IRepository<BoardGame>
 {
     /// <summary>
-    /// Filtre les jeux selon les critères spécifiés
+    /// Filters games according to the specified criteria.
     /// </summary>
-    /// <param name="playerCount">Nombre de joueurs</param>
-    /// <param name="maxDuration">Durée maximale en minutes</param>
-    /// <param name="gameType">Type de jeu (optionnel)</param>
-    /// <param name="userId">ID de l'utilisateur propriétaire</param>
-    /// <returns>Liste des jeux correspondant aux critères</returns>
+    /// <param name="playerCount">Number of players.</param>
+    /// <param name="maxDuration">Maximum duration in minutes.</param>
+    /// <param name="gameType">Type of game (optional).</param>
+    /// <param name="userId">ID of the owning user.</param>
+    /// <returns>List of games matching the criteria.</returns>
     Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, string? gameType, string userId);
     
     /// <summary>
-    /// Récupère un jeu aléatoire parmi une liste d'IDs
+    /// Retrieves a random game from a list of IDs.
     /// </summary>
-    /// <param name="gameIds">Liste des IDs de jeux</param>
-    /// <param name="userId">ID de l'utilisateur propriétaire</param>
-    /// <returns>Un jeu choisi au hasard</returns>
+    /// <param name="gameIds">List of game IDs.</param>
+    /// <param name="userId">ID of the owning user.</param>
+    /// <returns>A randomly chosen game.</returns>
     Task<BoardGame?> GetRandomGameAsync(IEnumerable<int> gameIds, string userId);
     
     /// <summary>
-    /// Récupère la liste des types de jeux distincts pour un utilisateur
+    /// Retrieves the list of distinct game types for a user.
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur propriétaire</param>
-    /// <returns>Liste des types de jeux</returns>
+    /// <param name="userId">ID of the owning user.</param>
+    /// <returns>List of game types.</returns>
     Task<IEnumerable<string>> GetDistinctGameTypesAsync(string userId);
 }

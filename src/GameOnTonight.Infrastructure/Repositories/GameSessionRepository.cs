@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace GameOnTonight.Infrastructure.Repositories;
 
 /// <summary>
-/// Implémentation du repository pour l'entité GameSession
+/// Implementation of the repository for the GameSession entity.
 /// </summary>
 public class GameSessionRepository : Repository<GameSession>, IGameSessionRepository
 {

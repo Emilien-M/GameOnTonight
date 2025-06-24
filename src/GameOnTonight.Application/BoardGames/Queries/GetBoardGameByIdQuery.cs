@@ -6,12 +6,12 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Queries;
 
 /// <summary>
-/// Query pour récupérer un jeu de société par son ID
+/// Query to retrieve a board game by its ID.
 /// </summary>
 public record GetBoardGameByIdQuery(int Id) : IRequest<BoardGameViewModel?>;
 
 /// <summary>
-/// Handler pour GetBoardGameByIdQuery
+/// Handler for GetBoardGameByIdQuery.
 /// </summary>
 public class GetBoardGameByIdQueryHandler : IRequestHandler<GetBoardGameByIdQuery, BoardGameViewModel?>
 {

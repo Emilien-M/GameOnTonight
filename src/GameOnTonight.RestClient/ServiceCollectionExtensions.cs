@@ -1,41 +1,35 @@
-using GameOnTonight.RestClient.Generated;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GameOnTonight.RestClient;
 
 /// <summary>
-/// Extensions pour les services d'injection de dépendances
+/// Extensions for dependency injection services.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Ajoute le client API GameOnTonight aux services
+    /// Adds the GameOnTonight API client to the services.
     /// </summary>
-    /// <param name="services">Collection de services</param>
-    /// <param name="baseUrl">URL de base de l'API</param>
-    /// <param name="configureClient">Action de configuration du client HTTP (optionnel)</param>
-    /// <param name="handler">Fonction pour obtenir un DelegatingHandler personnalisé (optionnel)</param>
-    /// <returns>Collection de services</returns>
-    public static IServiceCollection AddGameOnTonightApiClient(
-        this IServiceCollection services, 
-        string baseUrl,
-        Action<HttpClient>? configureClient = null,
-        Func<IServiceProvider, DelegatingHandler>? handler = null)
+    /// <param name="services">The service collection.</param>
+    /// <param name="baseUrl">The base URL of the API.</param>
+    /// <param name="configureClient">Optional action to configure the HTTP client.</param>
+    /// <param name="configureClientBuilder">Optional action to configure the HTTP client builder.</param>
+    /// <returns>The service collection.</returns>
+    public static IServiceCollection AddGameOnTonightApiClient(this IServiceCollection services, string baseUrl, Action<HttpClient>? configureClient = null, Action<IHttpClientBuilder>? configureClientBuilder = null)
     {
-        var builder = services.AddHttpClient<IGameOnTonightApiClient, GameOnTonightApiClient>(client =>
+        services.AddHttpClient<Client>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
-            configureClient?.Invoke(client);
         });
 
-        // Ajout du gestionnaire de message personnalisé si fourni
-        if (handler != null)
+        var httpClientBuilder = services.AddHttpClient("GameOnTonightApi", builder =>
         {
-            builder.ConfigureAdditionalHttpMessageHandlers((handlers, serviceProvider) => 
-            {
-                handlers.Add(handler(serviceProvider));
-            });
-        }
+            builder.BaseAddress = new Uri(baseUrl);
+            builder.DefaultRequestHeaders.Add("Accept", "application/json");
+            configureClient?.Invoke(builder);
+        });
+
+        configureClientBuilder?.Invoke(httpClientBuilder);
 
         return services;
     }

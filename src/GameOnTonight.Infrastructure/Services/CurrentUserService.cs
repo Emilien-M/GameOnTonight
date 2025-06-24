@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 namespace GameOnTonight.Infrastructure.Services;
 
 /// <summary>
-/// Implémentation du service d'utilisateur courant utilisant HttpContext
+/// Implementation of the current user service using HttpContext.
 /// </summary>
 public class CurrentUserService : ICurrentUserService
 {

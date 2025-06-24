@@ -3,13 +3,13 @@ using GameOnTonight.Domain.Entities.Common;
 namespace GameOnTonight.Domain.Services;
 
 /// <summary>
-/// Interface du service de validation des entités du domaine
+/// Interface for the domain entity validation service.
 /// </summary>
 public interface IEntityValidationService
 {
     /// <summary>
-    /// Valide une collection d'entités et lève une exception si des erreurs de domaine sont détectées
+    /// Validates a collection of entities and throws an exception if domain errors are detected.
     /// </summary>
-    /// <param name="entities">Collection d'entités à valider</param>
+    /// <param name="entities">Collection of entities to validate.</param>
     void ValidateEntities(IEnumerable<BaseEntity> entities);
 }

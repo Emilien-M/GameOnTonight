@@ -37,10 +37,14 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "default": {
+            "description": "",
             "content": {
-              "application/json": { }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
             }
           }
         }
@@ -144,8 +148,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int32"
+                  "$ref": "#/components/schemas/BoardGameViewModel"
                 }
               }
             }
@@ -243,7 +246,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardGameViewModel"
+                }
+              }
             }
           },
           "404": {
@@ -280,14 +287,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": { }
-            }
-          },
-          "404": {
-            "description": "Not Found",
+          "default": {
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -592,8 +593,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int32"
+                  "$ref": "#/components/schemas/GameSessionViewModel"
                 }
               }
             }
@@ -691,15 +691,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/GameSessionViewModel"
                 }
               }
             }
@@ -728,14 +722,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": { }
-            }
-          },
-          "404": {
-            "description": "Not Found",
+          "default": {
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {

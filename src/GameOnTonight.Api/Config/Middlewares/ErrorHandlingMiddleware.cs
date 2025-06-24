@@ -6,7 +6,7 @@ using GameOnTonight.Domain.Exceptions;
 namespace GameOnTonight.Api.Config.Middlewares;
 
 /// <summary>
-/// Middleware pour la gestion globale des exceptions dans l'API
+/// Middleware for global exception handling in the API.
 /// </summary>
 public class ErrorHandlingMiddleware
 {
@@ -42,13 +42,11 @@ public class ErrorHandlingMiddleware
 
     private async Task HandleDomainExceptionAsync(HttpContext context, DomainException domainException)
     {
-        _logger.LogError(domainException, "Erreur de validation du domaine: {Message}", domainException.Message);
+        _logger.LogError(domainException, "Domain validation error: {Message}", domainException.Message);
 
-        // Les exceptions du domaine sont considérées comme des BadRequest (400)
         var statusCode = HttpStatusCode.BadRequest;
-        var errorTitle = "Erreur de validation du domaine";
+        var errorTitle = "Domain validation error";
             
-        // Grouper les erreurs par propriété
         var errors = domainException.Errors
             .GroupBy(e => e.PropertyName)
             .ToDictionary(
@@ -61,20 +59,18 @@ public class ErrorHandlingMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        _logger.LogError(exception, "Une erreur est survenue: {Message}", exception.Message);
+        _logger.LogError(exception, "An error occurred: {Message}", exception.Message);
 
-        // Toute autre exception est traitée comme une erreur serveur (500)
         var statusCode = HttpStatusCode.InternalServerError;
         var errorTitle = _environment.IsDevelopment() 
             ? exception.Message 
-            : "Une erreur interne est survenue.";
+            : "An internal error occurred.";
                 
         var errors = new Dictionary<string, string[]>
         {
             { "error", new[] { exception.Message } }
         };
             
-        // En développement, on ajoute le détail de la stacktrace
         if (_environment.IsDevelopment())
         {
             errors.Add("stackTrace", new[] { exception.StackTrace ?? "No stack trace available" });
@@ -83,9 +79,6 @@ public class ErrorHandlingMiddleware
         await WriteErrorResponseAsync(context, statusCode, errorTitle, errors);
     }
     
-    /// <summary>
-    /// Écrit la réponse d'erreur standardisée dans le flux HTTP
-    /// </summary>
     private async Task WriteErrorResponseAsync(
         HttpContext context, 
         HttpStatusCode statusCode, 
@@ -108,7 +101,7 @@ public class ErrorHandlingMiddleware
 }
 
 /// <summary>
-/// Extension pour faciliter l'enregistrement du middleware
+/// Extension to facilitate middleware registration.
 /// </summary>
 public static class ErrorHandlingMiddlewareExtensions
 {

@@ -4,64 +4,64 @@ using GameOnTonight.Domain.Entities;
 namespace GameOnTonight.Domain.Repositories;
 
 /// <summary>
-/// Interface générique pour le repository pattern
+/// Generic interface for the repository pattern.
 /// </summary>
-/// <typeparam name="TEntity">Type de l'entité</typeparam>
+/// <typeparam name="TEntity">Type of the entity.</typeparam>
 public interface IRepository<TEntity> where TEntity : class
 {
     /// <summary>
-    /// Récupère une entité par son ID et l'ID de son propriétaire
+    /// Retrieves an entity by its ID and its owner's ID.
     /// </summary>
-    /// <param name="id">ID de l'entité</param>
-    /// <param name="userId">ID de l'utilisateur propriétaire</param>
-    /// <returns>L'entité trouvée ou null</returns>
+    /// <param name="id">ID of the entity.</param>
+    /// <param name="userId">ID of the owning user.</param>
+    /// <returns>The found entity or null.</returns>
     Task<TEntity?> GetByIdAsync(object id, string userId);
     
     /// <summary>
-    /// Récupère toutes les entités appartenant à un utilisateur spécifique
+    /// Retrieves all entities belonging to a specific user.
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur propriétaire</param>
-    /// <returns>Liste des entités</returns>
+    /// <param name="userId">ID of the owning user.</param>
+    /// <returns>List of entities.</returns>
     Task<IEnumerable<TEntity>> GetAllAsync(string userId);
     
     /// <summary>
-    /// Trouve des entités selon un prédicat
+    /// Finds entities according to a predicate.
     /// </summary>
-    /// <param name="predicate">Expression de filtrage</param>
-    /// <param name="userId">ID de l'utilisateur propriétaire (optionnel pour les requêtes spéciales)</param>
-    /// <returns>Liste des entités filtrées</returns>
+    /// <param name="predicate">Filtering expression.</param>
+    /// <param name="userId">ID of the owning user (optional for special queries).</param>
+    /// <returns>List of filtered entities.</returns>
     Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, string? userId = null);
     
     /// <summary>
-    /// Ajoute une nouvelle entité
+    /// Adds a new entity.
     /// </summary>
-    /// <param name="entity">Entité à ajouter</param>
+    /// <param name="entity">Entity to add.</param>
     Task AddAsync(TEntity entity);
     
     /// <summary>
-    /// Ajoute plusieurs entités
+    /// Adds several entities.
     /// </summary>
-    /// <param name="entities">Entités à ajouter</param>
+    /// <param name="entities">Entities to add.</param>
     Task AddRangeAsync(IEnumerable<TEntity> entities);
     
     /// <summary>
-    /// Supprime une entité
+    /// Deletes an entity.
     /// </summary>
-    /// <param name="entity">Entité à supprimer</param>
-    /// <returns>True si l'entité a été supprimée, False si elle n'appartient pas à l'utilisateur courant</returns>
+    /// <param name="entity">Entity to delete.</param>
+    /// <returns>True if the entity was deleted, False if it does not belong to the current user.</returns>
     Task<bool> RemoveAsync(TEntity entity);
     
     /// <summary>
-    /// Supprime plusieurs entités
+    /// Deletes several entities.
     /// </summary>
-    /// <param name="entities">Entités à supprimer</param>
-    /// <returns>Nombre d'entités supprimées</returns>
+    /// <param name="entities">Entities to delete.</param>
+    /// <returns>Number of deleted entities.</returns>
     Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities);
     
     /// <summary>
-    /// Met à jour une entité
+    /// Updates an entity.
     /// </summary>
-    /// <param name="entity">Entité à mettre à jour</param>
-    /// <returns>True si l'entité a été mise à jour, False si elle n'appartient pas à l'utilisateur courant</returns>
+    /// <param name="entity">Entity to update.</param>
+    /// <returns>True if the entity was updated, False if it does not belong to the current user.</returns>
     Task<bool> UpdateAsync(TEntity entity);
 }

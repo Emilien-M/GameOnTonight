@@ -4,47 +4,47 @@ using GameOnTonight.Domain.Entities.Common;
 namespace GameOnTonight.Domain.Entities;
 
 /// <summary>
-/// Classe représentant un jeu dans la collection d'un utilisateur
+/// Represents a game in a user's collection.
 /// </summary>
 public class BoardGame : UserOwnedEntity
 {
     /// <summary>
-    /// Nom du jeu
+    /// Name of the game.
     /// </summary>
     public string Name { get; set; } = string.Empty;
     
     /// <summary>
-    /// Nombre minimum de joueurs requis pour jouer
+    /// Minimum number of players required to play.
     /// </summary>
     public int MinPlayers { get; set; }
     
     /// <summary>
-    /// Nombre maximum de joueurs pouvant participer
+    /// Maximum number of players that can participate.
     /// </summary>
     public int MaxPlayers { get; set; }
     
     /// <summary>
-    /// Durée approximative d'une partie en minutes
+    /// Approximate duration of a game in minutes.
     /// </summary>
     public int DurationMinutes { get; set; }
     
     /// <summary>
-    /// Type ou catégorie du jeu
+    /// Type or category of the game.
     /// </summary>
     public string GameType { get; set; } = string.Empty;
     
     /// <summary>
-    /// Description optionnelle du jeu
+    /// Optional description of the game.
     /// </summary>
     public string? Description { get; set; }
     
     /// <summary>
-    /// URL de l'image de la boîte de jeu (optionnel)
+    /// URL of the game box image (optional).
     /// </summary>
     public string? ImageUrl { get; set; }
     
     /// <summary>
-    /// Liste des parties enregistrées avec ce jeu
+    /// List of recorded games with this game.
     /// </summary>
     public virtual ICollection<GameSession> GameSessions { get; set; } = new List<GameSession>();
 }

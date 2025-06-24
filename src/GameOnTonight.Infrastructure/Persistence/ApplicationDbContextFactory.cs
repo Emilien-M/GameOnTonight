@@ -7,13 +7,12 @@ using Microsoft.Extensions.Configuration;
 namespace GameOnTonight.Infrastructure.Persistence;
 
 /// <summary>
-/// Factory pour créer une instance de ApplicationDbContext lors de la conception (migrations)
+/// Factory to create an instance of ApplicationDbContext at design time (migrations).
 /// </summary>
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        // Configuration pour charger la chaîne de connexion
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -26,7 +25,6 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
 
         builder.UseNpgsql(connectionString);
         
-        // Créer une instance temporaire de l'intercepteur pour le contexte de design-time
         var auditInterceptor = new AuditableEntityInterceptor(TimeProvider.System);
 
         return new ApplicationDbContext(builder.Options, auditInterceptor);

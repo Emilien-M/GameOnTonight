@@ -5,12 +5,12 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Queries;
 
 /// <summary>
-/// Query pour obtenir le nombre de parties jouées pour chaque jeu
+/// Query to get the number of games played for each game.
 /// </summary>
 public record GetGamePlayCountsQuery : IRequest<IDictionary<int, int>>;
 
 /// <summary>
-/// Handler pour GetGamePlayCountsQuery
+/// Handler for GetGamePlayCountsQuery.
 /// </summary>
 public class GetGamePlayCountsQueryHandler : IRequestHandler<GetGamePlayCountsQuery, IDictionary<int, int>>
 {

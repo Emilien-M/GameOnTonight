@@ -1,13 +1,13 @@
 namespace GameOnTonight.Domain.Repositories;
 
 /// <summary>
-/// Interface pour le pattern Unit of Work qui coordonne les transactions entre plusieurs repositories
+/// Interface for the Unit of Work pattern that coordinates transactions between multiple repositories.
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
     /// <summary>
-    /// Persiste toutes les modifications en base de données
+    /// Persists all changes to the database.
     /// </summary>
-    /// <returns>Le nombre d'objets écrits dans la base de données</returns>
+    /// <returns>The number of objects written to the database.</returns>
     Task<int> SaveChangesAsync();
 }

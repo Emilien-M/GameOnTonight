@@ -3,7 +3,7 @@ using GameOnTonight.Domain.Entities;
 namespace GameOnTonight.Application.BoardGames.ViewModels;
 
 /// <summary>
-/// ViewModel représentant un jeu de société
+/// ViewModel representing a board game.
 /// </summary>
 public record BoardGameViewModel(
     int Id,
@@ -19,9 +19,9 @@ public record BoardGameViewModel(
 )
 {
     /// <summary>
-    /// Constructeur qui effectue le mapping depuis une entité BoardGame
+    /// Initializes a new instance of the <see cref="BoardGameViewModel"/> class.
     /// </summary>
-    /// <param name="boardGame">L'entité à mapper</param>
+    /// <param name="boardGame">The entity to map from.</param>
     public BoardGameViewModel(BoardGame boardGame)
         : this(
             boardGame.Id,

@@ -6,12 +6,12 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Queries;
 
 /// <summary>
-/// Query pour sélectionner un jeu aléatoire parmi une liste d'IDs
+/// Query to select a random game from a list of IDs.
 /// </summary>
 public record GetRandomBoardGameQuery(IEnumerable<int> GameIds) : IRequest<BoardGameViewModel?>;
 
 /// <summary>
-/// Handler pour GetRandomBoardGameQuery
+/// Handler for GetRandomBoardGameQuery.
 /// </summary>
 public class GetRandomBoardGameQueryHandler : IRequestHandler<GetRandomBoardGameQuery, BoardGameViewModel?>
 {
@@ -42,13 +42,12 @@ public class GetRandomBoardGameQueryHandler : IRequestHandler<GetRandomBoardGame
             return null;
         }
         
-        // Ajouter automatiquement une entrée dans l'historique des parties (SF-4.1)
         var gameSession = new GameOnTonight.Domain.Entities.GameSession
         {
             BoardGameId = boardGame.Id,
             PlayedAt = DateTime.UtcNow,
-            PlayerCount = 0, // Valeur par défaut car non fournie lors de la sélection aléatoire
-            Notes = "Sélectionné par l'assistant"
+            PlayerCount = 0, 
+            Notes = "Selected by the assistant"
         };
         
         await _gameSessionRepository.AddAsync(gameSession);

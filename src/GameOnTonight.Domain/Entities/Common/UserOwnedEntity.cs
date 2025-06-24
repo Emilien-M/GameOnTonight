@@ -1,12 +1,12 @@
 namespace GameOnTonight.Domain.Entities.Common;
 
 /// <summary>
-/// Entité de base appartenant à un utilisateur, combinant BaseEntity et IUserOwnedEntity
+/// Base entity owned by a user, combining BaseEntity and IUserOwnedEntity.
 /// </summary>
 public abstract class UserOwnedEntity : BaseEntity, IUserOwnedEntity
 {
     /// <summary>
-    /// Identifiant de l'utilisateur propriétaire de l'entité
+    /// Identifier of the user who owns the entity.
     /// </summary>
     public string UserId { get; private set; } = string.Empty;
 
@@ -14,12 +14,12 @@ public abstract class UserOwnedEntity : BaseEntity, IUserOwnedEntity
     {
         if (Id != 0)
         {
-            throw new InvalidOperationException("L'identifiant de l'utilisateur ne peut être défini qu'avant la persistance de l'entité.");
+            throw new InvalidOperationException("The user ID can only be set before the entity is persisted.");
         }
         
         if (string.IsNullOrWhiteSpace(userId))
         {
-            throw new ArgumentException("L'identifiant de l'utilisateur ne peut pas être vide.", nameof(userId));
+            throw new ArgumentException("The user ID cannot be empty.", nameof(userId));
         }
         
         UserId = userId;

@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace GameOnTonight.Infrastructure.Repositories;
 
 /// <summary>
-/// Implémentation générique du Repository Pattern avec Entity Framework Core
+/// Generic implementation of the Repository Pattern with Entity Framework Core.
 /// </summary>
-/// <typeparam name="TEntity">Type de l'entité</typeparam>
+/// <typeparam name="TEntity">Type of the entity.</typeparam>
 public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 {
     protected readonly ApplicationDbContext Context;
@@ -28,17 +28,14 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         var entity = await DbSet.FindAsync(id);
         
-        // Si l'entité est null ou n'implémente pas IUserOwnedEntity, retourner null
         if (entity == null || !(entity is IUserOwnedEntity userOwnedEntity))
             return null;
         
-        // Vérifier que l'entité appartient à l'utilisateur
         return userOwnedEntity.UserId == userId ? entity : null;
     }
 
     public async Task<IEnumerable<TEntity>> GetAllAsync(string userId)
     {
-        // Récupérer seulement les entités qui appartiennent à l'utilisateur
         if (typeof(IUserOwnedEntity).IsAssignableFrom(typeof(TEntity)))
         {
             return await DbSet.OfType<IUserOwnedEntity>()
@@ -47,41 +44,34 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
                 .ToListAsync();
         }
         
-        // Si l'entité n'implémente pas IUserOwnedEntity, retourner une liste vide
         return Enumerable.Empty<TEntity>();
     }
 
     public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, string? userId = null)
     {
-        // Si userId est fourni et que l'entité implémente IUserOwnedEntity
         if (!string.IsNullOrEmpty(userId) && typeof(IUserOwnedEntity).IsAssignableFrom(typeof(TEntity)))
         {
-            // Créer un prédicat composite pour filtrer par userId également
             var parameter = Expression.Parameter(typeof(TEntity));
             var userIdProperty = Expression.Property(parameter, "UserId");
             var userIdConstant = Expression.Constant(userId);
             var userIdEquals = Expression.Equal(userIdProperty, userIdConstant);
             var userIdPredicate = Expression.Lambda<Func<TEntity, bool>>(userIdEquals, parameter);
             
-            // Combiner les prédicats
             var combinedPredicate = PredicateBuilder.And(predicate, userIdPredicate);
             
             return await DbSet.Where(combinedPredicate).ToListAsync();
         }
         
-        // Si userId n'est pas fourni, on utilise le prédicat tel quel
         return await DbSet.Where(predicate).ToListAsync();
     }
 
     public async Task AddAsync(TEntity entity)
     {
-        // Vérifier que l'utilisateur est authentifié
         if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("L'utilisateur doit être authentifié pour ajouter une entité.");
+            throw new UnauthorizedAccessException("User must be authenticated to add an entity.");
             
         string userId = _currentUserService.UserId!;
             
-        // Si l'entité implémente IUserOwnedEntity, définir l'userId
         if (entity is IUserOwnedEntity userOwnedEntity)
         {
             userOwnedEntity.SetUserId(userId);
@@ -92,13 +82,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public async Task AddRangeAsync(IEnumerable<TEntity> entities)
     {
-        // Vérifier que l'utilisateur est authentifié
         if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("L'utilisateur doit être authentifié pour ajouter des entités.");
+            throw new UnauthorizedAccessException("User must be authenticated to add entities.");
             
         string userId = _currentUserService.UserId!;
             
-        // Définir l'userId pour chaque entité qui implémente IUserOwnedEntity
         foreach (var entity in entities)
         {
             if (entity is IUserOwnedEntity userOwnedEntity)
@@ -112,13 +100,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public async Task<bool> RemoveAsync(TEntity entity)
     {
-        // Vérifier que l'utilisateur est authentifié
         if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("L'utilisateur doit être authentifié pour supprimer une entité.");
+            throw new UnauthorizedAccessException("User must be authenticated to delete an entity.");
             
         string userId = _currentUserService.UserId!;
             
-        // Si l'entité n'implémente pas IUserOwnedEntity ou si elle n'appartient pas à l'utilisateur courant
         if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
             return false;
         
@@ -128,9 +114,8 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public async Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities)
     {
-        // Vérifier que l'utilisateur est authentifié
         if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("L'utilisateur doit être authentifié pour supprimer des entités.");
+            throw new UnauthorizedAccessException("User must be authenticated to delete entities.");
             
         string userId = _currentUserService.UserId!;
             
@@ -149,13 +134,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public async Task<bool> UpdateAsync(TEntity entity)
     {
-        // Vérifier que l'utilisateur est authentifié
         if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("L'utilisateur doit être authentifié pour mettre à jour une entité.");
+            throw new UnauthorizedAccessException("User must be authenticated to update an entity.");
             
         string userId = _currentUserService.UserId!;
             
-        // Si l'entité n'implémente pas IUserOwnedEntity ou si elle n'appartient pas à l'utilisateur courant
         if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
             return false;
         
@@ -166,12 +149,12 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 }
 
 /// <summary>
-/// Classe d'assistance pour combiner des expressions de prédicats
+/// Helper class to combine predicate expressions.
 /// </summary>
 public static class PredicateBuilder
 {
     /// <summary>
-    /// Combine deux prédicats avec une opération AND
+    /// Combines two predicates with an AND operation.
     /// </summary>
     public static Expression<Func<T, bool>> And<T>(Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
     {

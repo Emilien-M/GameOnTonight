@@ -1,3 +1,4 @@
+using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
 using Mediator;
@@ -5,7 +6,7 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Commands;
 
 /// <summary>
-/// Command pour créer un nouveau jeu de société
+/// Command to create a new board game.
 /// </summary>
 public record CreateBoardGameCommand(
     string Name, 
@@ -15,12 +16,12 @@ public record CreateBoardGameCommand(
     string GameType,
     string? Description = null,
     string? ImageUrl = null
-) : IRequest<int>;
+) : IRequest<BoardGameViewModel>;
 
 /// <summary>
-/// Handler pour CreateBoardGameCommand
+/// Handler for CreateBoardGameCommand.
 /// </summary>
-public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameCommand, int>
+public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameCommand, BoardGameViewModel>
 {
     private readonly IBoardGameRepository _boardGameRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -33,7 +34,7 @@ public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameComm
         _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<int> Handle(CreateBoardGameCommand request, CancellationToken cancellationToken)
+    public async ValueTask<BoardGameViewModel> Handle(CreateBoardGameCommand request, CancellationToken cancellationToken)
     {
         var boardGame = new BoardGame
         {
@@ -49,6 +50,6 @@ public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameComm
         await _boardGameRepository.AddAsync(boardGame);
         await _unitOfWork.SaveChangesAsync();
 
-        return boardGame.Id;
+        return new BoardGameViewModel(boardGame);
     }
 }

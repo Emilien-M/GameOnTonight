@@ -1,10 +1,9 @@
 @page "/login"
-@using GameOnTonight.RestClient.Generated
+@using GameOnTonight.RestClient
 @using GameOnTonight.Services
-@using Microsoft.AspNetCore.Components.Authorization
-@inject IGameOnTonightApiClient ApiClient
-@inject NavigationManager NavigationManager
+@inject Client ApiClient
 @inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 
 <AuthorizeView Context="authContext">
     <Authorized>
@@ -77,8 +76,7 @@
 
         try
         {
-            // Effectuer la requête de connexion avec la méthode correcte
-            var token = await ApiClient.LoginAsync(loginModel);
+            var token = await ApiClient.AuthLoginAsync(loginModel);
            
             await AuthService.LoginAsync(token.Token);
             NavigationManager.NavigateTo("/", true);

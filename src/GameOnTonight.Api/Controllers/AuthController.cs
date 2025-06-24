@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(TokenViewModel), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(TokenViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> Login([FromBody] LoginQuery query, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

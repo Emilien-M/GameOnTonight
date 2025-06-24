@@ -6,12 +6,12 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Queries;
 
 /// <summary>
-/// Query pour récupérer l'historique des sessions de jeu
+/// Query to retrieve the history of game sessions.
 /// </summary>
 public record GetSessionHistoryQuery(int? Count = null) : IRequest<IEnumerable<GameSessionViewModel>>;
 
 /// <summary>
-/// Handler pour GetSessionHistoryQuery
+/// Handler for GetSessionHistoryQuery.
 /// </summary>
 public class GetSessionHistoryQueryHandler : IRequestHandler<GetSessionHistoryQuery, IEnumerable<GameSessionViewModel>>
 {

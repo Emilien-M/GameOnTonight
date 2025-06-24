@@ -5,12 +5,12 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Queries;
 
 /// <summary>
-/// Query pour récupérer la liste des types de jeux distincts pour l'utilisateur
+/// Query to retrieve the list of distinct game types for the user.
 /// </summary>
 public record GetDistinctGameTypesQuery : IRequest<IEnumerable<string>>;
 
 /// <summary>
-/// Handler pour GetDistinctGameTypesQuery
+/// Handler for GetDistinctGameTypesQuery.
 /// </summary>
 public class GetDistinctGameTypesQueryHandler : IRequestHandler<GetDistinctGameTypesQuery, IEnumerable<string>>
 {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace GameOnTonight.Infrastructure.Interceptors;
 
 /// <summary>
-/// Intercepteur EF Core pour mettre à jour automatiquement les propriétés CreatedAt et UpdatedAt
+/// EF Core interceptor to automatically update CreatedAt and UpdatedAt properties.
 /// </summary>
 public class AuditableEntityInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {

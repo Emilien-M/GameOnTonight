@@ -3,20 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace GameOnTonight.Application;
 
 /// <summary>
-/// Extensions pour configurer les services liés à la couche Application
+/// Extensions for configuring services related to the Application layer.
 /// </summary>
 public static class DependencyInjection
 {
     /// <summary>
-    /// Ajoute les services de la couche Application au conteneur de services
+    /// Adds the Application layer services to the service container.
     /// </summary>
-    /// <param name="services">Collection de services</param>
-    /// <returns>Collection de services mise à jour</returns>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The updated service collection.</returns>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Enregistrement des handlers Mediator se fait automatiquement via le service AddMediator
-        // qui scanne les assemblies pour trouver les handlers
-        
         return services;
     }
 }

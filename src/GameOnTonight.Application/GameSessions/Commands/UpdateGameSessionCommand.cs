@@ -1,3 +1,5 @@
+using GameOnTonight.Application.GameSessions.ViewModels;
+using GameOnTonight.Domain.Exceptions;
 using GameOnTonight.Domain.Repositories;
 using GameOnTonight.Domain.Services;
 using Mediator;
@@ -5,7 +7,7 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Commands;
 
 /// <summary>
-/// Command pour mettre à jour une session de jeu existante
+/// Command to update an existing game session.
 /// </summary>
 public record UpdateGameSessionCommand(
     int Id,
@@ -13,12 +15,12 @@ public record UpdateGameSessionCommand(
     DateTime PlayedAt,
     int PlayerCount,
     string? Notes = null
-) : IRequest<bool>;
+) : IRequest<GameSessionViewModel>;
 
 /// <summary>
-/// Handler pour UpdateGameSessionCommand
+/// Handler for UpdateGameSessionCommand.
 /// </summary>
-public class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGameSessionCommand, bool>
+public class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGameSessionCommand, GameSessionViewModel>
 {
     private readonly IGameSessionRepository _gameSessionRepository;
     private readonly IBoardGameRepository _boardGameRepository;
@@ -37,28 +39,25 @@ public class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGameSession
         _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<bool> Handle(UpdateGameSessionCommand request, CancellationToken cancellationToken)
+    public async ValueTask<GameSessionViewModel> Handle(UpdateGameSessionCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!;
         
-        // Vérifier que la session de jeu existe et appartient à l'utilisateur
         var gameSession = await _gameSessionRepository.GetByIdAsync(request.Id, userId);
         if (gameSession == null)
         {
-            return false;
+            throw new DomainException("GameSessionNotFound", $"The game session with ID {request.Id} was not found.");
         }
         
-        // Vérifier que le jeu appartient à l'utilisateur si on change le jeu associé
         if (gameSession.BoardGameId != request.BoardGameId)
         {
             var boardGame = await _boardGameRepository.GetByIdAsync(request.BoardGameId, userId);
             if (boardGame == null)
             {
-                throw new InvalidOperationException($"Le jeu avec l'ID {request.BoardGameId} n'a pas été trouvé dans votre collection.");
+                throw new InvalidOperationException($"The game with ID {request.BoardGameId} was not found in your collection.");
             }
         }
 
-        // Mise à jour des propriétés
         gameSession.BoardGameId = request.BoardGameId;
         gameSession.PlayedAt = request.PlayedAt;
         gameSession.PlayerCount = request.PlayerCount;
@@ -67,6 +66,6 @@ public class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGameSession
         var result = await _gameSessionRepository.UpdateAsync(gameSession);
         await _unitOfWork.SaveChangesAsync();
 
-        return result;
+        return new GameSessionViewModel(gameSession);
     }
 }

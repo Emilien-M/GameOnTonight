@@ -15,7 +15,6 @@ public class AuthService : IAuthService
 {
     private readonly ILocalStorageService _localStorage;
     private readonly AuthenticationStateProvider _authStateProvider;
-    private const string _tokenKey = "authToken";
 
     public AuthService(ILocalStorageService localStorage, AuthenticationStateProvider authStateProvider)
     {
@@ -27,8 +26,8 @@ public class AuthService : IAuthService
     {
         try
         {
-            await _localStorage.SetItemAsStringAsync(_tokenKey, token);
-            ((CustomAuthStateProvider)_authStateProvider).NotifyAuthenticationStateChanged();
+            await _localStorage.SetItemAsStringAsync(Constants.TokenKey, token);
+            ((CustomAuthenticationStateProvider)_authStateProvider).MarkUserAsAuthenticated(token);
             return true;
         }
         catch
@@ -39,18 +38,18 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync()
     {
-        await _localStorage.RemoveItemAsync(_tokenKey);
-        ((CustomAuthStateProvider)_authStateProvider).NotifyAuthenticationStateChanged();
+        await _localStorage.RemoveItemAsync(Constants.TokenKey);
+        ((CustomAuthenticationStateProvider)_authStateProvider).MarkUserAsLoggedOut();
     }
 
     public async Task<bool> IsAuthenticatedAsync()
     {
-        var token = await _localStorage.GetItemAsStringAsync(_tokenKey);
+        var token = await _localStorage.GetItemAsStringAsync(Constants.TokenKey);
         return !string.IsNullOrEmpty(token);
     }
 
     public async Task<string?> GetTokenAsync()
     {
-        return await _localStorage.GetItemAsStringAsync(_tokenKey);
+        return await _localStorage.GetItemAsStringAsync(Constants.TokenKey);
     }
 }

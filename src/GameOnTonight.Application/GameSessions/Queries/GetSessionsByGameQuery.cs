@@ -6,12 +6,12 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Queries;
 
 /// <summary>
-/// Query pour récupérer les sessions de jeu pour un jeu spécifique
+/// Query to retrieve game sessions for a specific game.
 /// </summary>
 public record GetSessionsByGameQuery(int BoardGameId) : IRequest<IEnumerable<GameSessionViewModel>>;
 
 /// <summary>
-/// Handler pour GetSessionsByGameQuery
+/// Handler for GetSessionsByGameQuery.
 /// </summary>
 public class GetSessionsByGameQueryHandler : IRequestHandler<GetSessionsByGameQuery, IEnumerable<GameSessionViewModel>>
 {
@@ -33,11 +33,10 @@ public class GetSessionsByGameQueryHandler : IRequestHandler<GetSessionsByGameQu
     {
         var userId = _currentUserService.UserId!;
         
-        // Vérifier que le jeu appartient à l'utilisateur
         var boardGame = await _boardGameRepository.GetByIdAsync(request.BoardGameId, userId);
         if (boardGame == null)
         {
-            throw new InvalidOperationException($"Le jeu avec l'ID {request.BoardGameId} n'a pas été trouvé dans votre collection.");
+            throw new InvalidOperationException($"The game with ID {request.BoardGameId} was not found in your collection.");
         }
         
         var sessions = await _gameSessionRepository.GetSessionsByGameAsync(request.BoardGameId, userId);

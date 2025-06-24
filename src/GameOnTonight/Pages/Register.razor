@@ -1,6 +1,6 @@
 @page "/register"
-@using GameOnTonight.RestClient.Generated
-@inject IGameOnTonightApiClient ApiClient
+@using GameOnTonight.RestClient
+@inject Client ApiClient
 @inject NavigationManager NavigationManager
 
 <AuthorizeView Context="authContext">
@@ -89,7 +89,7 @@
 
         try
         {
-            await ApiClient.RegisterAsync(registerModel);
+            await ApiClient.AuthRegisterAsync(registerModel);
             registrationSuccess = true;
             registerModel = new RegisterUserCommand(); // Réinitialise le formulaire
         }

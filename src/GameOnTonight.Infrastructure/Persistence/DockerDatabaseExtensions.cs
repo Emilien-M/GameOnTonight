@@ -18,13 +18,13 @@ public static class DockerDatabaseExtensions
 
         try
         {
-            logger.LogInformation("Migration de la base de données associée au contexte {DbContextName}", typeof(T).Name);
+            logger.LogInformation("Migrating database associated with context {DbContextName}", typeof(T).Name);
             context.Database.Migrate();
-            logger.LogInformation("Migration terminée");
+            logger.LogInformation("Database migration for context {DbContextName} completed.", typeof(T).Name);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Une erreur s'est produite lors de la migration de la base de données pour le contexte {DbContextName}", typeof(T).Name);
+            logger.LogError(ex, "An error occurred while migrating the database for context {DbContextName}", typeof(T).Name);
         }
 
         return app;
@@ -40,13 +40,13 @@ public static class DockerDatabaseExtensions
                 
                 try 
                 {
-                    logger.LogInformation("Démarrage du conteneur Docker PostgreSQL pour le développement...");
+                    logger.LogInformation("Starting Docker PostgreSQL container for development...");
                     StartDockerPostgresContainer();
-                    logger.LogInformation("Conteneur PostgreSQL démarré avec succès");
+                    logger.LogInformation("PostgreSQL container started successfully.");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Erreur lors du démarrage du conteneur PostgreSQL");
+                    logger.LogError(ex, "Error starting PostgreSQL container.");
                 }
             }
         });
@@ -77,7 +77,7 @@ public static class DockerDatabaseExtensions
 
         if (process.ExitCode != 0)
         {
-            throw new Exception($"Erreur lors du démarrage du conteneur Docker : {error}");
+            throw new Exception($"Error starting Docker container: {error}");
         }
     }
 
@@ -135,7 +135,7 @@ public static class DockerDatabaseExtensions
         }
 
         throw new FileNotFoundException(
-            "Impossible de trouver le fichier docker-compose.yml. Il devrait se trouver dans le dossier GameOnTonight.Infrastructure/Docker."
+            "Could not find docker-compose.yml. It should be in the GameOnTonight.Infrastructure/Docker folder."
         );
     }
 }

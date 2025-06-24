@@ -26,4 +26,8 @@
     <ProjectReference Include="..\GameOnTonight.Infrastructure\GameOnTonight.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Config\Security\" />
+  </ItemGroup>
+
 </Project>

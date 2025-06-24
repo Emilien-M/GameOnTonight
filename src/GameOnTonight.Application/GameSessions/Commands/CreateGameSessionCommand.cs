@@ -1,3 +1,4 @@
+using GameOnTonight.Application.GameSessions.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
 using GameOnTonight.Domain.Services;
@@ -6,19 +7,19 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Commands;
 
 /// <summary>
-/// Command pour créer une nouvelle session de jeu
+/// Command to create a new game session.
 /// </summary>
 public record CreateGameSessionCommand(
     int BoardGameId,
     DateTime PlayedAt,
     int PlayerCount,
     string? Notes = null
-) : IRequest<int>;
+) : IRequest<GameSessionViewModel>;
 
 /// <summary>
-/// Handler pour CreateGameSessionCommand
+/// Handler for CreateGameSessionCommand.
 /// </summary>
-public class CreateGameSessionCommandHandler : IRequestHandler<CreateGameSessionCommand, int>
+public class CreateGameSessionCommandHandler : IRequestHandler<CreateGameSessionCommand, GameSessionViewModel>
 {
     private readonly IGameSessionRepository _gameSessionRepository;
     private readonly IBoardGameRepository _boardGameRepository;
@@ -37,15 +38,14 @@ public class CreateGameSessionCommandHandler : IRequestHandler<CreateGameSession
         _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<int> Handle(CreateGameSessionCommand request, CancellationToken cancellationToken)
+    public async ValueTask<GameSessionViewModel> Handle(CreateGameSessionCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!;
 
-        // Vérifier que le jeu appartient à l'utilisateur
         var boardGame = await _boardGameRepository.GetByIdAsync(request.BoardGameId, userId);
         if (boardGame == null)
         {
-            throw new InvalidOperationException($"Le jeu avec l'ID {request.BoardGameId} n'a pas été trouvé dans votre collection.");
+            throw new InvalidOperationException($"The game with ID {request.BoardGameId} was not found in your collection.");
         }
 
         var gameSession = new GameSession
@@ -59,6 +59,6 @@ public class CreateGameSessionCommandHandler : IRequestHandler<CreateGameSession
         await _gameSessionRepository.AddAsync(gameSession);
         await _unitOfWork.SaveChangesAsync();
 
-        return gameSession.Id;
+        return new GameSessionViewModel(gameSession);
     }
 }

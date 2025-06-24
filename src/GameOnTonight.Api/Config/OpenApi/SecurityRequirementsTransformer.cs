@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
 
-namespace GameOnTonight.Api.Config.Security;
+namespace GameOnTonight.Api.Config.OpenApi;
 
-public class SecurityRequirementsTransformer : IOpenApiDocumentTransformer
+internal sealed class SecurityRequirementsTransformer : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {

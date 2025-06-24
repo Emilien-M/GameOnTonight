@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using GameOnTonight.Domain.Exceptions;
 
 /// <summary>
-/// Entité de base avec les propriétés communes
+/// Base entity with common properties.
 /// </summary>
 public abstract class BaseEntity
 {
     /// <summary>
-    /// Identifiant unique de l'entité
+    /// Unique identifier for the entity.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Date de création de l'entité
+    /// Date of creation of the entity.
     /// </summary>
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
-    /// Date de dernière mise à jour de l'entité
+    /// Date of last update of the entity.
     /// </summary>
     public DateTime? UpdatedAt { get; set; }
     
@@ -28,52 +28,52 @@ public abstract class BaseEntity
     private readonly List<DomainError> _domainErrors = new();
     
     /// <summary>
-    /// Liste en lecture seule des erreurs de domaine accumulées par l'entité
+    /// Read-only list of domain errors accumulated by the entity.
     /// </summary>
     public IReadOnlyCollection<DomainError> DomainErrors => _domainErrors.AsReadOnly();
     
     /// <summary>
-    /// Vérifie si l'entité a des erreurs de validation
+    /// Checks if the entity has validation errors.
     /// </summary>
     public bool HasErrors => _domainErrors.Count > 0;
     
     /// <summary>
-    /// Ajoute une erreur de validation du domaine
+    /// Adds a domain validation error.
     /// </summary>
-    /// <param name="message">Message d'erreur</param>
+    /// <param name="message">Error message.</param>
     protected void AddDomainError(string message)
     {
         _domainErrors.Add(new DomainError(message));
     }
     
     /// <summary>
-    /// Ajoute une erreur de validation du domaine concernant une propriété spécifique
+    /// Adds a domain validation error for a specific property.
     /// </summary>
-    /// <param name="propertyName">Nom de la propriété</param>
-    /// <param name="message">Message d'erreur</param>
+    /// <param name="propertyName">Name of the property.</param>
+    /// <param name="message">Error message.</param>
     protected void AddDomainError(string propertyName, string message)
     {
         _domainErrors.Add(new DomainError(message, propertyName));
     }
 
     /// <summary>
-    /// Valide une propriété string pour s'assurer qu'elle n'est pas nulle ou vide
+    /// Validates a string property to ensure it is not null or empty.
     /// </summary>
-    /// <param name="value">Valeur à vérifier</param>
-    /// <param name="propertyName">Nom de la propriété</param>
-    /// <param name="maxLength">Longueur maximale (optionnelle)</param>
-    /// <returns>True si la validation réussit, sinon false</returns>
+    /// <param name="value">Value to check.</param>
+    /// <param name="propertyName">Name of the property.</param>
+    /// <param name="maxLength">Maximum length (optional).</param>
+    /// <returns>True if validation succeeds, otherwise false.</returns>
     protected bool ValidateString(string? value, string propertyName, int? maxLength = null)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            AddDomainError(propertyName, $"Le champ {propertyName} est requis.");
+            AddDomainError(propertyName, $"The {propertyName} field is required.");
             return false;
         }
 
         if (maxLength.HasValue && value.Length > maxLength.Value)
         {
-            AddDomainError(propertyName, $"Le champ {propertyName} ne peut pas dépasser {maxLength.Value} caractères.");
+            AddDomainError(propertyName, $"The {propertyName} field cannot exceed {maxLength.Value} characters.");
             return false;
         }
 
@@ -81,24 +81,24 @@ public abstract class BaseEntity
     }
 
     /// <summary>
-    /// Valide une propriété numérique pour s'assurer qu'elle est dans une plage valide
+    /// Validates a numeric property to ensure it is within a valid range.
     /// </summary>
-    /// <param name="value">Valeur à vérifier</param>
-    /// <param name="propertyName">Nom de la propriété</param>
-    /// <param name="min">Valeur minimale (optionnelle)</param>
-    /// <param name="max">Valeur maximale (optionnelle)</param>
-    /// <returns>True si la validation réussit, sinon false</returns>
+    /// <param name="value">Value to check.</param>
+    /// <param name="propertyName">Name of the property.</param>
+    /// <param name="min">Minimum value (optional).</param>
+    /// <param name="max">Maximum value (optional).</param>
+    /// <returns>True if validation succeeds, otherwise false.</returns>
     protected bool ValidateNumber<T>(T value, string propertyName, T? min = null, T? max = null) where T : struct, IComparable<T>
     {
         if (min.HasValue && value.CompareTo(min.Value) < 0)
         {
-            AddDomainError(propertyName, $"Le champ {propertyName} doit être supérieur ou égal à {min.Value}.");
+            AddDomainError(propertyName, $"The {propertyName} field must be greater than or equal to {min.Value}.");
             return false;
         }
 
         if (max.HasValue && value.CompareTo(max.Value) > 0)
         {
-            AddDomainError(propertyName, $"Le champ {propertyName} doit être inférieur ou égal à {max.Value}.");
+            AddDomainError(propertyName, $"The {propertyName} field must be less than or equal to {max.Value}.");
             return false;
         }
 
@@ -106,7 +106,7 @@ public abstract class BaseEntity
     }
     
     /// <summary>
-    /// Lève une exception DomainException si des erreurs de domaine ont été accumulées
+    /// Throws a DomainException if domain errors have been accumulated.
     /// </summary>
     public void ThrowIfInvalid()
     {
@@ -117,7 +117,7 @@ public abstract class BaseEntity
     }
     
     /// <summary>
-    /// Efface toutes les erreurs accumulées
+    /// Clears all accumulated errors.
     /// </summary>
     protected void ClearDomainErrors()
     {

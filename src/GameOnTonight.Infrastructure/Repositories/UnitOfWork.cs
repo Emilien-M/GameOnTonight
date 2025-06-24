@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace GameOnTonight.Infrastructure.Repositories;
 
 /// <summary>
-/// Implémentation du pattern Unit of Work pour coordonner les opérations entre repositories
+/// Implementation of the Unit of Work pattern to coordinate operations between repositories.
 /// </summary>
 public class UnitOfWork : IUnitOfWork
 {
@@ -24,25 +24,22 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangesAsync()
     {
-        // Vérifier toutes les entités modifiées ou ajoutées pour s'assurer qu'elles sont valides
         ValidateEntities();
         
         return await _context.SaveChangesAsync();
     }
     
     /// <summary>
-    /// Vérifie que toutes les entités modifiées ou ajoutées ne contiennent pas d'erreurs de domaine
+    /// Ensures that all modified or added entities do not contain domain errors.
     /// </summary>
     private void ValidateEntities()
     {
-        // Récupérer toutes les entités ajoutées ou modifiées qui héritent de BaseEntity
         var changedEntities = _context.ChangeTracker.Entries()
             .Where(e => e.State is EntityState.Added or EntityState.Modified 
                    && e.Entity is BaseEntity)
             .Select(e => (e.Entity as BaseEntity)!)
             .ToList();
         
-        // Déléguer la validation au service
         _validationService.ValidateEntities(changedEntities);
     }
 

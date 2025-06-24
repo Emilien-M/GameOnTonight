@@ -5,14 +5,14 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Commands;
 
 /// <summary>
-/// Command pour supprimer un jeu de société
+/// Command to delete a board game.
 /// </summary>
-public record DeleteBoardGameCommand(int Id) : IRequest<bool>;
+public record DeleteBoardGameCommand(int Id) : IRequest;
 
 /// <summary>
-/// Handler pour DeleteBoardGameCommand
+/// Handler for DeleteBoardGameCommand.
 /// </summary>
-public class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameCommand, bool>
+public class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameCommand>
 {
     private readonly IBoardGameRepository _boardGameRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -28,19 +28,19 @@ public class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameComm
         _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<bool> Handle(DeleteBoardGameCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(DeleteBoardGameCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!;
         
         var boardGame = await _boardGameRepository.GetByIdAsync(request.Id, userId);
         if (boardGame == null)
         {
-            return false;
+            return Unit.Value;
         }
 
         var result = await _boardGameRepository.RemoveAsync(boardGame);
         await _unitOfWork.SaveChangesAsync();
 
-        return result;
+        return Unit.Value;
     }
 }

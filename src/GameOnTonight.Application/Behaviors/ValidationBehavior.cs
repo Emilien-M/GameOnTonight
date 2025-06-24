@@ -6,11 +6,11 @@ using Mediator;
 namespace GameOnTonight.Application.Behaviors;
 
 /// <summary>
-/// Comportement de validation pour le pipeline Mediator
-/// Valide les commandes et requêtes via FluentValidation
+/// Validation behavior for the Mediator pipeline.
+/// Validates commands and queries using FluentValidation.
 /// </summary>
-/// <typeparam name="TRequest">Type de la requête</typeparam>
-/// <typeparam name="TResponse">Type de la réponse</typeparam>
+/// <typeparam name="TRequest">Type of the request.</typeparam>
+/// <typeparam name="TResponse">Type of the response.</typeparam>
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull, IMessage
 {

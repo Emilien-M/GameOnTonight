@@ -30,14 +30,14 @@ public class LoginQueryHandler : IRequestHandler<LoginQuery, TokenViewModel>
 
         if (!result.Succeeded)
         {
-            throw new UnauthorizedAccessException("Identifiants invalides");
+            throw new UnauthorizedAccessException("Invalid credentials");
         }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Utilisateur non trouvé");
+            throw new UnauthorizedAccessException("User not found");
         }
         
         var token = GenerateJwtToken(user);

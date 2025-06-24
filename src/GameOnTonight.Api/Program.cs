@@ -1,7 +1,6 @@
 using System.Text;
 using GameOnTonight.Api.Config.Middlewares;
 using GameOnTonight.Api.Config.OpenApi;
-using GameOnTonight.Api.Config.Security;
 using GameOnTonight.Application.Auth.Commands;
 using GameOnTonight.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,7 +23,7 @@ builder.Services.AddOpenApi(options =>
     options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     options.AddDocumentTransformer<SecurityRequirementsTransformer>();
-    options.AddDocumentTransformer<OperationIdTransformer>(); // Ajout du transformateur pour les operationId uniques
+    options.AddDocumentTransformer<OperationIdTransformer>();
 });
 
 // Configurer les services DB et Identity
@@ -36,7 +35,6 @@ builder.Services.AddRepositories();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
-        // Configurer les options d'identité selon les besoins
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
@@ -126,7 +124,6 @@ app.MapScalarApiReference();
 
 // app.UseHttpsRedirection(); // Commenté car nous utilisons HTTP entre les conteneurs
 
-// Ajouter le middleware UnitOfWork avant l'authentification et l'autorisation
 app.UseUnitOfWork();
 
 app.UseAuthentication();

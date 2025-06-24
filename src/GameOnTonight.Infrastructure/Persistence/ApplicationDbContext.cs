@@ -8,8 +8,8 @@ using GameOnTonight.Infrastructure.Configurations;
 namespace GameOnTonight.Infrastructure.Persistence;
 
 /// <summary>
-/// Contexte de base de données principal de l'application qui étend IdentityDbContext
-/// pour intégrer ASP.NET Core Identity
+/// The main application database context that extends IdentityDbContext
+/// to integrate ASP.NET Core Identity.
 /// </summary>
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
@@ -33,12 +33,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(builder);
         
-        // Appliquer les configurations d'entités
         builder.ApplyConfiguration(new BoardGameConfiguration());
         builder.ApplyConfiguration(new GameSessionConfiguration());
     }
     
-    // Définir ici les DbSet pour les entités métier
     public DbSet<BoardGame> BoardGames { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
 }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 namespace GameOnTonight.Api.Models;
 
 /// <summary>
-/// Modèle standardisé pour les réponses d'erreur de l'API
+/// Standardized model for API error responses.
 /// </summary>
 public class ErrorResponse
 {
@@ -29,8 +29,6 @@ public class ErrorResponse
         Title = title;
         Status = (int)status;
         
-        // Utilise Activity.Current?.Id en priorité, puis HttpContext.TraceIdentifier comme fallback
-        // et enfin générer un nouveau GUID si rien n'est disponible
         TraceId = Activity.Current?.Id 
             ?? httpContext?.TraceIdentifier 
             ?? Guid.NewGuid().ToString();

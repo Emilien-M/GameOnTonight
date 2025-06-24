@@ -1,19 +1,19 @@
 namespace GameOnTonight.Domain.Exceptions;
 
 /// <summary>
-/// Exception levée lorsque des règles métier sont violées dans le domaine
+/// Exception thrown when business rules are violated in the domain.
 /// </summary>
 public class DomainException : Exception
 {
     /// <summary>
-    /// Liste des erreurs de domaine associées à cette exception
+    /// List of domain errors associated with this exception.
     /// </summary>
     public IReadOnlyList<DomainError> Errors { get; }
 
     /// <summary>
-    /// Crée une nouvelle exception du domaine avec une erreur unique
+    /// Creates a new domain exception with a single error.
     /// </summary>
-    /// <param name="message">Message d'erreur</param>
+    /// <param name="message">Error message.</param>
     public DomainException(string message) 
         : base(message)
     {
@@ -21,10 +21,10 @@ public class DomainException : Exception
     }
 
     /// <summary>
-    /// Crée une nouvelle exception du domaine avec une erreur unique
+    /// Creates a new domain exception with a single error.
     /// </summary>
-    /// <param name="message">Message d'erreur</param>
-    /// <param name="propertyName">Propriété concernée par l'erreur</param>
+    /// <param name="message">Error message.</param>
+    /// <param name="propertyName">Property affected by the error.</param>
     public DomainException(string message, string propertyName) 
         : base(message)
     {
@@ -37,11 +37,11 @@ public class DomainException : Exception
     }
 
     /// <summary>
-    /// Crée une nouvelle exception du domaine avec une liste d'erreurs
+    /// Creates a new domain exception with a list of errors.
     /// </summary>
-    /// <param name="errors">Liste des erreurs du domaine</param>
+    /// <param name="errors">List of domain errors.</param>
     public DomainException(IEnumerable<DomainError> errors) 
-        : base("Une ou plusieurs erreurs de validation du domaine se sont produites.")
+        : base("One or more domain validation errors have occurred.")
     {
         Errors = errors.ToList().AsReadOnly();
     }

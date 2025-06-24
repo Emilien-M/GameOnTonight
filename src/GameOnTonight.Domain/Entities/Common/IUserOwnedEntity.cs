@@ -1,17 +1,17 @@
 namespace GameOnTonight.Domain.Entities.Common;
 
 /// <summary>
-/// Interface pour les entités appartenant à un utilisateur spécifique
+/// Interface for entities owned by a specific user.
 /// </summary>
 public interface IUserOwnedEntity
 {
     /// <summary>
-    /// Identifiant de l'utilisateur propriétaire de l'entité
+    /// Identifier of the user who owns the entity.
     /// </summary>
     string UserId { get; }
     
     /// <summary>
-    /// Définit l'identifiant de l'utilisateur propriétaire de l'entité, seulement avant la persistance
+    /// Sets the identifier of the user who owns the entity, only before persistence.
     /// </summary>
     /// <param name="userId"></param>
     void SetUserId(string userId);

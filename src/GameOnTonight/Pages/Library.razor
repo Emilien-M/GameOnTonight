@@ -1,7 +1,7 @@
 @page "/library"
-@using GameOnTonight.RestClient.Generated
+@using GameOnTonight.RestClient
 @attribute [Authorize]
-@inject IGameOnTonightApiClient ApiClient
+@inject Client ApiClient
 @inject NavigationManager NavigationManager
 
 <PageTitle>Ma Ludothèque</PageTitle>
@@ -115,7 +115,7 @@ else
 
         try
         {
-            boardGames = await ApiClient.BoardGamesAllAsync();
+            boardGames = await ApiClient.BoardGamesGetAsync();
         }
         catch (ApiException ex)
         {
@@ -153,7 +153,7 @@ else
 
         try
         {
-            await ApiClient.BoardGamesDELETEAsync(gameToDelete.Id);
+            await ApiClient.BoardGamesDeleteByIdAsync(gameToDelete.Id);
             showDeleteConfirm = false;
             gameToDelete = null;
             await LoadBoardGames();

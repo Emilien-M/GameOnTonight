@@ -1,7 +1,7 @@
 @page "/history"
-@using GameOnTonight.RestClient.Generated
+@using GameOnTonight.RestClient
 @attribute [Authorize]
-@inject IGameOnTonightApiClient ApiClient
+@inject Client ApiClient
 
 <PageTitle>Historique des parties</PageTitle>
 
@@ -167,7 +167,7 @@ else
         try
         {
             // Si historyCount est à 0, on récupère toutes les parties
-            gameSessions = await ApiClient.HistoryAsync(historyCount == 0 ? null : historyCount);
+            gameSessions = await ApiClient.GameSessionsGetHistoryAsync(historyCount == 0 ? null : historyCount);
             
             // Trier par date décroissante (plus récente en premier)
             gameSessions = gameSessions.OrderByDescending(s => s.PlayedAt).ToList();
@@ -190,7 +190,7 @@ else
     {
         try
         {
-            statistics = await ApiClient.CountsAsync();
+            statistics = await ApiClient.GameSessionsGetGamePlayCountsAsync();
         }
         catch
         {
@@ -211,7 +211,7 @@ else
 
         try
         {
-            await ApiClient.GameSessionsDELETEAsync(sessionToDelete.Id);
+            await ApiClient.GameSessionsDeleteByIdAsync(sessionToDelete.Id);
             showDeleteConfirm = false;
             sessionToDelete = null;
             await LoadGameSessions();

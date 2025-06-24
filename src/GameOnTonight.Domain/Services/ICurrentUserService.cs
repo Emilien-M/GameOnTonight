@@ -1,17 +1,17 @@
 namespace GameOnTonight.Domain.Services;
 
 /// <summary>
-/// Service pour accéder à l'utilisateur actuellement authentifié
+/// Service for accessing the currently authenticated user.
 /// </summary>
 public interface ICurrentUserService
 {
     /// <summary>
-    /// Obtient l'identifiant de l'utilisateur courant
+    /// Gets the ID of the current user.
     /// </summary>
     string? UserId { get; }
     
     /// <summary>
-    /// Indique si l'utilisateur est authentifié
+    /// Indicates whether the user is authenticated.
     /// </summary>
     bool IsAuthenticated { get; }
 }

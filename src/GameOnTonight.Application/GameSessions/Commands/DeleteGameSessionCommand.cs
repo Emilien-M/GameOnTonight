@@ -5,14 +5,14 @@ using Mediator;
 namespace GameOnTonight.Application.GameSessions.Commands;
 
 /// <summary>
-/// Command pour supprimer une session de jeu
+/// Command to delete a game session.
 /// </summary>
-public record DeleteGameSessionCommand(int Id) : IRequest<bool>;
+public record DeleteGameSessionCommand(int Id) : IRequest;
 
 /// <summary>
-/// Handler pour DeleteGameSessionCommand
+/// Handler for DeleteGameSessionCommand.
 /// </summary>
-public class DeleteGameSessionCommandHandler : IRequestHandler<DeleteGameSessionCommand, bool>
+public class DeleteGameSessionCommandHandler : IRequestHandler<DeleteGameSessionCommand>
 {
     private readonly IGameSessionRepository _gameSessionRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -28,19 +28,19 @@ public class DeleteGameSessionCommandHandler : IRequestHandler<DeleteGameSession
         _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<bool> Handle(DeleteGameSessionCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(DeleteGameSessionCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!;
         
         var gameSession = await _gameSessionRepository.GetByIdAsync(request.Id, userId);
         if (gameSession == null)
         {
-            return false;
+            return Unit.Value;
         }
 
         var result = await _gameSessionRepository.RemoveAsync(gameSession);
         await _unitOfWork.SaveChangesAsync();
 
-        return result;
+        return Unit.Value;
     }
 }

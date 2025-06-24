@@ -6,12 +6,12 @@ using Mediator;
 namespace GameOnTonight.Application.BoardGames.Queries;
 
 /// <summary>
-/// Query pour récupérer tous les jeux de société de l'utilisateur
+/// Query to retrieve all of the user's board games.
 /// </summary>
 public record GetAllBoardGamesQuery : IRequest<IEnumerable<BoardGameViewModel>>;
 
 /// <summary>
-/// Handler pour GetAllBoardGamesQuery
+/// Handler for GetAllBoardGamesQuery.
 /// </summary>
 public class GetAllBoardGamesQueryHandler : IRequestHandler<GetAllBoardGamesQuery, IEnumerable<BoardGameViewModel>>
 {

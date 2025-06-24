@@ -5,19 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace GameOnTonight.Infrastructure.Configurations;
 
 /// <summary>
-/// Configuration EF Core pour l'entité GameSession
+/// EF Core configuration for the GameSession entity.
 /// </summary>
 public class GameSessionConfiguration : BaseConfiguration<GameSession>
 {
     public void Configure(EntityTypeBuilder<GameSession> builder)
     {
-        // Configuration de la table
         builder.ToTable("GameSessions");
         
-        // Clé primaire
         builder.HasKey(s => s.Id);
         
-        // Propriétés de base
         builder.Property(s => s.Id)
             .UseIdentityColumn()
             .IsRequired();
@@ -28,12 +25,10 @@ public class GameSessionConfiguration : BaseConfiguration<GameSession>
         builder.Property(s => s.UpdatedAt)
             .IsRequired(false);
             
-        // Propriété du UserOwnedEntity
         builder.Property(s => s.UserId)
             .IsRequired()
-            .HasMaxLength(450); // Correspond à la taille de l'ID dans ASP.NET Identity
+            .HasMaxLength(450); 
         
-        // Propriétés spécifiques à la session
         builder.Property(s => s.BoardGameId)
             .IsRequired();
             
@@ -47,13 +42,11 @@ public class GameSessionConfiguration : BaseConfiguration<GameSession>
             .IsRequired(false)
             .HasMaxLength(1000);
             
-        // Relation avec le jeu de société
         builder.HasOne(s => s.BoardGame)
             .WithMany(g => g.GameSessions)
             .HasForeignKey(s => s.BoardGameId)
             .OnDelete(DeleteBehavior.Cascade);
             
-        // Index
         builder.HasIndex(s => s.UserId);
         builder.HasIndex(s => s.BoardGameId);
         builder.HasIndex(s => s.PlayedAt);

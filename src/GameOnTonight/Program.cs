@@ -10,25 +10,20 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Ajouter les services d'authentification
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Configuration de l'URL de base de l'API
 var apiBaseAddress = builder.HostEnvironment.IsDevelopment() 
     ? "http://localhost:5235" 
     : builder.HostEnvironment.BaseAddress;
 
-// Enregistrement du gestionnaire d'autorisation
-builder.Services.AddScoped<AuthorizationMessageHandler>();
+builder.Services.AddScoped<AuthHeaderHandler>();
 
-// Enregistrement du client API avec la méthode d'extension du projet RestClient
-// et configuration pour utiliser le gestionnaire d'autorisation
-builder.Services.AddGameOnTonightApiClient(apiBaseAddress, configureClient: client => {
-    // Configuration additionnelle du client HTTP
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-}, handler: sp => sp.GetRequiredService<AuthorizationMessageHandler>());
+builder.Services.AddGameOnTonightApiClient(apiBaseAddress, null, clientBuilder =>
+{
+    clientBuilder.AddHttpMessageHandler<AuthHeaderHandler>();
+});
 
 await builder.Build().RunAsync();
