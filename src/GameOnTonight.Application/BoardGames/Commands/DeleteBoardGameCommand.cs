@@ -16,16 +16,13 @@ public class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameComm
 {
     private readonly IBoardGameRepository _boardGameRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IUnitOfWork _unitOfWork;
 
     public DeleteBoardGameCommandHandler(
         IBoardGameRepository boardGameRepository,
-        ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+        ICurrentUserService currentUserService)
     {
         _boardGameRepository = boardGameRepository;
         _currentUserService = currentUserService;
-        _unitOfWork = unitOfWork;
     }
 
     public async ValueTask<Unit> Handle(DeleteBoardGameCommand request, CancellationToken cancellationToken)
@@ -38,8 +35,7 @@ public class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameComm
             return Unit.Value;
         }
 
-        var result = await _boardGameRepository.RemoveAsync(boardGame);
-        await _unitOfWork.SaveChangesAsync();
+        await _boardGameRepository.RemoveAsync(boardGame);
 
         return Unit.Value;
     }

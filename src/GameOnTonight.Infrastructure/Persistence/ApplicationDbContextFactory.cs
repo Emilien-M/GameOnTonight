@@ -1,4 +1,5 @@
 using System;
+using GameOnTonight.Domain.Services;
 using GameOnTonight.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -11,6 +12,15 @@ namespace GameOnTonight.Infrastructure.Persistence;
 /// </summary>
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
+    private readonly AuditableEntityInterceptor _interceptor;
+    private readonly ICurrentUserService _currentUserService;
+
+    public ApplicationDbContextFactory(AuditableEntityInterceptor interceptor, ICurrentUserService currentUserService)
+    {
+        _interceptor = interceptor;
+        _currentUserService = currentUserService;
+    }
+    
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         IConfigurationRoot configuration = new ConfigurationBuilder()
@@ -24,9 +34,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         builder.UseNpgsql(connectionString);
-        
-        var auditInterceptor = new AuditableEntityInterceptor(TimeProvider.System);
 
-        return new ApplicationDbContext(builder.Options, auditInterceptor);
+        return new ApplicationDbContext(builder.Options, _interceptor, _currentUserService);
     }
 }

@@ -24,14 +24,10 @@ public record CreateBoardGameCommand(
 public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameCommand, BoardGameViewModel>
 {
     private readonly IBoardGameRepository _boardGameRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateBoardGameCommandHandler(
-        IBoardGameRepository boardGameRepository,
-        IUnitOfWork unitOfWork)
+    public CreateBoardGameCommandHandler(IBoardGameRepository boardGameRepository)
     {
         _boardGameRepository = boardGameRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async ValueTask<BoardGameViewModel> Handle(CreateBoardGameCommand request, CancellationToken cancellationToken)
@@ -48,7 +44,6 @@ public class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameComm
         };
 
         await _boardGameRepository.AddAsync(boardGame);
-        await _unitOfWork.SaveChangesAsync();
 
         return new BoardGameViewModel(boardGame);
     }

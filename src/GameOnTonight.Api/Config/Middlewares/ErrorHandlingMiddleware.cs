@@ -48,7 +48,7 @@ public class ErrorHandlingMiddleware
         var errorTitle = "Domain validation error";
             
         var errors = domainException.Errors
-            .GroupBy(e => e.PropertyName)
+            .GroupBy(e => e.Name)
             .ToDictionary(
                 group => string.IsNullOrEmpty(group.Key) ? "error" : group.Key, 
                 group => group.Select(e => e.Message).ToArray()

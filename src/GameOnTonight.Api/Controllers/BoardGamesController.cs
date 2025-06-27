@@ -59,11 +59,8 @@ public class BoardGamesController : ControllerBase
             return BadRequest("The ID in the route does not match the ID in the request body.");
             
         var result = await _mediator.Send(command);
-        
-        if (!result)
-            return NotFound();
             
-        return Ok();
+        return Ok(result);
     }
 
     [HttpDelete("{id:int}")]

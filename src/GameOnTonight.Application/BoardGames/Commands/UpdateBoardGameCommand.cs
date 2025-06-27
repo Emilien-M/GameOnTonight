@@ -1,3 +1,5 @@
+using GameOnTonight.Application.BoardGames.ViewModels;
+using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
 using GameOnTonight.Domain.Services;
 using Mediator;
@@ -16,38 +18,32 @@ public record UpdateBoardGameCommand(
     string GameType,
     string? Description = null,
     string? ImageUrl = null
-) : IRequest<bool>;
+) : IRequest<BoardGameViewModel>;
 
 /// <summary>
 /// Handler for UpdateBoardGameCommand.
 /// </summary>
-public class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameCommand, bool>
+public class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameCommand, BoardGameViewModel>
 {
     private readonly IBoardGameRepository _boardGameRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateBoardGameCommandHandler(
-        IBoardGameRepository boardGameRepository,
-        ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+    public UpdateBoardGameCommandHandler(IBoardGameRepository boardGameRepository, ICurrentUserService currentUserService)
     {
         _boardGameRepository = boardGameRepository;
         _currentUserService = currentUserService;
-        _unitOfWork = unitOfWork;
     }
 
-    public async ValueTask<bool> Handle(UpdateBoardGameCommand request, CancellationToken cancellationToken)
+    public async ValueTask<BoardGameViewModel> Handle(UpdateBoardGameCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!;
         
         var boardGame = await _boardGameRepository.GetByIdAsync(request.Id, userId);
         if (boardGame == null)
         {
-            return false;
+            throw BoardGameErrors.BoardGameNotFound(request.Id).Exception();
         }
 
-        // Mise à jour des propriétés
         boardGame.Name = request.Name;
         boardGame.MinPlayers = request.MinPlayers;
         boardGame.MaxPlayers = request.MaxPlayers;
@@ -56,9 +52,8 @@ public class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameComm
         boardGame.Description = request.Description;
         boardGame.ImageUrl = request.ImageUrl;
 
-        var result = await _boardGameRepository.UpdateAsync(boardGame);
-        await _unitOfWork.SaveChangesAsync();
+        await _boardGameRepository.UpdateAsync(boardGame);
 
-        return result;
+        return new BoardGameViewModel(boardGame);
     }
 }

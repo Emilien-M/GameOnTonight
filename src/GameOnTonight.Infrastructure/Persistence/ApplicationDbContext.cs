@@ -1,4 +1,5 @@
 using GameOnTonight.Domain.Entities;
+using GameOnTonight.Domain.Services;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
@@ -14,13 +15,16 @@ namespace GameOnTonight.Infrastructure.Persistence;
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
     private readonly AuditableEntityInterceptor _auditableEntityInterceptor;
+    private readonly ICurrentUserService _currentUserService;
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        AuditableEntityInterceptor auditableEntityInterceptor)
+        AuditableEntityInterceptor auditableEntityInterceptor,
+        ICurrentUserService currentUserService)
         : base(options)
     {
         _auditableEntityInterceptor = auditableEntityInterceptor;
+        _currentUserService = currentUserService;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -33,8 +37,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(builder);
         
-        builder.ApplyConfiguration(new BoardGameConfiguration());
-        builder.ApplyConfiguration(new GameSessionConfiguration());
+        builder.ApplyConfiguration(new BoardGameConfiguration(_currentUserService));
+        builder.ApplyConfiguration(new GameSessionConfiguration(_currentUserService));
     }
     
     public DbSet<BoardGame> BoardGames { get; set; }

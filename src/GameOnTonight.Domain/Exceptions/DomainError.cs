@@ -11,18 +11,21 @@ public class DomainError
     public string Message { get; }
     
     /// <summary>
-    /// Property affected by the error (can be null if the error concerns the entire entity).
+    /// Name of the error, typically used for identification or categorization.
     /// </summary>
-    public string PropertyName { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Creates a new domain error.
     /// </summary>
     /// <param name="message">Error message.</param>
-    /// <param name="propertyName">Affected property (optional).</param>
-    public DomainError(string message, string propertyName = null)
+    /// <param name="name">Error name</param>
+    public DomainError(string message, string name)
     {
         Message = message;
-        PropertyName = propertyName ?? string.Empty;
+        Name = name;
     }
+
+    public DomainException Exception()
+        => new DomainException(this);
 }

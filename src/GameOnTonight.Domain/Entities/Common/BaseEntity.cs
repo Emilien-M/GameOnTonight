@@ -38,15 +38,6 @@ public abstract class BaseEntity
     public bool HasErrors => _domainErrors.Count > 0;
     
     /// <summary>
-    /// Adds a domain validation error.
-    /// </summary>
-    /// <param name="message">Error message.</param>
-    protected void AddDomainError(string message)
-    {
-        _domainErrors.Add(new DomainError(message));
-    }
-    
-    /// <summary>
     /// Adds a domain validation error for a specific property.
     /// </summary>
     /// <param name="propertyName">Name of the property.</param>

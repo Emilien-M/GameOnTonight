@@ -1,4 +1,5 @@
 using GameOnTonight.Domain.Entities;
+using GameOnTonight.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,8 +10,17 @@ namespace GameOnTonight.Infrastructure.Configurations;
 /// </summary>
 public class BoardGameConfiguration : BaseConfiguration<BoardGame>
 {
+    private readonly ICurrentUserService _currentUserService;
+
+    public BoardGameConfiguration(ICurrentUserService currentUserService)
+    {
+        _currentUserService = currentUserService;
+    }
+    
     public void Configure(EntityTypeBuilder<BoardGame> builder)
     {
+        builder.HasQueryFilter(x => x.UserId == _currentUserService.UserId);
+        
         builder.ToTable("BoardGames");
         
         builder.HasKey(g => g.Id);

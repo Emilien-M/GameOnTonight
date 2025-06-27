@@ -1,4 +1,5 @@
 using GameOnTonight.Domain.Entities.Common;
+using GameOnTonight.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
