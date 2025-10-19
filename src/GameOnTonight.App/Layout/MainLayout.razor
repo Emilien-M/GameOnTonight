@@ -1,0 +1,58 @@
+﻿@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="page">
+    <main>
+        <article class="content">
+            @Body
+        </article>
+    </main>
+    @if (_isAuthenticated)
+    {
+        <NavMenu />
+    }
+</div>
+
+@code {
+    private bool _isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        Navigation.LocationChanged += OnLocationChanged;
+        RedirectIfNeeded();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            RedirectIfNeeded();
+            StateHasChanged();
+        });
+    }
+
+    private void RedirectIfNeeded()
+    {
+        if (!_isAuthenticated && !IsPublicRoute(Navigation.Uri))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private bool IsPublicRoute(string uri)
+    {
+        var path = Navigation.ToBaseRelativePath(uri).Trim('/');
+        if (string.IsNullOrEmpty(path)) return false;
+        return path.StartsWith("login", StringComparison.OrdinalIgnoreCase)
+               || path.StartsWith("register", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

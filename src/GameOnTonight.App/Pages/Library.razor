@@ -1,0 +1,126 @@
+@page "/library"
+@inject BoardGamesService BoardGamesService
+@inject NavigationManager Navigation
+@inject ErrorService ErrorService
+
+<PageTitle>Ma Ludothèque</PageTitle>
+
+<h1>Ma Ludothèque</h1>
+
+<div class="mb-3 d-flex justify-content-end">
+    <button class="btn btn-primary" @onclick="CreateNew">
+        <LucideIcon Name="plus" />
+        <span class="ms-1">Ajouter un jeu</span>
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div>Chargement…</div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (games.Count == 0)
+{
+    <div class="alert alert-secondary">Votre ludothèque est vide. Ajoutez votre premier jeu !</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var g in games)
+        {
+            <div class="col-12">
+                <div class="card p-3 d-flex flex-row justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">@g.Name</div>
+                        <div class="text-muted small">
+                            @g.MinPlayers - @g.MaxPlayers joueurs • @g.DurationMinutes min • @g.GameType
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => Edit(g.Id)">
+                            <LucideIcon Name="pencil" />
+                            <span class="ms-1">Modifier</span>
+                        </button>
+                        @if (confirmDeleteId == g.Id)
+                        {
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <span class="text-warning">Confirmer ?</span>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteAsync(g.Id)">Supprimer</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="() => confirmDeleteId = null">Annuler</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => confirmDeleteId = g.Id">
+                                <LucideIcon Name="trash" />
+                                <span class="ms-1">Supprimer</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<GameOnTonight.RestClient.Models.BoardGameViewModel> games = new();
+    private bool isLoading;
+    private string? errorMessage;
+    private int? confirmDeleteId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync(CancellationToken cancellationToken = default)
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            var items = await BoardGamesService.GetAllAsync(cancellationToken);
+            games = items.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateNew()
+    {
+        Navigation.NavigateTo("/library/new");
+    }
+
+    private void Edit(int? id)
+    {
+        if (id.HasValue)
+        {
+            Navigation.NavigateTo($"/library/edit/{id.Value}");
+        }
+    }
+
+    private async Task DeleteAsync(int? id)
+    {
+        if (!id.HasValue) return;
+        try
+        {
+            await BoardGamesService.DeleteAsync(id.Value);
+            confirmDeleteId = null;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+    }
+}

@@ -1,0 +1,49 @@
+﻿@inject AuthService AuthService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="tabbar">
+    <NavLink class="tab" href="" Match="NavLinkMatch.All">
+        <span class="icon" aria-hidden="true"><LucideIcon Name="filter" /></span>
+        <span class="label">Filtrer</span>
+    </NavLink>
+
+    <NavLink class="tab" href="/library">
+        <span class="icon" aria-hidden="true"><LucideIcon Name="library" /></span>
+        <span class="label">Ludothèque</span>
+    </NavLink>
+
+    <button class="tab disabled" aria-disabled="true" title="Bientôt disponible">
+        <span class="icon" aria-hidden="true"><LucideIcon Name="history" /></span>
+        <span class="label">Historique</span>
+    </button>
+
+    <NavLink class="tab" href="@(_isAuthenticated ? "profil" : "login")">
+        <span class="icon" aria-hidden="true"><LucideIcon Name="user" /></span>
+        <span class="label">Profil</span>
+    </NavLink>
+</div>
+
+@code {
+    private bool _isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        InvokeAsync(async () =>
+        {
+            _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

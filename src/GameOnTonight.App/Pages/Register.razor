@@ -1,0 +1,91 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="card p-3">
+    <h2>Créer un compte</h2>
+    
+    <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        
+        <div class="mb-3">
+            <label>Email</label>
+            <InputText @bind-Value="registerModel.Email" class="form-control" />
+            <ValidationMessage For="@(() => registerModel.Email)" />
+        </div>
+        
+        <div class="mb-3">
+            <label>Mot de passe</label>
+            <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
+            <ValidationMessage For="@(() => registerModel.Password)" />
+        </div>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">@successMessage</div>
+        }
+        
+        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+            @(isLoading ? "Création..." : "Créer le compte")
+        </button>
+        
+        <div class="mt-3">
+            <a href="/login">Déjà un compte ? Se connecter</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isLoading;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel.Email, registerModel.Password);
+            
+            if (success)
+            {
+                successMessage = "Compte créé avec succès ! Redirection vers la page de connexion...";
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la création du compte";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class RegisterModel
+    {
+        [Required(ErrorMessage = "L'email est requis")]
+        [EmailAddress(ErrorMessage = "Email invalide")]
+        public string Email { get; set; } = "";
+        
+        [Required(ErrorMessage = "Le mot de passe est requis")]
+        [MinLength(6, ErrorMessage = "Le mot de passe doit contenir au moins 6 caractères")]
+        public string Password { get; set; } = "";
+    }
+}

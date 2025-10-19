@@ -1,0 +1,84 @@
+@page "/profil"
+@inject GameOnTonightClientFactory ClientFactory
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h3>Mon Profil</h3>
+
+@if (isLoading)
+{
+    <p>Chargement...</p>
+}
+else if (profil != null)
+{
+    <div>
+        <p><strong>Informations du profil</strong></p>
+        @* Affichez les propriétés de votre ProfilViewModel *@
+        <pre>@System.Text.Json.JsonSerializer.Serialize(profil, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<hr />
+<button class="btn btn-outline-danger w-100 mt-3" @onclick="HandleLogout" disabled="@isLoggingOut">
+    <span class="me-2" aria-hidden="true"><LucideIcon Name="log-out" /></span>
+    @(isLoggingOut ? "Déconnexion..." : "Se déconnecter")
+</button>
+
+@code {
+    private object? profil;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool isLoggingOut;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Vérifier si l'utilisateur est authentifié
+            if (!await AuthService.IsAuthenticatedAsync())
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            var client = ClientFactory.CreateClient();
+            
+            // Appelez votre endpoint de profil
+            profil = await client.Profil.GetAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement du profil: {ex.Message}";
+            
+            // Si erreur 401, rediriger vers login
+            if (ex.Message.Contains("401"))
+            {
+                await AuthService.LogoutAsync();
+                Navigation.NavigateTo("/login");
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        if (isLoggingOut) return;
+        isLoggingOut = true;
+        try
+        {
+            await AuthService.LogoutAsync();
+            Navigation.NavigateTo("/login", true);
+        }
+        finally
+        {
+            isLoggingOut = false;
+        }
+    }
+}
