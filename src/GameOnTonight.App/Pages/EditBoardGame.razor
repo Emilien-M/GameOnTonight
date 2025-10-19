@@ -4,6 +4,7 @@
 @inject IBoardGamesService BoardGamesService
 @inject IErrorService ErrorService
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <PageTitle>@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</PageTitle>
 
@@ -65,12 +66,24 @@
     private bool isSubmitting;
 
     private BoardGameForm form = new();
+    private CancellationTokenSource? _cts;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if (IsEdit)
+        _cts = new CancellationTokenSource();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsEdit && Id.HasValue)
         {
-            await LoadAsync(Id!.Value);
+            // Cancel any pending request before loading the new one
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+
+            errorMessage = null;
+            await LoadAsync(Id.Value, _cts.Token);
         }
     }
 
@@ -93,6 +106,10 @@
         }
         catch (Exception ex)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return; // ignore cancelled operations
+            }
             errorMessage = ErrorService.GetErrorMessage(ex);
         }
     }
@@ -114,7 +131,7 @@
                     DurationMinutes = form.DurationMinutes,
                     GameType = form.GameType
                 };
-                await BoardGamesService.UpdateAsync(Id!.Value, request);
+                await BoardGamesService.UpdateAsync(Id!.Value, request, _cts?.Token ?? CancellationToken.None);
             }
             else
             {
@@ -126,13 +143,17 @@
                     DurationMinutes = form.DurationMinutes,
                     GameType = form.GameType
                 };
-                await BoardGamesService.CreateAsync(request);
+                await BoardGamesService.CreateAsync(request, _cts?.Token ?? CancellationToken.None);
             }
 
             Navigation.NavigateTo("/library", forceLoad: true);
         }
         catch (Exception ex)
         {
+            if (_cts?.IsCancellationRequested == true)
+            {
+                return;
+            }
             errorMessage = ErrorService.GetErrorMessage(ex);
         }
         finally
@@ -144,6 +165,12 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/library");
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
     }
 
     private sealed class BoardGameForm : IValidatableObject
