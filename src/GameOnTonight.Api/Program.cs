@@ -1,6 +1,8 @@
+using FluentValidation;
 using GameOnTonight.Api.Config;
 using GameOnTonight.Api.Middlewares;
 using GameOnTonight.Application.Behaviors;
+using GameOnTonight.Application.BoardGames.Queries;
 using GameOnTonight.Infrastructure;
 using GameOnTonight.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -62,6 +64,8 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddValidatorsFromAssemblyContaining<SuggestBoardGameQueryValidator>();
 
 var app = builder.Build();
 

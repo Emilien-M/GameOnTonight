@@ -1,4 +1,6 @@
-using GameOnTonight.RestClient;
+using System.Collections.ObjectModel;
+using GameOnTonight.RestClient.BoardGames.Filter;
+using GameOnTonight.RestClient.BoardGames.Suggest;
 using GameOnTonight.RestClient.Models;
 
 namespace GameOnTonight.App.Services;
@@ -16,9 +18,37 @@ public class BoardGamesService
     {
         var client = _clientFactory.CreateClient();
         var items = await client.BoardGames.GetAsync(cancellationToken: cancellationToken);
-        return (IReadOnlyList<BoardGameViewModel>)(items ?? new List<BoardGameViewModel>());
+        return items ?? new List<BoardGameViewModel>();
     }
 
+    public async Task<IReadOnlyList<BoardGameViewModel>> FilterAsync(int playersCount, int maxDurationMinutes, string? gameType, CancellationToken cancellationToken = default)
+    {
+        var client = _clientFactory.CreateClient();
+        return (await client.BoardGames.Filter.GetAsync(config =>
+        {
+            config.QueryParameters = new FilterRequestBuilder.FilterRequestBuilderGetQueryParameters
+            {
+                PlayersCount = playersCount,
+                MaxDurationMinutes = maxDurationMinutes,
+                GameType = gameType
+            };
+        }, cancellationToken))?.AsReadOnly() ?? ReadOnlyCollection<BoardGameViewModel>.Empty;
+    }
+    
+    public async Task<BoardGameViewModel?> SuggestAsync(int playersCount, int maxDurationMinutes, string? gameType, CancellationToken cancellationToken = default)
+    {
+        var client = _clientFactory.CreateClient();
+        return await client.BoardGames.Suggest.GetAsync(config =>
+        {
+            config.QueryParameters = new SuggestRequestBuilder.SuggestRequestBuilderGetQueryParameters
+            {
+                PlayersCount = playersCount,
+                MaxDurationMinutes = maxDurationMinutes,
+                GameType = gameType
+            };
+        }, cancellationToken);
+    }
+    
     public async Task<BoardGameViewModel?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var client = _clientFactory.CreateClient();

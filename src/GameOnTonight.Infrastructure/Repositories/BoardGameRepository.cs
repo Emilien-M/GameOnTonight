@@ -12,16 +12,19 @@ namespace GameOnTonight.Infrastructure.Repositories;
 /// </summary>
 public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
 {
+    private readonly ICurrentUserService _currentUserService;
+
     public BoardGameRepository(ApplicationDbContext context, ICurrentUserService currentUserService) 
         : base(context, currentUserService)
     {
+        _currentUserService = currentUserService;
     }
 
-    public async Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, string? gameType, string userId)
+    public async Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, string? gameType)
     {
         // Commence par le filtre de base sur le nombre de joueurs et la durée
         var query = DbSet.Where(g => 
-            g.UserId == userId &&
+            g.UserId == _currentUserService.UserId &&
             g.MinPlayers <= playerCount && 
             g.MaxPlayers >= playerCount && 
             g.DurationMinutes <= maxDuration);
@@ -35,7 +38,7 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
         return await query.ToListAsync();
     }
 
-    public async Task<BoardGame?> GetRandomGameAsync(IEnumerable<int> gameIds, string userId)
+    public async Task<BoardGame?> GetRandomGameAsync(IEnumerable<int> gameIds)
     {
         var idList = gameIds.ToList();
         if (!idList.Any())
@@ -45,7 +48,7 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
 
         // Récupère tous les jeux correspondant aux IDs spécifiés et appartenant à l'utilisateur
         var games = await DbSet
-            .Where(g => idList.Contains(g.Id) && g.UserId == userId)
+            .Where(g => idList.Contains(g.Id) && g.UserId == _currentUserService.UserId)
             .ToListAsync();
 
         if (!games.Any())
@@ -59,10 +62,10 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
         return games[randomIndex];
     }
 
-    public async Task<IEnumerable<string>> GetDistinctGameTypesAsync(string userId)
+    public async Task<IEnumerable<string>> GetDistinctGameTypesAsync()
     {
         return await DbSet
-            .Where(g => g.UserId == userId)
+            .Where(g => g.UserId == _currentUserService.UserId)
             .Select(g => g.GameType)
             .Distinct()
             .OrderBy(type => type)

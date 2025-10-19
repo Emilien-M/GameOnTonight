@@ -27,6 +27,24 @@ public class BoardGamesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("filter")]
+    [ProducesResponseType(typeof(IEnumerable<BoardGameViewModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<BoardGameViewModel>>> Filter([FromQuery] FilterBoardGamesQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("suggest")]
+    [ProducesResponseType(typeof(BoardGameViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult<BoardGameViewModel>> Suggest([FromQuery] SuggestBoardGameQuery query)
+    {
+        var result = await _mediator.Send(query);
+        if (result is null) return NoContent();
+        return Ok(result);
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(BoardGameViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

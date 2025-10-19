@@ -11,15 +11,18 @@ namespace GameOnTonight.Infrastructure.Repositories;
 /// </summary>
 public class GameSessionRepository : Repository<GameSession>, IGameSessionRepository
 {
+    private readonly ICurrentUserService _currentUserService;
+
     public GameSessionRepository(ApplicationDbContext context, ICurrentUserService currentUserService) 
         : base(context, currentUserService)
     {
+        _currentUserService = currentUserService;
     }
 
-    public async Task<IEnumerable<GameSession>> GetSessionHistoryAsync(string userId, int? count = null)
+    public async Task<IEnumerable<GameSession>> GetSessionHistoryAsync(int? count = null)
     {
         IQueryable<GameSession> query = DbSet
-            .Where(s => s.UserId == userId)
+            .Where(s => s.UserId == _currentUserService.UserId)
             .Include(s => s.BoardGame)
             .OrderByDescending(s => s.PlayedAt);
 
@@ -31,18 +34,18 @@ public class GameSessionRepository : Repository<GameSession>, IGameSessionReposi
         return await query.ToListAsync();
     }
 
-    public async Task<IEnumerable<GameSession>> GetSessionsByGameAsync(int boardGameId, string userId)
+    public async Task<IEnumerable<GameSession>> GetSessionsByGameAsync(int boardGameId)
     {
         return await DbSet
-            .Where(s => s.BoardGameId == boardGameId && s.UserId == userId)
+            .Where(s => s.BoardGameId == boardGameId && s.UserId == _currentUserService.UserId)
             .OrderByDescending(s => s.PlayedAt)
             .ToListAsync();
     }
 
-    public async Task<IDictionary<int, int>> GetGamePlayCountsAsync(string userId)
+    public async Task<IDictionary<int, int>> GetGamePlayCountsAsync()
     {
         return await DbSet
-            .Where(s => s.UserId == userId)
+            .Where(s => s.UserId == _currentUserService.UserId)
             .GroupBy(s => s.BoardGameId)
             .Select(g => new { BoardGameId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.BoardGameId, x => x.Count);
