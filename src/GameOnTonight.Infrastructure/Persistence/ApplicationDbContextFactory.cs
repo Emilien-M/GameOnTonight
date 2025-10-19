@@ -1,4 +1,3 @@
-using GameOnTonight.Domain.Services;
 using GameOnTonight.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -16,20 +15,9 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         
         // Create mock services for design-time
         var mockAuditInterceptor = new AuditableEntityInterceptor(TimeProvider.System);
-        var mockCurrentUserService = new DesignTimeCurrentUserService();
-        
+
         return new ApplicationDbContext(
             optionsBuilder.Options,
-            mockAuditInterceptor,
-            mockCurrentUserService);
-    }
-    
-    /// <summary>
-    /// Mock implementation of ICurrentUserService for design-time operations.
-    /// </summary>
-    private class DesignTimeCurrentUserService : ICurrentUserService
-    {
-        public string? UserId => "design-time-user";
-        public bool IsAuthenticated => false;
+            mockAuditInterceptor);
     }
 }

@@ -24,22 +24,22 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         _currentUserService = currentUserService;
     }
 
-    public async Task<TEntity?> GetByIdAsync(object id, string userId)
+    public async Task<TEntity?> GetByIdAsync(object id)
     {
         var entity = await DbSet.FindAsync(id);
         
         if (entity == null || !(entity is IUserOwnedEntity userOwnedEntity))
             return null;
         
-        return userOwnedEntity.UserId == userId ? entity : null;
+        return userOwnedEntity.UserId == _currentUserService.UserId ? entity : null;
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(string userId)
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
     {
         if (typeof(IUserOwnedEntity).IsAssignableFrom(typeof(TEntity)))
         {
             return await DbSet.OfType<IUserOwnedEntity>()
-                .Where(e => e.UserId == userId)
+                .Where(e => e.UserId == _currentUserService.UserId)
                 .Cast<TEntity>()
                 .ToListAsync();
         }
@@ -47,8 +47,10 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         return Enumerable.Empty<TEntity>();
     }
 
-    public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, string? userId = null)
+    public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
     {
+        var userId = _currentUserService.UserId;
+        
         if (!string.IsNullOrEmpty(userId) && typeof(IUserOwnedEntity).IsAssignableFrom(typeof(TEntity)))
         {
             var parameter = Expression.Parameter(typeof(TEntity));

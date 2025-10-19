@@ -1,7 +1,5 @@
 using FluentValidation;
-using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
-using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Commands;
@@ -20,18 +18,15 @@ public sealed class DeleteBoardGameCommandValidator : AbstractValidator<DeleteBo
 public sealed class DeleteBoardGameCommandHandler : IRequestHandler<DeleteBoardGameCommand, bool>
 {
     private readonly IBoardGameRepository _repository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteBoardGameCommandHandler(IBoardGameRepository repository, ICurrentUserService currentUserService)
+    public DeleteBoardGameCommandHandler(IBoardGameRepository repository)
     {
         _repository = repository;
-        _currentUserService = currentUserService;
     }
 
     public async ValueTask<bool> Handle(DeleteBoardGameCommand request, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId!;
-        var entity = await _repository.GetByIdAsync(request.Id, userId);
+        var entity = await _repository.GetByIdAsync(request.Id);
         if (entity is null)
         {
             return false;

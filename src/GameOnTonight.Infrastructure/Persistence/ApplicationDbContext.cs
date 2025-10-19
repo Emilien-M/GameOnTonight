@@ -15,16 +15,13 @@ namespace GameOnTonight.Infrastructure.Persistence;
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
     private readonly AuditableEntityInterceptor _auditableEntityInterceptor;
-    private readonly ICurrentUserService _currentUserService;
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        AuditableEntityInterceptor auditableEntityInterceptor,
-        ICurrentUserService currentUserService)
+        AuditableEntityInterceptor auditableEntityInterceptor)
         : base(options)
     {
         _auditableEntityInterceptor = auditableEntityInterceptor;
-        _currentUserService = currentUserService;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -37,9 +34,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(builder);
 
-        builder.ApplyConfiguration(new ProfilConfiguration(_currentUserService));
-        builder.ApplyConfiguration(new BoardGameConfiguration(_currentUserService));
-        builder.ApplyConfiguration(new GameSessionConfiguration(_currentUserService));
+        builder.ApplyConfiguration(new ProfilConfiguration());
+        builder.ApplyConfiguration(new BoardGameConfiguration());
+        builder.ApplyConfiguration(new GameSessionConfiguration());
     }
     
     public DbSet<Profil> Profils { get; set; }

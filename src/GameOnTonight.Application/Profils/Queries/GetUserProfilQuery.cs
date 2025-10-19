@@ -1,7 +1,6 @@
 using GameOnTonight.Application.Profils.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
-using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.Profils.Queries;
@@ -11,12 +10,10 @@ public record GetUserProfilQuery : IRequest<ProfilViewModel>;
 public class GetUserProfilQueryHandler : IRequestHandler<GetUserProfilQuery, ProfilViewModel>
 {
     private readonly IProfilRepository _profilRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetUserProfilQueryHandler(IProfilRepository profilRepository, ICurrentUserService currentUserService)
+    public GetUserProfilQueryHandler(IProfilRepository profilRepository)
     {
         _profilRepository = profilRepository;
-        _currentUserService = currentUserService;
     }
     
     public async ValueTask<ProfilViewModel> Handle(GetUserProfilQuery request, CancellationToken cancellationToken)
