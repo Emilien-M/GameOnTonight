@@ -13,10 +13,21 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 });
 
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
+if (string.IsNullOrWhiteSpace(apiBaseUrl))
+{
+    throw new InvalidOperationException("Configuration key 'ApiBaseUrl' is missing or empty. Define it in wwwroot/appsettings.json (or the environment-specific file) with an absolute HTTP/HTTPS URL to your backend API. Example: https://localhost:5001/");
+}
+
+if (!Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out var parsedApiBaseUri) ||
+    (parsedApiBaseUri.Scheme != Uri.UriSchemeHttp && parsedApiBaseUri.Scheme != Uri.UriSchemeHttps))
+{
+    throw new InvalidOperationException($"Configuration key 'ApiBaseUrl' must be an absolute HTTP/HTTPS URL. Current value: '{apiBaseUrl}'.");
+}
+
 builder.Services.AddHttpClient("GameOnTonightApi", client =>
 {
-    var apiBaseUrl = builder.Configuration["ApiBaseUrl"]!;
-    client.BaseAddress = new Uri(apiBaseUrl);
+    client.BaseAddress = new Uri(apiBaseUrl!);
 });
 
 builder.Services.AddBlazoredLocalStorage();
