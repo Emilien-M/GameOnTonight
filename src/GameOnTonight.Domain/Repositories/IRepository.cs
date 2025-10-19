@@ -13,24 +13,21 @@ public interface IRepository<TEntity> where TEntity : class
     /// Retrieves an entity by its ID and its owner's ID.
     /// </summary>
     /// <param name="id">ID of the entity.</param>
-    /// <param name="userId">ID of the owning user.</param>
     /// <returns>The found entity or null.</returns>
-    Task<TEntity?> GetByIdAsync(object id, string userId);
+    Task<TEntity?> GetByIdAsync(object id);
     
     /// <summary>
     /// Retrieves all entities belonging to a specific user.
     /// </summary>
-    /// <param name="userId">ID of the owning user.</param>
     /// <returns>List of entities.</returns>
-    Task<IEnumerable<TEntity>> GetAllAsync(string userId);
+    Task<IEnumerable<TEntity>> GetAllAsync();
     
     /// <summary>
     /// Finds entities according to a predicate.
     /// </summary>
     /// <param name="predicate">Filtering expression.</param>
-    /// <param name="userId">ID of the owning user (optional for special queries).</param>
     /// <returns>List of filtered entities.</returns>
-    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, string? userId = null);
+    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
     
     /// <summary>
     /// Adds a new entity.

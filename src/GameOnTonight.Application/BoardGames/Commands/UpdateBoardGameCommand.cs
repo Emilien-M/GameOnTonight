@@ -1,8 +1,6 @@
 using FluentValidation;
 using GameOnTonight.Application.BoardGames.ViewModels;
-using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
-using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Commands;
@@ -45,19 +43,15 @@ public sealed class UpdateBoardGameCommandValidator : AbstractValidator<UpdateBo
 public sealed class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameCommand, BoardGameViewModel?>
 {
     private readonly IBoardGameRepository _repository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateBoardGameCommandHandler(IBoardGameRepository repository, ICurrentUserService currentUserService)
+    public UpdateBoardGameCommandHandler(IBoardGameRepository repository)
     {
         _repository = repository;
-        _currentUserService = currentUserService;
     }
 
     public async ValueTask<BoardGameViewModel?> Handle(UpdateBoardGameCommand request, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId!;
-
-        var entity = await _repository.GetByIdAsync(request.Id, userId);
+        var entity = await _repository.GetByIdAsync(request.Id);
         if (entity is null)
         {
             return null;
