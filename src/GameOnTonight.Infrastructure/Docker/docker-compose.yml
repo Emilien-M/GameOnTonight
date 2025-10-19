@@ -12,13 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-    networks:
-      - gameontonight-network
 
 volumes:
   postgres_data:
     name: gameontonight-postgres-data
-
-networks:
-  gameontonight-network:
-    name: gameontonight-network

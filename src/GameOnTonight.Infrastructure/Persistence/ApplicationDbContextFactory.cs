@@ -11,7 +11,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         
         // Configure the database provider for design-time
-        optionsBuilder.UseNpgsql("Host=localhost;Database=gameontonight_dev;Username=postgres;Password=postgres");
+        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=gameontonight;Username=gameadmin;Password=gamepassword");
         
         // Create mock services for design-time
         var mockAuditInterceptor = new AuditableEntityInterceptor(TimeProvider.System);
