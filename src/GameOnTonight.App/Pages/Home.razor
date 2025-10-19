@@ -1,26 +1,98 @@
 ﻿@page "/"
+@using GameOnTonight.RestClient.Models
+@inject IBoardGamesService BoardGamesService
+@inject IErrorService ErrorService
 
 <PageTitle>Filtrer</PageTitle>
 
 <h1>Quelle partie ce soir ?</h1>
 
-<div class="card p-3 mb-3">
-    <div class="mb-3">
-        <label class="form-label">Nombre de joueurs</label>
-        <input class="form-control" type="number" min="1" placeholder="Ex: 4" />
+<EditForm Model="filter" OnValidSubmit="OnFindAsync">
+    <div class="card p-3 mb-3">
+        <div class="mb-3">
+            <label class="form-label" for="playersCount">Nombre de joueurs</label>
+            <InputNumber id="playersCount" class="form-control" @bind-Value="filter.PlayersCount" min="1" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="maxDurationMinutes">Temps disponible (minutes)</label>
+            <InputNumber id="maxDurationMinutes" class="form-control" @bind-Value="filter.MaxDurationMinutes" min="5" step="5" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="gameType">Type de jeu</label>
+            <InputSelect id="gameType" class="form-select" @bind-Value="filter.GameType">
+                <option value="">— Sélectionnez —</option>
+                <option value="Ambiance">Ambiance</option>
+                <option value="Stratégie">Stratégie</option>
+                <option value="Familial">Familial</option>
+            </InputSelect>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" disabled="@isLoading">
+            @(isLoading ? "Recherche…" : "Trouver un jeu")
+        </button>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Temps disponible (minutes)</label>
-        <input class="form-control" type="number" min="5" step="5" placeholder="Ex: 45" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Type de jeu</label>
-        <select class="form-select">
-            <option>— Sélectionnez —</option>
-            <option>Ambiance</option>
-            <option>Stratégie</option>
-            <option>Familial</option>
-        </select>
-    </div>
-    <button class="btn btn-primary w-100" type="button">Trouver un jeu</button>
+</EditForm>
+
+<div aria-live="polite">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-warning">@errorMessage</div>
+    }
+    else if (isLoading)
+    {
+        <div>Recherche en cours…</div>
+    }
 </div>
+
+@if (suggestion is not null)
+{
+    <div class="card p-3">
+        <div class="fw-bold">@suggestion.Name</div>
+        <div class="text-muted small">
+            @suggestion.MinPlayers - @suggestion.MaxPlayers joueurs • @suggestion.DurationMinutes min • @suggestion.GameType
+        </div>
+    </div>
+}
+
+@code {
+    private FilterForm filter = new()
+    {
+        PlayersCount = 2,
+        MaxDurationMinutes = 60,
+        GameType = null
+    };
+
+    private bool isLoading;
+    private string? errorMessage;
+    private BoardGameViewModel? suggestion;
+
+    private async Task OnFindAsync()
+    {
+        errorMessage = null;
+        suggestion = null;
+        isLoading = true;
+        try
+        {
+            var gameType = string.IsNullOrWhiteSpace(filter.GameType) ? null : filter.GameType;
+            suggestion = await BoardGamesService.SuggestAsync(filter.PlayersCount, filter.MaxDurationMinutes, gameType);
+        }
+        catch (OperationCanceledException)
+        {
+            // no-op to keep UX calm on nav/cancel
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private sealed class FilterForm
+    {
+        public int PlayersCount { get; set; } = 2;
+        public int MaxDurationMinutes { get; set; } = 60;
+        public string? GameType { get; set; }
+    }
+}
