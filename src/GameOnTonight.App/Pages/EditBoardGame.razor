@@ -1,6 +1,7 @@
 @page "/library/new"
 @page "/library/edit/{Id:int}"
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
 @inject IBoardGamesService BoardGamesService
 @inject IErrorService ErrorService
 @inject NavigationManager Navigation
@@ -10,7 +11,7 @@
 
 <h1>@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</h1>
 
-<EditForm Model="form" OnValidSubmit="OnSubmitAsync">
+<EditForm EditContext="_editContext" OnValidSubmit="OnSubmitAsync">
     <DataAnnotationsValidator />
 
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -66,11 +67,14 @@
     private bool isSubmitting;
 
     private BoardGameForm form = new();
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _messageStore = default!;
     private CancellationTokenSource? _cts;
 
     protected override void OnInitialized()
     {
         _cts = new CancellationTokenSource();
+        InitializeEditContext();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -85,6 +89,13 @@
             errorMessage = null;
             await LoadAsync(Id.Value, _cts.Token);
         }
+    }
+
+    private void InitializeEditContext()
+    {
+        _editContext = new EditContext(form);
+        _messageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnFieldChanged += (_, __) => { /* keep messages unless changed explicitly */ };
     }
 
     private async Task LoadAsync(int id, CancellationToken cancellationToken = default)
@@ -102,6 +113,8 @@
                     DurationMinutes = vm.DurationMinutes ?? 5,
                     GameType = vm.GameType ?? string.Empty
                 };
+                InitializeEditContext();
+                ClearServerErrors();
             }
         }
         catch (Exception ex)
@@ -118,6 +131,7 @@
     {
         isSubmitting = true;
         errorMessage = null;
+        ClearServerErrors();
         try
         {
             if (IsEdit)
@@ -154,12 +168,35 @@
             {
                 return;
             }
-            errorMessage = ErrorService.GetErrorMessage(ex);
+
+            // Map field-level errors
+            var fieldErrors = ErrorService.GetFieldErrors(ex);
+            if (fieldErrors.Count > 0)
+            {
+                foreach (var kvp in fieldErrors)
+                {
+                    var fieldId = new FieldIdentifier(form, kvp.Key);
+                    _messageStore.Add(fieldId, kvp.Value);
+                }
+                _editContext.NotifyValidationStateChanged();
+                // Avoid duplicating global message if field-level details exist
+                errorMessage = null;
+            }
+            else
+            {
+                errorMessage = ErrorService.GetErrorMessage(ex);
+            }
         }
         finally
         {
             isSubmitting = false;
         }
+    }
+
+    private void ClearServerErrors()
+    {
+        _messageStore.Clear();
+        _editContext.NotifyValidationStateChanged();
     }
 
     private void Cancel()
