@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Identity.Stores">
-      <HintPath>..\..\..\..\..\..\..\usr\lib64\dotnet\shared\Microsoft.AspNetCore.App\9.0.9\Microsoft.Extensions.Identity.Stores.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.10" />
   </ItemGroup>
 
 </Project>
