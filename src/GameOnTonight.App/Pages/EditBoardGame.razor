@@ -1,8 +1,8 @@
 @page "/library/new"
 @page "/library/edit/{Id:int}"
 @using System.ComponentModel.DataAnnotations
-@inject BoardGamesService BoardGamesService
-@inject ErrorService ErrorService
+@inject IBoardGamesService BoardGamesService
+@inject IErrorService ErrorService
 @inject NavigationManager Navigation
 
 <PageTitle>@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</PageTitle>

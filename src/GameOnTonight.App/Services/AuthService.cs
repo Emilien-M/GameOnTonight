@@ -6,7 +6,7 @@ using Microsoft.Kiota.Http.HttpClientLibrary;
 
 namespace GameOnTonight.App.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly ILocalStorageService _localStorage;
     private readonly IHttpClientFactory _httpClientFactory;

@@ -5,10 +5,10 @@ namespace GameOnTonight.App.Services;
 
 public class GameOnTonightClientFactory
 {
-    private readonly AuthService _authService;
+    private readonly IAuthService _authService;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public GameOnTonightClientFactory(AuthService authService, IHttpClientFactory httpClientFactory)
+    public GameOnTonightClientFactory(IAuthService authService, IHttpClientFactory httpClientFactory)
     {
         _authService = authService;
         _httpClientFactory = httpClientFactory;

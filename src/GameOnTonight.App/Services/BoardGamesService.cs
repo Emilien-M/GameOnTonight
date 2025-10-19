@@ -5,7 +5,7 @@ using GameOnTonight.RestClient.Models;
 
 namespace GameOnTonight.App.Services;
 
-public class BoardGamesService
+public class BoardGamesService : IBoardGamesService
 {
     private readonly GameOnTonightClientFactory _clientFactory;
 

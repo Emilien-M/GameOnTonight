@@ -20,10 +20,10 @@ builder.Services.AddHttpClient("GameOnTonightApi", client =>
 });
 
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<GameOnTonightClientFactory>();
-builder.Services.AddScoped<BoardGamesService>();
-builder.Services.AddScoped<ErrorService>();
+builder.Services.AddScoped<IBoardGamesService, BoardGamesService>();
+builder.Services.AddScoped<IErrorService, ErrorService>();
 builder.Services.AddLucideIcons();
 
 await builder.Build().RunAsync();

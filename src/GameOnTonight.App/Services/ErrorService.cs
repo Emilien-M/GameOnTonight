@@ -2,7 +2,7 @@ using GameOnTonight.RestClient.Models;
 
 namespace GameOnTonight.App.Services;
 
-public class ErrorService
+public class ErrorService : IErrorService
 {
     public string GetErrorMessage(Exception ex)
     {
