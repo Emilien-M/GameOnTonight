@@ -1,0 +1,75 @@
+@page "/filter/findForm"
+@using GameOnTonight.RestClient.Models
+@inject IBoardGamesService BoardGamesService
+@inject IErrorService ErrorService
+@inject ISearchResultService SearchResultService
+@inject NavigationManager Navigation
+
+<PageTitle>Filtrer</PageTitle>
+
+<MudText Typo="Typo.h1">Quelle partie ce soir ?</MudText>
+
+<EditForm Model="filter" OnValidSubmit="OnFindAsync">
+        <MudNumericField @bind-Value="filter.PlayersCount" For="() => filter.PlayersCount" Min="1" Label="Nombre de joueurs"></MudNumericField>
+        <MudNumericField @bind-Value="filter.MaxDurationMinutes" For="() => filter.MaxDurationMinutes" Min="5" Step="5" Label="Temps disponible (minutes)"></MudNumericField>
+        <MudChipSet @bind-SelectedValue="filter.GameType" CheckMark SelectionMode="SelectionMode.SingleSelection">
+            <MudChip Value="@("Stratégie")">Stratégie</MudChip>
+            <MudChip Value="@("Coopération")">Coopération</MudChip>
+        </MudChipSet>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="isLoading">
+            @(isLoading ? "Recherche…" : "Trouver un jeu")
+        </MudButton>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+
+@code {
+    private FilterForm filter = new()
+    {
+        PlayersCount = 2,
+        MaxDurationMinutes = 60,
+        GameType = null
+    };
+    
+    private bool isLoading;
+    private string? errorMessage;
+    private IReadOnlyList<BoardGameViewModel>? filterResults;
+    
+
+    private async Task OnFindAsync()
+    {
+        errorMessage = null;
+        filterResults = null;
+        isLoading = true;
+        try
+        {
+            var gameType = string.IsNullOrWhiteSpace(filter.GameType) ? null : filter.GameType;
+            filterResults = await BoardGamesService.FilterAsync(filter.PlayersCount, filter.MaxDurationMinutes, gameType);
+            
+            SearchResultService.SetResult(filterResults);
+            Navigation.NavigateTo("/filter/result");
+        }
+        catch (OperationCanceledException)
+        {
+            // no-op to keep UX calm on nav/cancel
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private sealed class FilterForm
+    {
+        public int PlayersCount { get; set; } = 2;
+        public int MaxDurationMinutes { get; set; } = 60;
+        public string? GameType { get; set; }
+    }
+}

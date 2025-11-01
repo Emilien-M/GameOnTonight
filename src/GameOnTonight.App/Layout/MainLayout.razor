@@ -1,11 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@using MudBlazor.Utilities
 @implements IDisposable
 
 <div class="page">
     @* Required *@
-    <MudThemeProvider />
+    <MudThemeProvider Theme="_customTheme" />
     <MudPopoverProvider />
 
     @* Needed for dialogs *@
@@ -13,19 +14,33 @@
 
     @* Needed for snackbars *@
     <MudSnackbarProvider />
-    <main>
-        <article class="content">
-            @Body
-        </article>
-    </main>
-    @if (_isAuthenticated)
-    {
-        <NavMenu />
-    }
+    
+    <MudLayout>
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+        
+        @if (_isAuthenticated)
+        {
+            <NavMenu />
+        }
+    </MudLayout>
 </div>
 
 @code {
     private bool _isAuthenticated;
+
+    private readonly MudTheme _customTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = new MudColor(252,163,17, 100), // #FCA311FF
+            TextPrimary = new MudColor(255,255,255, 100),
+            Background = new MudColor(20,33,61,100), // #14213D
+        }
+    };
 
     protected override async Task OnInitializedAsync()
     {

@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using GameOnTonight.RestClient.BoardGames.Filter;
-using GameOnTonight.RestClient.BoardGames.Suggest;
 using GameOnTonight.RestClient.Models;
 
 namespace GameOnTonight.App.Services;

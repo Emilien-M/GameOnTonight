@@ -36,6 +36,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<GameOnTonightClientFactory>();
 builder.Services.AddScoped<IBoardGamesService, BoardGamesService>();
 builder.Services.AddScoped<IErrorService, ErrorService>();
+builder.Services.AddScoped<ISearchResultService, SearchResultService>();
 builder.Services.AddLucideIcons();
 builder.Services.AddMudServices();
 

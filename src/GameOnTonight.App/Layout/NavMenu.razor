@@ -3,7 +3,7 @@
 @implements IDisposable
 
 <div class="tabbar">
-    <NavLink class="tab" href="" Match="NavLinkMatch.All">
+    <NavLink class="tab" href="/filter/findForm" Match="NavLinkMatch.All">
         <span class="icon" aria-hidden="true"><LucideIcon Name="filter" /></span>
         <span class="label">Filtrer</span>
     </NavLink>
@@ -31,6 +31,7 @@
     {
         _isAuthenticated = await AuthService.IsAuthenticatedAsync();
         Navigation.LocationChanged += OnLocationChanged;
+        Navigation.NavigateTo("filter/findForm");
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

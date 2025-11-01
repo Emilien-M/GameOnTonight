@@ -1,0 +1,49 @@
+@page "/filter/result"
+@using GameOnTonight.RestClient.Models
+@inject ISearchResultService SearchResultService
+@inject NavigationManager Navigation
+
+<PageTitle>Résultats</PageTitle>
+
+<MudText Typo="Typo.h1">Jeux compatibles</MudText>
+
+<MudIconButton Icon="@Icons.Material.Filled.KeyboardReturn" Color="Color.Secondary" OnClick="@(() => Navigation.NavigateTo("/filter/findForm"))"/>
+
+@if (result == null || result.Count == 0)
+{
+    <MudText Typo="Typo.h5">Aucun résultat</MudText>
+}
+else
+{
+    <MudCard>
+        <MudCardContent>
+            @foreach (var game in result)
+            {
+                <MudText Typo="Typo.h4">@game.Name</MudText>
+                <MudChip T="string">
+                    (@game.MinPlayers - @game.MaxPlayers)
+                </MudChip>
+                <MudChip T="string">@game.DurationMinutes min</MudChip>
+                <MudChip T="string">@game.GameType</MudChip>
+            }
+        </MudCardContent>
+    </MudCard>
+    
+    <MudButton Color="Color.Primary" OnClick="@(() => RollTheDice())">Lancé le dé !</MudButton>
+}
+
+@code
+{
+    private IReadOnlyList<BoardGameViewModel>? result;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        result = SearchResultService.CurrentResult;
+    }
+
+    private void RollTheDice()
+    {
+        
+    }
+}
