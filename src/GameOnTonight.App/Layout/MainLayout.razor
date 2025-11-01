@@ -4,6 +4,15 @@
 @implements IDisposable
 
 <div class="page">
+    @* Required *@
+    <MudThemeProvider />
+    <MudPopoverProvider />
+
+    @* Needed for dialogs *@
+    <MudDialogProvider />
+
+    @* Needed for snackbars *@
+    <MudSnackbarProvider />
     <main>
         <article class="content">
             @Body

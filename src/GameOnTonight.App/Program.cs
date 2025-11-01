@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using GameOnTonight.App;
 using GameOnTonight.App.Services;
+using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -36,5 +37,6 @@ builder.Services.AddScoped<GameOnTonightClientFactory>();
 builder.Services.AddScoped<IBoardGamesService, BoardGamesService>();
 builder.Services.AddScoped<IErrorService, ErrorService>();
 builder.Services.AddLucideIcons();
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
