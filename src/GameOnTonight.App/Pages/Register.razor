@@ -1,0 +1,96 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<MudCard Class="pa-4">
+    <MudCardContent>
+        <MudText Typo="Typo.h4" Class="mb-4">Créer un compte</MudText>
+        
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            
+            <MudTextField @bind-Value="registerModel.Email" 
+                          Label="Email" 
+                          Variant="Variant.Outlined"
+                          For="@(() => registerModel.Email)"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="registerModel.Password" 
+                          Label="Mot de passe" 
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          For="@(() => registerModel.Password)"
+                          Class="mb-4" />
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+            }
+            
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <MudAlert Severity="Severity.Success" Class="mb-4">@successMessage</MudAlert>
+            }
+            
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Disabled="@isLoading">
+                @(isLoading ? "Création..." : "Créer le compte")
+            </MudButton>
+            
+            <MudLink Href="/login" Class="d-block mt-3">Déjà un compte ? Se connecter</MudLink>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isLoading;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel.Email, registerModel.Password);
+            
+            if (success)
+            {
+                successMessage = "Compte créé avec succès ! Redirection vers la page de connexion...";
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la création du compte";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class RegisterModel
+    {
+        [Required(ErrorMessage = "L'email est requis")]
+        [EmailAddress(ErrorMessage = "Email invalide")]
+        public string Email { get; set; } = "";
+        
+        [Required(ErrorMessage = "Le mot de passe est requis")]
+        [MinLength(6, ErrorMessage = "Le mot de passe doit contenir au moins 6 caractères")]
+        public string Password { get; set; } = "";
+    }
+}

@@ -1,0 +1,125 @@
+@page "/filter/findForm"
+@using GameOnTonight.RestClient.Models
+@inject IBoardGamesService BoardGamesService
+@inject IErrorService ErrorService
+@inject ISearchResultService SearchResultService
+@inject NavigationManager Navigation
+
+<PageTitle>Filtrer</PageTitle>
+
+<div class="d-flex flex-column justify-center align-center" style="min-height: calc(100vh - 120px);">
+    <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-6">Quelle partie ce soir ?</MudText>
+    
+    <div style="width: 100%; max-width: 500px;">
+        <EditForm Model="filter" OnValidSubmit="OnFindAsync">
+            <div class="d-flex flex-column gap-6">
+                <MudNumericField @bind-Value="filter.PlayersCount" For="() => filter.PlayersCount" Min="1" Label="Nombre de joueurs"></MudNumericField>
+                <MudNumericField @bind-Value="filter.MaxDurationMinutes" For="() => filter.MaxDurationMinutes" Min="5" Step="5" Label="Temps disponible (minutes)"></MudNumericField>
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.subtitle2">Type de jeu</MudText>
+                    @if (isLoadingTypes)
+                    {
+                        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-2" />
+                    }
+                    else if (gameTypes.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Default" Class="my-2">
+                            Aucun type de jeu trouvé. Ajoutez des jeux à votre ludothèque.
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudChipSet @bind-SelectedValue="filter.GameType" CheckMark SelectionMode="SelectionMode.SingleSelection">
+                            @foreach (var gameType in gameTypes)
+                            {
+                                <MudChip Value="@gameType">@gameType</MudChip>
+                            }
+                        </MudChipSet>
+                    }
+                </div>
+                <div class="d-flex justify-center mt-4">
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Disabled="@(isLoading || isLoadingTypes)">
+                        @(isLoading ? "Recherche…" : "Trouver un jeu")
+                    </MudButton>
+                </div>
+            </div>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@errorMessage</MudAlert>
+        }
+    </div>
+</div>
+
+@code {
+    private FilterForm filter = new()
+    {
+        PlayersCount = 2,
+        MaxDurationMinutes = 60,
+        GameType = null
+    };
+    
+    private bool isLoading;
+    private bool isLoadingTypes = true;
+    private string? errorMessage;
+    private IReadOnlyList<BoardGameViewModel>? filterResults;
+    private IReadOnlyList<string> gameTypes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGameTypesAsync();
+    }
+
+    private async Task LoadGameTypesAsync()
+    {
+        isLoadingTypes = true;
+        try
+        {
+            gameTypes = await BoardGamesService.GetGameTypesAsync();
+        }
+        catch
+        {
+            // Silently fail - the user can still use the form without types
+            gameTypes = [];
+        }
+        finally
+        {
+            isLoadingTypes = false;
+        }
+    }
+
+    private async Task OnFindAsync()
+    {
+        errorMessage = null;
+        filterResults = null;
+        isLoading = true;
+        try
+        {
+            var gameType = string.IsNullOrWhiteSpace(filter.GameType) ? null : filter.GameType;
+            filterResults = await BoardGamesService.FilterAsync(filter.PlayersCount, filter.MaxDurationMinutes, gameType);
+            
+            SearchResultService.SetResult(filterResults, filter.PlayersCount, filter.MaxDurationMinutes, gameType);
+            Navigation.NavigateTo("/filter/result");
+        }
+        catch (OperationCanceledException)
+        {
+            // no-op to keep UX calm on nav/cancel
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private sealed class FilterForm
+    {
+        public int PlayersCount { get; set; } = 2;
+        public int MaxDurationMinutes { get; set; } = 60;
+        public string? GameType { get; set; }
+    }
+}

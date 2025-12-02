@@ -1,0 +1,86 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<MudCard Class="pa-4">
+    <MudCardContent>
+        <MudText Typo="Typo.h4" Class="mb-4">Connexion</MudText>
+        
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            
+            <MudTextField @bind-Value="loginModel.Email" 
+                          Label="Email" 
+                          Variant="Variant.Outlined"
+                          For="@(() => loginModel.Email)"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="loginModel.Password" 
+                          Label="Mot de passe" 
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          For="@(() => loginModel.Password)"
+                          Class="mb-4" />
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+            }
+            
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Disabled="@isLoading">
+                @(isLoading ? "Connexion..." : "Se connecter")
+            </MudButton>
+            
+            <MudLink Href="/register" Class="d-block mt-3">Créer un compte</MudLink>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+            
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Email ou mot de passe incorrect";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "L'email est requis")]
+        [EmailAddress(ErrorMessage = "Email invalide")]
+        public string Email { get; set; } = "";
+        
+        [Required(ErrorMessage = "Le mot de passe est requis")]
+        public string Password { get; set; } = "";
+    }
+}

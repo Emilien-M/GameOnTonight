@@ -1,0 +1,94 @@
+﻿@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@using MudBlazor.Utilities
+@implements IDisposable
+
+<div class="page">
+    @* Required *@
+    <MudThemeProvider Theme="_customTheme" IsDarkMode="true" />
+    <MudPopoverProvider />
+
+    @* Needed for dialogs *@
+    <MudDialogProvider />
+
+    @* Needed for snackbars *@
+    <MudSnackbarProvider />
+    
+    <MudLayout>
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.Medium" Class="pb-tabbar">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+        
+        @if (_isAuthenticated)
+        {
+            <NavMenu />
+        }
+    </MudLayout>
+</div>
+
+@code {
+    private bool _isAuthenticated;
+
+    private readonly MudTheme _customTheme = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = new MudColor(252, 163, 17, 255),      // #FCA311 - Orange accent
+            Secondary = new MudColor(229, 229, 229, 255),   // #E5E5E5 - Gris clair
+            Background = new MudColor(20, 33, 61, 255),     // #14213D - Bleu nuit
+            Surface = new MudColor(39, 52, 79, 255),        // Surface légèrement plus claire
+            AppbarBackground = new MudColor(20, 33, 61, 255),
+            DrawerBackground = new MudColor(20, 33, 61, 255),
+            TextPrimary = new MudColor(255, 255, 255, 255), // Blanc
+            TextSecondary = new MudColor(229, 229, 229, 255),
+            ActionDefault = new MudColor(255, 255, 255, 255),
+            ActionDisabled = new MudColor(255, 255, 255, 128),
+            ActionDisabledBackground = new MudColor(255, 255, 255, 30),
+            Error = new MudColor(255, 107, 107, 255),       // Rouge pour erreurs
+            Success = new MudColor(38, 176, 80, 255),       // Vert pour succès
+            Warning = new MudColor(252, 163, 17, 255),      // Orange
+            Info = new MudColor(33, 150, 243, 255)          // Bleu info
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        Navigation.LocationChanged += OnLocationChanged;
+        RedirectIfNeeded();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            _isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            RedirectIfNeeded();
+            StateHasChanged();
+        });
+    }
+
+    private void RedirectIfNeeded()
+    {
+        if (!_isAuthenticated && !IsPublicRoute(Navigation.Uri))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private bool IsPublicRoute(string uri)
+    {
+        var path = Navigation.ToBaseRelativePath(uri).Trim('/');
+        if (string.IsNullOrEmpty(path)) return false;
+        return path.StartsWith("login", StringComparison.OrdinalIgnoreCase)
+               || path.StartsWith("register", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

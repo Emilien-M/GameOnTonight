@@ -1,0 +1,28 @@
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText>
+            Êtes-vous sûr de vouloir supprimer <strong>@GameName</strong> de votre ludothèque ?
+        </MudText>
+        <MudText Typo="Typo.body2" Class="mt-2" Color="Color.Warning">
+            Cette action est irréversible.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Annuler</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Confirm">Supprimer</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string GameName { get; set; } = string.Empty;
+
+    private void Cancel() => MudDialog.Cancel();
+    
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

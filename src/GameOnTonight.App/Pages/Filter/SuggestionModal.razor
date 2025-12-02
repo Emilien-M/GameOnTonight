@@ -1,0 +1,87 @@
+@using GameOnTonight.RestClient.Models
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6" Class="text-center">
+            @if (IsLoading)
+            {
+                <span>Recherche en cours...</span>
+            }
+            else
+            {
+                <span>Et le jeu choisi est...</span>
+            }
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (IsLoading)
+        {
+            <div class="d-flex justify-center py-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </div>
+        }
+        else if (SuggestedGame is null)
+        {
+            <MudText Typo="Typo.body1" Class="text-center py-4">
+                Aucun jeu trouvé correspondant à vos critères.
+            </MudText>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-center gap-4 py-4">
+                <MudIcon Icon="@Icons.Material.Filled.Casino" Size="Size.Large" Color="Color.Primary" />
+                
+                <MudText Typo="Typo.h4" Color="Color.Primary" Class="text-center font-weight-bold">
+                    @SuggestedGame.Name
+                </MudText>
+                
+                <div class="d-flex gap-2 flex-wrap justify-center">
+                    <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                        @SuggestedGame.MinPlayers - @SuggestedGame.MaxPlayers joueurs
+                    </MudChip>
+                    <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                        @SuggestedGame.DurationMinutes min
+                    </MudChip>
+                    @if (!string.IsNullOrEmpty(SuggestedGame.GameType))
+                    {
+                        <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                            @SuggestedGame.GameType
+                        </MudChip>
+                    }
+                </div>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (!IsLoading && SuggestedGame is not null)
+        {
+            <MudButton OnClick="OnSaveSession" Color="Color.Primary" Variant="Variant.Filled">
+                Enregistrer la partie
+            </MudButton>
+        }
+        <MudButton OnClick="OnChooseAnother" Color="Color.Default" Variant="Variant.Outlined">
+            @(SuggestedGame is null ? "Fermer" : "Choisir un autre jeu")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+    
+    [Parameter]
+    public BoardGameViewModel? SuggestedGame { get; set; }
+    
+    [Parameter]
+    public bool IsLoading { get; set; }
+    
+    private void OnSaveSession()
+    {
+        MudDialog?.Close(DialogResult.Ok(SuggestedGame));
+    }
+    
+    private void OnChooseAnother()
+    {
+        MudDialog?.Close(DialogResult.Cancel());
+    }
+}

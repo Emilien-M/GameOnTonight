@@ -1,0 +1,27 @@
+{
+  "name": "Game on Tonight",
+  "short_name": "GameOnTonight",
+  "description": "Application de gestion de collection de jeux de société avec filtrage et suggestion aléatoire pour vos soirées jeux.",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#14213D",
+  "theme_color": "#14213D",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "utilities"],
+  "lang": "fr"
+}

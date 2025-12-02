@@ -1,0 +1,265 @@
+@page "/statistics"
+@using GameOnTonight.RestClient.Models
+@inject IStatisticsService StatisticsService
+@inject IErrorService ErrorService
+
+<PageTitle>Statistiques</PageTitle>
+
+<MudText Typo="Typo.h3" Class="pb-3">Statistiques</MudText>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-center py-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadDataAsync">Réessayer</MudButton>
+}
+else if (statistics is null)
+{
+    <MudAlert Severity="Severity.Info">Aucune donnée disponible</MudAlert>
+}
+else
+{
+    @* Summary Cards *@
+    <MudGrid Class="mb-4">
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 d-flex flex-column align-center" Elevation="2">
+                <MudIcon Icon="@Icons.Material.Filled.Casino" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h4" Class="mt-2">@statistics.TotalGames</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Jeux</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 d-flex flex-column align-center" Elevation="2">
+                <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h4" Class="mt-2">@statistics.TotalSessions</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Parties</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 d-flex flex-column align-center" Elevation="2">
+                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Tertiary" />
+                <MudText Typo="Typo.h4" Class="mt-2">@statistics.TotalUniquePlayers</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Joueurs</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 d-flex flex-column align-center" Elevation="2">
+                <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Large" Color="Color.Warning" />
+                <MudText Typo="Typo.h4" Class="mt-2">@(statistics.AverageRating?.ToString("0.0") ?? "-")</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Note moyenne</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* Top Games Chart *@
+    @if (statistics.TopGames?.Count > 0)
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">🏆 Top 5 des jeux les plus joués</MudText>
+            <MudChart ChartType="ChartType.Bar" 
+                      ChartSeries="@topGamesSeries" 
+                      XAxisLabels="@topGamesLabels"
+                      Width="100%" 
+                      Height="300px"
+                      ChartOptions="@chartOptions" />
+        </MudPaper>
+    }
+
+    @* Monthly Activity Chart *@
+    @if (statistics.MonthlyPlays?.Count > 0)
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">📅 Activité mensuelle</MudText>
+            <MudChart ChartType="ChartType.Line" 
+                      ChartSeries="@monthlyPlaysSeries" 
+                      XAxisLabels="@monthlyPlaysLabels"
+                      Width="100%" 
+                      Height="300px"
+                      ChartOptions="@chartOptions" />
+        </MudPaper>
+    }
+
+    @* Player Stats Table *@
+    @if (statistics.PlayerStats?.Count > 0)
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">👥 Statistiques des joueurs</MudText>
+            <MudTable Items="@statistics.PlayerStats" Hover="true" Striped="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>Joueur</MudTh>
+                    <MudTh Style="text-align: center">Parties</MudTh>
+                    <MudTh Style="text-align: center">Victoires</MudTh>
+                    <MudTh Style="text-align: center">Taux de victoire</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Joueur">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                            @context.PlayerName
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Parties" Style="text-align: center">@context.GamesPlayed</MudTd>
+                    <MudTd DataLabel="Victoires" Style="text-align: center">
+                        @if (context.Wins > 0)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">@context.Wins</MudChip>
+                        }
+                        else
+                        {
+                            <span>0</span>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Taux de victoire" Style="text-align: center">
+                        <MudProgressLinear Color="@GetWinRateColor(context.WinRate)" 
+                                           Value="@(context.WinRate ?? 0)" 
+                                           Max="100"
+                                           Class="my-2" 
+                                           Style="min-width: 80px;" />
+                        <MudText Typo="Typo.caption">@(context.WinRate?.ToString("0.0") ?? "0")%</MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+
+    @* Top Games Details *@
+    @if (statistics.TopGames?.Count > 0)
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">⭐ Détails des jeux populaires</MudText>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var (game, index) in statistics.TopGames.Select((g, i) => (g, i)))
+                {
+                    <div class="d-flex justify-space-between align-center pa-2 rounded" style="background: var(--mud-palette-background-grey);">
+                        <div class="d-flex align-center gap-2">
+                            <MudAvatar Color="@GetRankColor(index)" Size="Size.Small">@(index + 1)</MudAvatar>
+                            <MudText>@game.GameName</MudText>
+                        </div>
+                        <div class="d-flex align-center gap-3">
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                                @game.PlayCount partie@(game.PlayCount > 1 ? "s" : "")
+                            </MudChip>
+                            @if (game.AverageRating.HasValue)
+                            {
+                                <MudRating SelectedValue="@((int)Math.Round(game.AverageRating.Value))" 
+                                           ReadOnly="true" 
+                                           Size="Size.Small"
+                                           Color="Color.Warning" />
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </MudPaper>
+    }
+}
+
+@code {
+    private StatisticsViewModel? statistics;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<ChartSeries> topGamesSeries = new();
+    private string[] topGamesLabels = [];
+
+    private List<ChartSeries> monthlyPlaysSeries = new();
+    private string[] monthlyPlaysLabels = [];
+
+    private ChartOptions chartOptions = new()
+    {
+        YAxisTicks = 1,
+        MaxNumYAxisTicks = 10
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            statistics = await StatisticsService.GetStatisticsAsync();
+            PrepareChartData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (statistics is null) return;
+
+        // Top games chart
+        if (statistics.TopGames?.Count > 0)
+        {
+            topGamesLabels = statistics.TopGames.Select(g => TruncateName(g.GameName ?? "", 15)).ToArray();
+            topGamesSeries = new List<ChartSeries>
+            {
+                new ChartSeries
+                {
+                    Name = "Parties jouées",
+                    Data = statistics.TopGames.Select(g => (double)(g.PlayCount ?? 0)).ToArray()
+                }
+            };
+        }
+
+        // Monthly plays chart
+        if (statistics.MonthlyPlays?.Count > 0)
+        {
+            monthlyPlaysLabels = statistics.MonthlyPlays.Select(m => m.Month ?? "").ToArray();
+            monthlyPlaysSeries = new List<ChartSeries>
+            {
+                new ChartSeries
+                {
+                    Name = "Parties",
+                    Data = statistics.MonthlyPlays.Select(m => (double)(m.SessionCount ?? 0)).ToArray()
+                }
+            };
+        }
+    }
+
+    private static string TruncateName(string name, int maxLength)
+    {
+        if (name.Length <= maxLength) return name;
+        return name[..(maxLength - 3)] + "...";
+    }
+
+    private static Color GetWinRateColor(double? winRate)
+    {
+        return winRate switch
+        {
+            >= 60 => Color.Success,
+            >= 40 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+
+    private static Color GetRankColor(int index)
+    {
+        return index switch
+        {
+            0 => Color.Warning,  // Gold
+            1 => Color.Default,  // Silver
+            2 => Color.Tertiary, // Bronze
+            _ => Color.Primary
+        };
+    }
+}

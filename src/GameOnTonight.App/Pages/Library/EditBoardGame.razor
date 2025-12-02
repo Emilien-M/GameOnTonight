@@ -1,0 +1,64 @@
+@page "/library/new"
+@page "/library/edit/{Id:int}"
+
+<PageTitle>@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</PageTitle>
+
+<MudText Typo="Typo.h3" Class="pb-3">@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</MudText>
+
+<EditForm EditContext="_editContext" OnValidSubmit="OnSubmitAsync">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+    }
+
+    <div class="d-flex flex-column gap-4">
+        <MudTextField @bind-Value="form.Name" 
+                      Label="Nom du jeu" 
+                      Variant="Variant.Outlined" 
+                      Required="true"
+                      For="@(() => form.Name)" />
+        
+        <div class="d-flex gap-4">
+            <MudNumericField @bind-Value="form.MinPlayers" 
+                             Label="Joueurs min" 
+                             Min="1" 
+                             Variant="Variant.Outlined" 
+                             Class="flex-1"
+                             For="@(() => form.MinPlayers)" />
+            <MudNumericField @bind-Value="form.MaxPlayers" 
+                             Label="Joueurs max" 
+                             Min="1" 
+                             Variant="Variant.Outlined" 
+                             Class="flex-1"
+                             For="@(() => form.MaxPlayers)" />
+        </div>
+        
+        <MudNumericField @bind-Value="form.DurationMinutes" 
+                         Label="Durée (minutes)" 
+                         Min="1" 
+                         Variant="Variant.Outlined"
+                         For="@(() => form.DurationMinutes)" />
+        
+        <MudAutocomplete T="string" 
+                         @bind-Value="form.GameType" 
+                         Label="Type / Catégorie" 
+                         SearchFunc="SearchGameTypesAsync"
+                         Variant="Variant.Outlined"
+                         CoerceText="true"
+                         CoerceValue="false"
+                         ResetValueOnEmptyText="true"
+                         HelperText="Sélectionnez un type existant ou saisissez-en un nouveau"
+                         For="@(() => form.GameType)" />
+
+        <div class="d-flex gap-2 mt-4">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@isSubmitting">
+                @(isSubmitting ? "Enregistrement…" : "Enregistrer")
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel">
+                Annuler
+            </MudButton>
+        </div>
+    </div>
+</EditForm>

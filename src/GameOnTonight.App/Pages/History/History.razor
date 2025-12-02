@@ -1,0 +1,172 @@
+@page "/history"
+@using GameOnTonight.RestClient.Models
+@inject IGameSessionsService GameSessionsService
+@inject IErrorService ErrorService
+@inject IDialogService DialogService
+
+<PageTitle>Historique</PageTitle>
+
+<MudText Typo="Typo.h3" Class="pb-3">Historique des parties</MudText>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-center py-8">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadDataAsync">Réessayer</MudButton>
+}
+else if (sessions is null || sessions.Count == 0)
+{
+    <div class="d-flex flex-column align-center py-8 gap-4">
+        <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Large" Color="Color.Default" />
+        <MudText Typo="Typo.h6" Color="Color.Default">Aucune partie enregistrée</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Default">
+            Utilisez le filtre pour trouver un jeu et enregistrez vos parties !
+        </MudText>
+    </div>
+}
+else
+{
+    <MudList T="GameSessionViewModel" Class="py-0">
+        @foreach (var session in sessions)
+        {
+            <MudListItem T="GameSessionViewModel" Class="px-0">
+                <MudCard Class="mb-2 w-100">
+                    <MudCardContent>
+                        <div class="d-flex justify-space-between align-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-center gap-2">
+                                    <MudText Typo="Typo.h6">@session.BoardGameName</MudText>
+                                    @if (session.Rating.HasValue)
+                                    {
+                                        <MudRating SelectedValue="@session.Rating.Value" 
+                                                   ReadOnly="true" 
+                                                   Size="Size.Small"
+                                                   Color="Color.Warning" />
+                                    }
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap mt-2">
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                                        @session.PlayedAt?.ToString("dd/MM/yyyy")
+                                    </MudChip>
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                                        @session.PlayerCount joueur@(session.PlayerCount > 1 ? "s" : "")
+                                    </MudChip>
+                                </div>
+                                @if (!string.IsNullOrEmpty(session.Notes))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mt-2 mud-text-secondary">
+                                        @session.Notes
+                                    </MudText>
+                                }
+                                
+                                @* Affichage des joueurs *@
+                                @if (session.Players is { Count: > 0 })
+                                {
+                                    <div class="mt-3">
+                                        <MudText Typo="Typo.subtitle2" Class="mb-1">Joueurs</MudText>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            @foreach (var player in session.Players.OrderBy(p => p.Position ?? 999))
+                                            {
+                                                <MudChip T="string" 
+                                                         Color="@(player.IsWinner == true ? Color.Success : Color.Default)" 
+                                                         Size="Size.Small"
+                                                         Icon="@(player.IsWinner == true ? Icons.Material.Filled.EmojiEvents : null)">
+                                                    @player.PlayerName
+                                                    @if (player.Score.HasValue)
+                                                    {
+                                                        <span class="ml-1">(@player.Score pts)</span>
+                                                    }
+                                                    @if (player.Position.HasValue)
+                                                    {
+                                                        <span class="ml-1">#@player.Position</span>
+                                                    }
+                                                </MudChip>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
+                            @* Photo de la partie *@
+                            @if (!string.IsNullOrEmpty(session.PhotoUrl))
+                            {
+                                <MudImage Src="@session.PhotoUrl" 
+                                          Alt="Photo de la partie"
+                                          Width="100"
+                                          Height="100"
+                                          ObjectFit="ObjectFit.Cover"
+                                          Class="rounded ml-3" />
+                            }
+                            
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Color="Color.Error" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => DeleteSessionAsync(session))" 
+                                           Class="ml-2" />
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudListItem>
+        }
+    </MudList>
+}
+
+@code {
+    private IReadOnlyList<GameSessionViewModel>? sessions;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            sessions = await GameSessionsService.GetHistoryAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteSessionAsync(GameSessionViewModel session)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Confirmation",
+            $"Supprimer cette partie de {session.BoardGameName} ?",
+            yesText: "Supprimer",
+            cancelText: "Annuler");
+
+        if (result == true && session.Id.HasValue)
+        {
+            try
+            {
+                await GameSessionsService.DeleteAsync(session.Id.Value);
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ErrorService.GetErrorMessage(ex);
+                StateHasChanged();
+            }
+        }
+    }
+}

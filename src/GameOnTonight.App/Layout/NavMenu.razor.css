@@ -1,0 +1,41 @@
+.tabbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: var(--tabbar-height);
+    background: rgba(20,33,61,0.95);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    z-index: 100;
+}
+
+.tabbar ::deep .tab {
+    flex: 1 1 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--color-text);
+    text-decoration: none;
+    background: transparent;
+    border: 0;
+    font: inherit;
+}
+
+.tabbar ::deep .tab.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.tabbar ::deep .tab .icon { display: inline-flex; }
+.tabbar ::deep .tab .label { font-size: 0.8rem; }
+
+/* Active state for NavLink */
+.tabbar ::deep a.active {
+    color: var(--color-accent) !important;
+}
+
+/* Hover */
+.tabbar ::deep .tab:not(.disabled):hover {
+    color: var(--color-accent);
+}

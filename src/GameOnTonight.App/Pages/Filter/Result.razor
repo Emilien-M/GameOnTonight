@@ -1,0 +1,148 @@
+@page "/filter/result"
+@using GameOnTonight.RestClient.Models
+@using GameOnTonight.App.Pages.History
+@inject ISearchResultService SearchResultService
+@inject IBoardGamesService BoardGamesService
+@inject IGameSessionsService GameSessionsService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Résultats</PageTitle>
+
+<MudText Typo="Typo.h3" Class="pb-3">Jeux compatibles</MudText>
+
+<MudIconButton Icon="@Icons.Material.Filled.KeyboardReturn" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo("/filter/findForm"))"/>
+
+@if (result == null || result.Count == 0)
+{
+    <MudText Typo="Typo.h6">Aucun résultat</MudText>
+}
+else
+{
+    @foreach (var game in result)
+    {
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">@game.Name</MudText>
+                <MudChip T="string">
+                    @game.MinPlayers - @game.MaxPlayers joueurs
+                </MudChip>
+                <MudChip T="string">@game.DurationMinutes min</MudChip>
+                <MudChip T="string">@game.GameType</MudChip>
+            </MudCardContent>
+        </MudCard>
+    }
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3 w-100" 
+               OnClick="@RollTheDiceAsync" Disabled="@isRolling">
+        @if (isRolling)
+        {
+            <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+            <span>Lancement...</span>
+        }
+        else
+        {
+            <span>Lancer le dé !</span>
+        }
+    </MudButton>
+}
+
+@code
+{
+    private IReadOnlyList<BoardGameViewModel>? result;
+    private bool isRolling;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        result = SearchResultService.CurrentResult;
+    }
+
+    private async Task RollTheDiceAsync()
+    {
+        isRolling = true;
+        StateHasChanged();
+        
+        try
+        {
+            var suggestedGame = await BoardGamesService.SuggestAsync(
+                SearchResultService.PlayersCount,
+                SearchResultService.MaxDurationMinutes,
+                SearchResultService.GameType);
+            
+            isRolling = false;
+            StateHasChanged();
+            
+            await ShowSuggestionModalAsync(suggestedGame);
+        }
+        catch
+        {
+            isRolling = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task ShowSuggestionModalAsync(BoardGameViewModel? suggestedGame)
+    {
+        var parameters = new DialogParameters<SuggestionModal>
+        {
+            { x => x.SuggestedGame, suggestedGame },
+            { x => x.IsLoading, false }
+        };
+        
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+        
+        var dialog = await DialogService.ShowAsync<SuggestionModal>("Suggestion", parameters, options);
+        var dialogResult = await dialog.Result;
+        
+        if (dialogResult is { Canceled: false, Data: BoardGameViewModel savedGame })
+        {
+            await ShowSaveSessionModalAsync(savedGame);
+        }
+        else if (dialogResult is { Canceled: true })
+        {
+            // L'utilisateur a choisi "Choisir un autre jeu" - relancer le dé
+            await RollTheDiceAsync();
+        }
+    }
+    
+    private async Task ShowSaveSessionModalAsync(BoardGameViewModel game)
+    {
+        var parameters = new DialogParameters<SaveGameSessionModal>
+        {
+            { x => x.BoardGameId, game.Id ?? 0 },
+            { x => x.GameName, game.Name ?? string.Empty },
+            { x => x.DefaultPlayerCount, SearchResultService.PlayersCount }
+        };
+        
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+        
+        var dialog = await DialogService.ShowAsync<SaveGameSessionModal>("Enregistrer la partie", parameters, options);
+        var dialogResult = await dialog.Result;
+        
+        if (dialogResult is { Canceled: false, Data: CreateGameSessionCommand command })
+        {
+            try
+            {
+                await GameSessionsService.CreateAsync(command);
+                Snackbar.Add("Partie enregistrée avec succès !", Severity.Success);
+                Navigation.NavigateTo("/history");
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Erreur lors de l'enregistrement de la partie.", Severity.Error);
+            }
+        }
+    }
+}

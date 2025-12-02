@@ -1,0 +1,181 @@
+@using GameOnTonight.RestClient.Models
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Enregistrer la partie</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="d-flex flex-column gap-4">
+            <MudText Typo="Typo.body1">
+                Jeu : <strong>@GameName</strong>
+            </MudText>
+            
+            <MudDatePicker @bind-Date="playedAt" 
+                           Label="Date de la partie" 
+                           DateFormat="dd/MM/yyyy"
+                           MaxDate="DateTime.Today" />
+            
+            <MudNumericField @bind-Value="playerCount" 
+                             Label="Nombre de joueurs" 
+                             Min="1" 
+                             Max="50" />
+            
+            <div>
+                <MudText Typo="Typo.body2" Class="mb-1">Note de la partie (optionnel)</MudText>
+                <MudRating @bind-SelectedValue="rating" 
+                           Color="Color.Warning"
+                           Size="Size.Medium" />
+            </div>
+            
+            <MudTextField @bind-Value="photoUrl" 
+                          Label="URL de la photo (optionnel)" 
+                          MaxLength="500"
+                          HelperText="Lien vers une photo de la partie" />
+            
+            <MudTextField @bind-Value="notes" 
+                          Label="Notes (optionnel)" 
+                          Lines="3" 
+                          MaxLength="500"
+                          HelperText="Ajoutez des notes sur la partie" />
+            
+            @* Gestion des joueurs *@
+            <MudDivider Class="my-2" />
+            <div class="d-flex justify-space-between align-center">
+                <MudText Typo="Typo.subtitle1">Joueurs</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.PersonAdd" 
+                               Color="Color.Primary" 
+                               Size="Size.Small"
+                               OnClick="AddPlayer" />
+            </div>
+            
+            @if (players.Count > 0)
+            {
+                <div class="d-flex flex-column gap-2">
+                    @for (var i = 0; i < players.Count; i++)
+                    {
+                        var index = i;
+                        <MudCard Class="pa-2">
+                            <div class="d-flex gap-2 align-center flex-wrap">
+                                <MudTextField @bind-Value="players[index].PlayerName" 
+                                              Label="Nom" 
+                                              Style="flex: 1; min-width: 120px;"
+                                              MaxLength="100" />
+                                <MudNumericField @bind-Value="players[index].Score" 
+                                                 Label="Score" 
+                                                 Style="width: 80px;"
+                                                 Min="0" />
+                                <MudNumericField @bind-Value="players[index].Position" 
+                                                 Label="Position" 
+                                                 Style="width: 80px;"
+                                                 Min="1" />
+                                <MudCheckBox @bind-Value="players[index].IsWinner" 
+                                             Label="Gagnant" 
+                                             Color="Color.Success"
+                                             Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                               Color="Color.Error" 
+                                               Size="Size.Small"
+                                               OnClick="@(() => RemovePlayer(index))" />
+                            </div>
+                        </MudCard>
+                    }
+                </div>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Default" Class="text-center">
+                    Aucun joueur ajouté. Cliquez sur + pour ajouter des joueurs.
+                </MudText>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default" Variant="Variant.Text">
+            Annuler
+        </MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled">
+            Enregistrer
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+    
+    [Parameter]
+    public int BoardGameId { get; set; }
+    
+    [Parameter]
+    public string GameName { get; set; } = string.Empty;
+    
+    [Parameter]
+    public int DefaultPlayerCount { get; set; } = 2;
+    
+    private DateTime? playedAt = DateTime.Today;
+    private int playerCount = 2;
+    private int rating = 0;
+    private string? photoUrl;
+    private string? notes;
+    private List<PlayerInputModel> players = new();
+
+    protected override void OnParametersSet()
+    {
+        playerCount = DefaultPlayerCount;
+    }
+
+    private void AddPlayer()
+    {
+        players.Add(new PlayerInputModel());
+    }
+
+    private void RemovePlayer(int index)
+    {
+        if (index >= 0 && index < players.Count)
+        {
+            players.RemoveAt(index);
+        }
+    }
+
+    private void Submit()
+    {
+        var playerDtos = players
+            .Where(p => !string.IsNullOrWhiteSpace(p.PlayerName))
+            .Select(p => new PlayerInputDto
+            {
+                PlayerName = p.PlayerName!,
+                Score = p.Score,
+                IsWinner = p.IsWinner,
+                Position = p.Position
+            })
+            .ToList();
+
+        var command = new CreateGameSessionCommand
+        {
+            BoardGameId = BoardGameId,
+            PlayedAt = playedAt.HasValue 
+                ? new DateTimeOffset(DateTime.SpecifyKind(playedAt.Value, DateTimeKind.Utc)) 
+                : DateTimeOffset.UtcNow,
+            PlayerCount = playerCount,
+            Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
+            Rating = rating > 0 ? rating : null,
+            PhotoUrl = string.IsNullOrWhiteSpace(photoUrl) ? null : photoUrl,
+            Players = playerDtos.Count > 0 ? playerDtos : null
+        };
+        
+        MudDialog?.Close(DialogResult.Ok(command));
+    }
+    
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private class PlayerInputModel
+    {
+        public string? PlayerName { get; set; }
+        public int? Score { get; set; }
+        public int? Position { get; set; }
+        public bool IsWinner { get; set; }
+    }
+}

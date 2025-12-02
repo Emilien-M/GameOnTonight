@@ -1,0 +1,148 @@
+@page "/library"
+@inject IBoardGamesService BoardGamesService
+@inject NavigationManager Navigation
+@inject IErrorService ErrorService
+@inject IDialogService DialogService
+@using GameOnTonight.RestClient.Models
+
+<PageTitle>Ma Ludothèque</PageTitle>
+
+<MudText Typo="Typo.h3" Class="pb-3">Ma Ludothèque</MudText>
+
+
+
+<div class="mb-3 d-flex align-center gap-3">
+    <MudTextField @bind-Value="searchText" Variant="Variant.Outlined" Label="Rechercher un jeu..." AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" Class="flex-grow-1"></MudTextField>
+    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Medium" OnClick="@(() => CreateNew())"></MudFab>
+</div>
+
+@if (isLoading)
+{
+    <div>Chargement…</div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+else if (games.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">Votre ludothèque est vide. Ajoutez votre premier jeu !</MudAlert>
+} 
+else
+{
+    <div class="row g-3">
+        
+        <Virtualize Items="games" Context="game">
+            <MudCard>
+                <MudCardContent>
+                    <div class="d-flex flex-row justify-space-between align-items-center">
+                        <div>
+                            <MudText Typo="Typo.h5">@game.Name</MudText>
+                            <MudChip T="string">
+                                @game.MinPlayers - @game.MaxPlayers joueurs
+                            </MudChip>
+                            <MudChip T="string">@game.DurationMinutes min</MudChip>
+                            <MudChip T="string">@game.GameType</MudChip>
+                        </div>
+                        <div class="d-flex gap-2 flex-shrink-0">
+                            <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => Edit(game.Id))"></MudIconButton>
+                            <MudIconButton Color="Color.Warning" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ConfirmDeleteAsync(game))"></MudIconButton>
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </Virtualize>
+        
+    </div>
+}
+
+@code {
+    private List<BoardGameViewModel> games = new();
+    private bool isLoading;
+    private string? errorMessage;
+    private string searchText;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            var items = await BoardGamesService.GetAllAsync();
+            games = items.ToList();
+        }
+        catch (OperationCanceledException)
+        {
+            // Navigation or manual cancellation: ignore to avoid UI error noise
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateNew()
+    {
+        Navigation.NavigateTo("/library/new");
+    }
+
+    private void Edit(int? id)
+    {
+        if (id.HasValue)
+        {
+            Navigation.NavigateTo($"/library/edit/{id.Value}");
+        }
+    }
+
+    private async Task DeleteAsync(int? id)
+    {
+        if (!id.HasValue) return;
+        try
+        {
+            await BoardGamesService.DeleteAsync(id.Value);
+            await LoadAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // Ignore cancellation on navigation or manual cancel
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorService.GetErrorMessage(ex);
+        }
+    }
+
+    private async Task ConfirmDeleteAsync(BoardGameViewModel game)
+    {
+        if (!game.Id.HasValue) return;
+
+        var parameters = new DialogParameters<ConfirmDeleteDialog>
+        {
+            { x => x.GameName, game.Name ?? "ce jeu" }
+        };
+
+        var options = new DialogOptions 
+        { 
+            CloseButton = true, 
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>("Confirmer la suppression", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await DeleteAsync(game.Id);
+        }
+    }
+}
