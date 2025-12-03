@@ -1,0 +1,47 @@
+{
+  // ============================================
+  // GameOnTonight - Production Configuration Template
+  // ============================================
+  // Copy this file to appsettings.Production.json and configure
+  // DO NOT commit appsettings.Production.json to version control!
+  //
+  // Note: Environment variables take precedence over this file
+  // You can also configure everything via environment variables:
+  //   - ConnectionStrings__DefaultConnection
+  //   - JwtSettings__Secret
+  //   - Cors__AllowedOrigins__0
+  // ============================================
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    }
+  },
+
+  "ConnectionStrings": {
+    // PostgreSQL connection string
+    // Format: Host=<host>;Port=<port>;Database=<db>;Username=<user>;Password=<password>
+    "DefaultConnection": "Host=postgres;Port=5432;Database=gameontonight;Username=gameadmin;Password=CHANGE_ME"
+  },
+
+  "JwtSettings": {
+    // IMPORTANT: Generate a secure random string (minimum 32 characters)
+    // Command: openssl rand -base64 32
+    "Secret": "CHANGE_ME_GENERATE_WITH_openssl_rand_base64_32",
+    "ExpiryMinutes": 60,
+    "Issuer": "GameOnTonight",
+    "Audience": "GameOnTonightClients"
+  },
+
+  "Cors": {
+    // List of allowed origins for CORS
+    // Add your frontend URL(s) here
+    "AllowedOrigins": [
+      "https://your-domain.com"
+    ]
+  },
+
+  "AllowedHosts": "*"
+}

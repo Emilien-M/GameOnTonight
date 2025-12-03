@@ -44,10 +44,20 @@ TestResults/
 # Fichiers secrets
 secrets.json
 
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+*.env.local
+
+# Production configuration (may contain secrets)
+appsettings.Production.json
+**/appsettings.Production.json
+
 # Fichiers système
 .DS_Store
 Thumbs.db
 
-# Dossiers de configuration Nginx
-nginx.conf
+# Task files
 /todo.md
+/SELF-HOSTING-ROADMAP.md
