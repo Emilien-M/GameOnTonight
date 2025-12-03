@@ -11,7 +11,7 @@ public sealed record UpdateBoardGameCommand(
     int MinPlayers,
     int MaxPlayers,
     int DurationMinutes,
-    string GameType
+    IReadOnlyList<string> GameTypes
 ) : IRequest<BoardGameViewModel?>;
 
 public sealed class UpdateBoardGameCommandValidator : AbstractValidator<UpdateBoardGameCommand>
@@ -34,7 +34,10 @@ public sealed class UpdateBoardGameCommandValidator : AbstractValidator<UpdateBo
         RuleFor(x => x.DurationMinutes)
             .GreaterThan(0);
 
-        RuleFor(x => x.GameType)
+        RuleFor(x => x.GameTypes)
+            .NotNull();
+        
+        RuleForEach(x => x.GameTypes)
             .NotEmpty()
             .MaximumLength(100);
     }
@@ -43,10 +46,12 @@ public sealed class UpdateBoardGameCommandValidator : AbstractValidator<UpdateBo
 public sealed class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardGameCommand, BoardGameViewModel?>
 {
     private readonly IBoardGameRepository _repository;
+    private readonly IGameTypeRepository _gameTypeRepository;
 
-    public UpdateBoardGameCommandHandler(IBoardGameRepository repository)
+    public UpdateBoardGameCommandHandler(IBoardGameRepository repository, IGameTypeRepository gameTypeRepository)
     {
         _repository = repository;
+        _gameTypeRepository = gameTypeRepository;
     }
 
     public async ValueTask<BoardGameViewModel?> Handle(UpdateBoardGameCommand request, CancellationToken cancellationToken)
@@ -61,9 +66,14 @@ public sealed class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardG
             request.Name,
             request.MinPlayers,
             request.MaxPlayers,
-            request.DurationMinutes,
-            request.GameType
+            request.DurationMinutes
         );
+
+        // Update game types
+        var gameTypes = request.GameTypes.Count > 0 
+            ? await _gameTypeRepository.GetOrCreateByNamesAsync(request.GameTypes, cancellationToken)
+            : [];
+        entity.SetGameTypes(gameTypes);
 
         await _repository.UpdateAsync(entity, cancellationToken);
 

@@ -7,9 +7,9 @@ public interface ISearchResultService
     IReadOnlyList<BoardGameViewModel>? CurrentResult { get; }
     int PlayersCount { get; }
     int MaxDurationMinutes { get; }
-    string? GameType { get; }
+    IReadOnlyList<string>? GameTypes { get; }
     
-    void SetResult(IReadOnlyList<BoardGameViewModel> result, int playersCount, int maxDurationMinutes, string? gameType);
+    void SetResult(IReadOnlyList<BoardGameViewModel> result, int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes);
     void ClearResult();
 }
 
@@ -18,14 +18,14 @@ public class SearchResultService : ISearchResultService
     public IReadOnlyList<BoardGameViewModel>? CurrentResult { get; private set; }
     public int PlayersCount { get; private set; }
     public int MaxDurationMinutes { get; private set; }
-    public string? GameType { get; private set; }
+    public IReadOnlyList<string>? GameTypes { get; private set; }
     
-    public void SetResult(IReadOnlyList<BoardGameViewModel> result, int playersCount, int maxDurationMinutes, string? gameType)
+    public void SetResult(IReadOnlyList<BoardGameViewModel> result, int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes)
     {
         CurrentResult = result;
         PlayersCount = playersCount;
         MaxDurationMinutes = maxDurationMinutes;
-        GameType = gameType;
+        GameTypes = gameTypes;
     }
     
     public void ClearResult()
@@ -33,6 +33,6 @@ public class SearchResultService : ISearchResultService
         CurrentResult = null;
         PlayersCount = 0;
         MaxDurationMinutes = 0;
-        GameType = null;
+        GameTypes = null;
     }
 }

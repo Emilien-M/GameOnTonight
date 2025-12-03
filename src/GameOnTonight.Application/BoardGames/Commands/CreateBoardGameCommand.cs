@@ -11,7 +11,7 @@ public sealed record CreateBoardGameCommand(
     int MinPlayers,
     int MaxPlayers,
     int DurationMinutes,
-    string GameType
+    IReadOnlyList<string> GameTypes
 ) : IRequest<BoardGameViewModel>;
 
 public sealed class CreateBoardGameCommandValidator : AbstractValidator<CreateBoardGameCommand>
@@ -31,7 +31,10 @@ public sealed class CreateBoardGameCommandValidator : AbstractValidator<CreateBo
         RuleFor(x => x.DurationMinutes)
             .GreaterThan(0);
 
-        RuleFor(x => x.GameType)
+        RuleFor(x => x.GameTypes)
+            .NotNull();
+        
+        RuleForEach(x => x.GameTypes)
             .NotEmpty()
             .MaximumLength(100);
     }
@@ -40,10 +43,12 @@ public sealed class CreateBoardGameCommandValidator : AbstractValidator<CreateBo
 public sealed class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardGameCommand, BoardGameViewModel>
 {
     private readonly IBoardGameRepository _repository;
+    private readonly IGameTypeRepository _gameTypeRepository;
 
-    public CreateBoardGameCommandHandler(IBoardGameRepository repository)
+    public CreateBoardGameCommandHandler(IBoardGameRepository repository, IGameTypeRepository gameTypeRepository)
     {
         _repository = repository;
+        _gameTypeRepository = gameTypeRepository;
     }
 
     public async ValueTask<BoardGameViewModel> Handle(CreateBoardGameCommand request, CancellationToken cancellationToken)
@@ -52,9 +57,15 @@ public sealed class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardG
             request.Name,
             request.MinPlayers,
             request.MaxPlayers,
-            request.DurationMinutes,
-            request.GameType
+            request.DurationMinutes
         );
+
+        // Get or create game types
+        if (request.GameTypes.Count > 0)
+        {
+            var gameTypes = await _gameTypeRepository.GetOrCreateByNamesAsync(request.GameTypes, cancellationToken);
+            entity.SetGameTypes(gameTypes);
+        }
 
         await _repository.AddAsync(entity, cancellationToken);
 

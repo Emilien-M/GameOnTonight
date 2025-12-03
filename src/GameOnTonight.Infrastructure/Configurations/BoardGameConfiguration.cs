@@ -45,10 +45,6 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
         builder.Property(g => g.DurationMinutes)
             .IsRequired();
             
-        builder.Property(g => g.GameType)
-            .IsRequired()
-            .HasMaxLength(100);
-            
         builder.Property(g => g.Description)
             .IsRequired(false)
             .HasMaxLength(2000);
@@ -62,6 +58,19 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
             .HasForeignKey(s => s.BoardGameId)
             .OnDelete(DeleteBehavior.Cascade);
         
+        // Many-to-many relationship with GameType
+        builder.HasMany(g => g.GameTypes)
+            .WithMany(gt => gt.BoardGames)
+            .UsingEntity<Dictionary<string, object>>(
+                "BoardGameGameType",
+                j => j.HasOne<GameType>().WithMany().HasForeignKey("GameTypeId").OnDelete(DeleteBehavior.Cascade),
+                j => j.HasOne<BoardGame>().WithMany().HasForeignKey("BoardGameId").OnDelete(DeleteBehavior.Cascade),
+                j =>
+                {
+                    j.HasKey("BoardGameId", "GameTypeId");
+                    j.ToTable("BoardGameGameTypes");
+                });
+        
         // Configure foreign key relationship to IdentityUser without navigation property
         builder.HasOne<IdentityUser>()
             .WithMany()
@@ -70,7 +79,6 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
             
         builder.HasIndex(g => g.UserId);
         builder.HasIndex(g => g.Name);
-        builder.HasIndex(g => g.GameType);
         builder.HasIndex(g => new { g.MinPlayers, g.MaxPlayers });
     }
 }

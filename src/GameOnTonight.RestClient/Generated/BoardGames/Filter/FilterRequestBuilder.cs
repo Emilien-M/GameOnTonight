@@ -22,7 +22,7 @@ namespace GameOnTonight.RestClient.BoardGames.Filter
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public FilterRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames/filter{?GameType*,MaxDurationMinutes*,PlayersCount*}", pathParameters)
+        public FilterRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames/filter{?GameTypes*,MaxDurationMinutes*,PlayersCount*}", pathParameters)
         {
         }
         /// <summary>
@@ -30,7 +30,7 @@ namespace GameOnTonight.RestClient.BoardGames.Filter
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public FilterRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames/filter{?GameType*,MaxDurationMinutes*,PlayersCount*}", rawUrl)
+        public FilterRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames/filter{?GameTypes*,MaxDurationMinutes*,PlayersCount*}", rawUrl)
         {
         }
         /// <returns>A List&lt;global::GameOnTonight.RestClient.Models.BoardGameViewModel&gt;</returns>
@@ -81,10 +81,10 @@ namespace GameOnTonight.RestClient.BoardGames.Filter
         {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-            public string? GameType { get; set; }
+            public string[]? GameTypes { get; set; }
 #nullable restore
 #else
-            public string GameType { get; set; }
+            public string[] GameTypes { get; set; }
 #endif
             public int? MaxDurationMinutes { get; set; }
             public int? PlayersCount { get; set; }

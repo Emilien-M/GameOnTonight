@@ -17,7 +17,45 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 3,
             MaxPlayers: 4,
             DurationMinutes: 60,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_WithMultipleGameTypes_ShouldNotHaveErrors()
+    {
+        // Arrange
+        var command = new CreateBoardGameCommand(
+            Name: "Catan",
+            MinPlayers: 3,
+            MaxPlayers: 4,
+            DurationMinutes: 60,
+            GameTypes: ["Strategy", "Family", "Economic"]
+        );
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_WithEmptyGameTypes_ShouldNotHaveErrors()
+    {
+        // Arrange
+        var command = new CreateBoardGameCommand(
+            Name: "Catan",
+            MinPlayers: 3,
+            MaxPlayers: 4,
+            DurationMinutes: 60,
+            GameTypes: []
         );
 
         // Act
@@ -36,7 +74,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -55,7 +93,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -74,7 +112,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 0,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -93,7 +131,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: -1,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -112,7 +150,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 5,
             MaxPlayers: 3,
             DurationMinutes: 30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -131,7 +169,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: 0,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -150,7 +188,7 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: -30,
-            GameType: "Strategy"
+            GameTypes: ["Strategy"]
         );
 
         // Act
@@ -161,7 +199,7 @@ public class CreateBoardGameCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptyGameType_ShouldHaveError()
+    public void Validate_WithEmptyGameTypeInList_ShouldHaveError()
     {
         // Arrange
         var command = new CreateBoardGameCommand(
@@ -169,18 +207,18 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: ""
+            GameTypes: ["Strategy", "", "Family"]
         );
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.GameType);
+        result.ShouldHaveValidationErrorFor("GameTypes[1]");
     }
 
     [Fact]
-    public void Validate_WithGameTypeTooLong_ShouldHaveError()
+    public void Validate_WithGameTypeTooLongInList_ShouldHaveError()
     {
         // Arrange
         var command = new CreateBoardGameCommand(
@@ -188,13 +226,13 @@ public class CreateBoardGameCommandValidatorTests
             MinPlayers: 2,
             MaxPlayers: 4,
             DurationMinutes: 30,
-            GameType: new string('a', 101)
+            GameTypes: ["Strategy", new string('a', 101)]
         );
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.GameType);
+        result.ShouldHaveValidationErrorFor("GameTypes[1]");
     }
 }

@@ -41,16 +41,51 @@
                          Variant="Variant.Outlined"
                          For="@(() => form.DurationMinutes)" />
         
-        <MudAutocomplete T="string" 
-                         @bind-Value="form.GameType" 
-                         Label="Type / Catégorie" 
-                         SearchFunc="SearchGameTypesAsync"
-                         Variant="Variant.Outlined"
-                         CoerceText="true"
-                         CoerceValue="false"
-                         ResetValueOnEmptyText="true"
-                         HelperText="Sélectionnez un type existant ou saisissez-en un nouveau"
-                         For="@(() => form.GameType)" />
+        <div>
+            <MudText Typo="Typo.body2" Class="mb-2">Types / Catégories</MudText>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                @foreach (var gameType in form.GameTypes)
+                {
+                    <MudChip T="string" 
+                             Color="Color.Primary" 
+                             OnClose="@(() => RemoveGameType(gameType))">
+                        @gameType
+                    </MudChip>
+                }
+            </div>
+            <div class="d-flex gap-2 align-start">
+                <MudTextField T="string" 
+                              @bind-Value="_newGameType"
+                              Label="Ajouter un type" 
+                              Variant="Variant.Outlined"
+                              HelperText="Saisissez un nouveau type ou sélectionnez ci-dessous"
+                              OnKeyUp="OnGameTypeKeyUp"
+                              Style="flex: 1;" />
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           OnClick="AddGameType"
+                           Disabled="@string.IsNullOrWhiteSpace(_newGameType)"
+                           Class="mt-2"
+                           Style="height: 56px;">
+                    Ajouter
+                </MudButton>
+            </div>
+            @if (_filteredGameTypes.Any())
+            {
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    <MudText Typo="Typo.caption" Class="mr-2">Suggestions :</MudText>
+                    @foreach (var suggestion in _filteredGameTypes.Take(5))
+                    {
+                        <MudChip T="string" 
+                                 Size="Size.Small" 
+                                 Variant="Variant.Outlined"
+                                 OnClick="@(() => SelectGameType(suggestion))">
+                            @suggestion
+                        </MudChip>
+                    }
+                </div>
+            }
+        </div>
 
         <div class="d-flex gap-2 mt-4">
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@isSubmitting">

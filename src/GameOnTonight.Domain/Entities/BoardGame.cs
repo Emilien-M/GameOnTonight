@@ -1,4 +1,3 @@
-using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Entities.Common;
 
 namespace GameOnTonight.Domain.Entities;
@@ -8,6 +7,8 @@ namespace GameOnTonight.Domain.Entities;
 /// </summary>
 public class BoardGame : UserOwnedEntity
 {
+    private readonly List<GameType> _gameTypes = new();
+
     /// <summary>
     /// Required by EF Core for materialization.
     /// </summary>
@@ -16,12 +17,11 @@ public class BoardGame : UserOwnedEntity
     /// <summary>
     /// Creates a new BoardGame with validated properties.
     /// </summary>
-    public BoardGame(string name, int minPlayers, int maxPlayers, int durationMinutes, string gameType, string? description = null, string? imageUrl = null)
+    public BoardGame(string name, int minPlayers, int maxPlayers, int durationMinutes, string? description = null, string? imageUrl = null)
     {
         SetName(name);
         SetPlayerRange(minPlayers, maxPlayers);
         SetDuration(durationMinutes);
-        SetGameType(gameType);
         Description = description;
         ImageUrl = imageUrl;
         
@@ -49,9 +49,9 @@ public class BoardGame : UserOwnedEntity
     public int DurationMinutes { get; private set; }
     
     /// <summary>
-    /// Type or category of the game.
+    /// Types or categories of the game.
     /// </summary>
-    public string GameType { get; private set; } = string.Empty;
+    public virtual IReadOnlyCollection<GameType> GameTypes => _gameTypes.AsReadOnly();
     
     /// <summary>
     /// Optional description of the game.
@@ -71,18 +71,63 @@ public class BoardGame : UserOwnedEntity
     /// <summary>
     /// Updates the board game properties with validation.
     /// </summary>
-    public void Update(string name, int minPlayers, int maxPlayers, int durationMinutes, string gameType, string? description = null, string? imageUrl = null)
+    public void Update(string name, int minPlayers, int maxPlayers, int durationMinutes, string? description = null, string? imageUrl = null)
     {
         ClearDomainErrors();
         
         SetName(name);
         SetPlayerRange(minPlayers, maxPlayers);
         SetDuration(durationMinutes);
-        SetGameType(gameType);
         Description = description;
         ImageUrl = imageUrl;
         
         ThrowIfInvalid();
+    }
+
+    /// <summary>
+    /// Sets the game types, replacing any existing ones.
+    /// </summary>
+    /// <param name="gameTypes">The game types to set.</param>
+    public void SetGameTypes(IEnumerable<GameType> gameTypes)
+    {
+        _gameTypes.Clear();
+        foreach (var gameType in gameTypes)
+        {
+            _gameTypes.Add(gameType);
+        }
+    }
+
+    /// <summary>
+    /// Adds a game type to this board game.
+    /// </summary>
+    /// <param name="gameType">The game type to add.</param>
+    public void AddGameType(GameType gameType)
+    {
+        if (!_gameTypes.Any(gt => gt.Id == gameType.Id))
+        {
+            _gameTypes.Add(gameType);
+        }
+    }
+
+    /// <summary>
+    /// Removes a game type from this board game.
+    /// </summary>
+    /// <param name="gameType">The game type to remove.</param>
+    public void RemoveGameType(GameType gameType)
+    {
+        var existing = _gameTypes.FirstOrDefault(gt => gt.Id == gameType.Id);
+        if (existing != null)
+        {
+            _gameTypes.Remove(existing);
+        }
+    }
+
+    /// <summary>
+    /// Clears all game types from this board game.
+    /// </summary>
+    public void ClearGameTypes()
+    {
+        _gameTypes.Clear();
     }
 
     private void SetName(string name)
@@ -110,12 +155,5 @@ public class BoardGame : UserOwnedEntity
     {
         ValidateNumber(durationMinutes, nameof(DurationMinutes), min: 1);
         DurationMinutes = durationMinutes;
-    }
-
-    private void SetGameType(string gameType)
-    {
-        var trimmedGameType = gameType?.Trim() ?? string.Empty;
-        ValidateString(trimmedGameType, nameof(GameType), 100);
-        GameType = trimmedGameType;
     }
 }

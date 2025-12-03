@@ -14,8 +14,7 @@ public class BoardGameTests
             name: "Catan",
             minPlayers: 3,
             maxPlayers: 4,
-            durationMinutes: 60,
-            gameType: "Strategy"
+            durationMinutes: 60
         );
 
         // Assert
@@ -23,7 +22,7 @@ public class BoardGameTests
         Assert.Equal(3, game.MinPlayers);
         Assert.Equal(4, game.MaxPlayers);
         Assert.Equal(60, game.DurationMinutes);
-        Assert.Equal("Strategy", game.GameType);
+        Assert.Empty(game.GameTypes);
     }
 
     [Fact]
@@ -34,8 +33,7 @@ public class BoardGameTests
             name: "",
             minPlayers: 2,
             maxPlayers: 4,
-            durationMinutes: 30,
-            gameType: "Strategy"
+            durationMinutes: 30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "Name");
@@ -49,8 +47,7 @@ public class BoardGameTests
             name: "   ",
             minPlayers: 2,
             maxPlayers: 4,
-            durationMinutes: 30,
-            gameType: "Strategy"
+            durationMinutes: 30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "Name");
@@ -64,8 +61,7 @@ public class BoardGameTests
             name: "Test Game",
             minPlayers: 0,
             maxPlayers: 4,
-            durationMinutes: 30,
-            gameType: "Strategy"
+            durationMinutes: 30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "MinPlayers");
@@ -79,8 +75,7 @@ public class BoardGameTests
             name: "Test Game",
             minPlayers: -1,
             maxPlayers: 4,
-            durationMinutes: 30,
-            gameType: "Strategy"
+            durationMinutes: 30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "MinPlayers");
@@ -94,8 +89,7 @@ public class BoardGameTests
             name: "Test Game",
             minPlayers: 5,
             maxPlayers: 3,
-            durationMinutes: 30,
-            gameType: "Strategy"
+            durationMinutes: 30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "MaxPlayers");
@@ -109,8 +103,7 @@ public class BoardGameTests
             name: "Test Game",
             minPlayers: 2,
             maxPlayers: 4,
-            durationMinutes: 0,
-            gameType: "Strategy"
+            durationMinutes: 0
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "DurationMinutes");
@@ -124,26 +117,10 @@ public class BoardGameTests
             name: "Test Game",
             minPlayers: 2,
             maxPlayers: 4,
-            durationMinutes: -30,
-            gameType: "Strategy"
+            durationMinutes: -30
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "DurationMinutes");
-    }
-
-    [Fact]
-    public void Create_WithEmptyGameType_ShouldThrowDomainException()
-    {
-        // Act & Assert
-        var exception = Assert.Throws<DomainException>(() => new BoardGame(
-            name: "Test Game",
-            minPlayers: 2,
-            maxPlayers: 4,
-            durationMinutes: 30,
-            gameType: ""
-        ));
-
-        Assert.Contains(exception.Errors, e => e.Name == "GameType");
     }
 
     [Fact]
@@ -154,8 +131,7 @@ public class BoardGameTests
             name: "Catan",
             minPlayers: 3,
             maxPlayers: 4,
-            durationMinutes: 60,
-            gameType: "Strategy"
+            durationMinutes: 60
         );
 
         // Act
@@ -163,8 +139,7 @@ public class BoardGameTests
             name: "Catan Seafarers",
             minPlayers: 3,
             maxPlayers: 6,
-            durationMinutes: 90,
-            gameType: "Strategy Expansion"
+            durationMinutes: 90
         );
 
         // Assert
@@ -172,7 +147,6 @@ public class BoardGameTests
         Assert.Equal(3, game.MinPlayers);
         Assert.Equal(6, game.MaxPlayers);
         Assert.Equal(90, game.DurationMinutes);
-        Assert.Equal("Strategy Expansion", game.GameType);
     }
 
     [Fact]
@@ -183,8 +157,7 @@ public class BoardGameTests
             name: "Catan",
             minPlayers: 3,
             maxPlayers: 4,
-            durationMinutes: 60,
-            gameType: "Strategy"
+            durationMinutes: 60
         );
 
         // Act & Assert
@@ -192,8 +165,7 @@ public class BoardGameTests
             name: "",
             minPlayers: 3,
             maxPlayers: 4,
-            durationMinutes: 60,
-            gameType: "Strategy"
+            durationMinutes: 60
         ));
 
         Assert.Contains(exception.Errors, e => e.Name == "Name");
@@ -208,7 +180,6 @@ public class BoardGameTests
             minPlayers: 3,
             maxPlayers: 4,
             durationMinutes: 60,
-            gameType: "Strategy",
             description: "A classic trading game"
         );
 
@@ -225,7 +196,6 @@ public class BoardGameTests
             minPlayers: 3,
             maxPlayers: 4,
             durationMinutes: 60,
-            gameType: "Strategy",
             imageUrl: "https://example.com/catan.jpg"
         );
 
@@ -234,19 +204,107 @@ public class BoardGameTests
     }
 
     [Fact]
-    public void Create_TrimsNameAndGameType()
+    public void Create_TrimsName()
     {
         // Arrange & Act
         var game = new BoardGame(
             name: "  Catan  ",
             minPlayers: 3,
             maxPlayers: 4,
-            durationMinutes: 60,
-            gameType: "  Strategy  "
+            durationMinutes: 60
         );
 
         // Assert
         Assert.Equal("Catan", game.Name);
-        Assert.Equal("Strategy", game.GameType);
     }
+
+    #region GameTypes Management Tests
+
+    [Fact]
+    public void SetGameTypes_ShouldReplaceExistingTypes()
+    {
+        // Arrange
+        var game = new BoardGame(
+            name: "Catan",
+            minPlayers: 3,
+            maxPlayers: 4,
+            durationMinutes: 60
+        );
+        var type1 = new GameType("Strategy");
+        var type2 = new GameType("Family");
+        game.SetGameTypes(new[] { type1 });
+
+        // Act
+        game.SetGameTypes(new[] { type2 });
+
+        // Assert
+        Assert.Single(game.GameTypes);
+        Assert.Contains(game.GameTypes, t => t.Name == "Family");
+        Assert.DoesNotContain(game.GameTypes, t => t.Name == "Strategy");
+    }
+
+    [Fact]
+    public void SetGameTypes_WithMultipleTypes_ShouldAddAllTypes()
+    {
+        // Arrange
+        var game = new BoardGame(
+            name: "Catan",
+            minPlayers: 3,
+            maxPlayers: 4,
+            durationMinutes: 60
+        );
+        var type1 = new GameType("Strategy");
+        var type2 = new GameType("Family");
+
+        // Act
+        game.SetGameTypes(new[] { type1, type2 });
+
+        // Assert
+        Assert.Equal(2, game.GameTypes.Count);
+        Assert.Contains(game.GameTypes, t => t.Name == "Strategy");
+        Assert.Contains(game.GameTypes, t => t.Name == "Family");
+    }
+
+    [Fact]
+    public void AddGameType_ShouldAddNewType()
+    {
+        // Arrange
+        var game = new BoardGame(
+            name: "Catan",
+            minPlayers: 3,
+            maxPlayers: 4,
+            durationMinutes: 60
+        );
+        var type = new GameType("Strategy");
+
+        // Act
+        game.AddGameType(type);
+
+        // Assert
+        Assert.Single(game.GameTypes);
+        Assert.Contains(game.GameTypes, t => t.Name == "Strategy");
+    }
+
+    [Fact]
+    public void ClearGameTypes_ShouldRemoveAllTypes()
+    {
+        // Arrange
+        var game = new BoardGame(
+            name: "Catan",
+            minPlayers: 3,
+            maxPlayers: 4,
+            durationMinutes: 60
+        );
+        var type1 = new GameType("Strategy");
+        var type2 = new GameType("Family");
+        game.SetGameTypes(new[] { type1, type2 });
+
+        // Act
+        game.ClearGameTypes();
+
+        // Assert
+        Assert.Empty(game.GameTypes);
+    }
+
+    #endregion
 }

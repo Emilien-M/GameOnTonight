@@ -42,7 +42,13 @@ else
                                 @game.MinPlayers - @game.MaxPlayers joueurs
                             </MudChip>
                             <MudChip T="string">@game.DurationMinutes min</MudChip>
-                            <MudChip T="string">@game.GameType</MudChip>
+                            @if (game.GameTypes != null)
+                            {
+                                @foreach (var gameType in game.GameTypes)
+                                {
+                                    <MudChip T="string">@gameType</MudChip>
+                                }
+                            }
                         </div>
                         <div class="d-flex gap-2 flex-shrink-0">
                             <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => Edit(game.Id))"></MudIconButton>

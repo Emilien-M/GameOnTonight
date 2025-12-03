@@ -29,7 +29,13 @@ else
                     @game.MinPlayers - @game.MaxPlayers joueurs
                 </MudChip>
                 <MudChip T="string">@game.DurationMinutes min</MudChip>
-                <MudChip T="string">@game.GameType</MudChip>
+                @if (game.GameTypes != null)
+                {
+                    @foreach (var gameType in game.GameTypes)
+                    {
+                        <MudChip T="string">@gameType</MudChip>
+                    }
+                }
             </MudCardContent>
         </MudCard>
     }
@@ -69,7 +75,7 @@ else
             var suggestedGame = await BoardGamesService.SuggestAsync(
                 SearchResultService.PlayersCount,
                 SearchResultService.MaxDurationMinutes,
-                SearchResultService.GameType);
+                SearchResultService.GameTypes);
             
             isRolling = false;
             StateHasChanged();

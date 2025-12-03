@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using GameOnTonight.App.Services;
 
 namespace GameOnTonight.App.Pages.Library;
@@ -23,6 +24,8 @@ public partial class EditBoardGame : IDisposable
     private string? errorMessage;
     private bool isSubmitting;
     private IReadOnlyList<string> _gameTypes = [];
+    private string? _newGameType;
+    private IEnumerable<string> _filteredGameTypes = [];
 
     private BoardGameForm form = new();
     private EditContext _editContext = default!;
@@ -57,32 +60,67 @@ public partial class EditBoardGame : IDisposable
         try
         {
             _gameTypes = await BoardGamesService.GetGameTypesAsync();
+            UpdateFilteredGameTypes();
         }
         catch
         {
             _gameTypes = [];
+            _filteredGameTypes = [];
         }
     }
 
-    private Task<IEnumerable<string>> SearchGameTypesAsync(string value, CancellationToken cancellationToken)
+    private void UpdateFilteredGameTypes()
     {
-        if (string.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(_newGameType))
         {
-            return Task.FromResult(_gameTypes.AsEnumerable());
+            _filteredGameTypes = _gameTypes
+                .Where(x => !form.GameTypes.Contains(x, StringComparer.OrdinalIgnoreCase));
         }
-
-        var filtered = _gameTypes
-            .Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase))
-            .ToList();
-
-        // Allow creating a new game type by including the typed value if it doesn't exist
-        var exactMatch = _gameTypes.Any(x => x.Equals(value, StringComparison.InvariantCultureIgnoreCase));
-        if (!exactMatch)
+        else
         {
-            filtered.Insert(0, value);
+            _filteredGameTypes = _gameTypes
+                .Where(x => x.Contains(_newGameType, StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => !form.GameTypes.Contains(x, StringComparer.OrdinalIgnoreCase));
         }
+    }
 
-        return Task.FromResult(filtered.AsEnumerable());
+    private void AddGameType()
+    {
+        if (!string.IsNullOrWhiteSpace(_newGameType) && 
+            !form.GameTypes.Contains(_newGameType, StringComparer.OrdinalIgnoreCase))
+        {
+            form.GameTypes.Add(_newGameType.Trim());
+            _newGameType = null;
+            UpdateFilteredGameTypes();
+        }
+    }
+
+    private void SelectGameType(string gameType)
+    {
+        if (!form.GameTypes.Contains(gameType, StringComparer.OrdinalIgnoreCase))
+        {
+            form.GameTypes.Add(gameType);
+            _newGameType = null;
+            UpdateFilteredGameTypes();
+        }
+    }
+
+    private void RemoveGameType(string gameType)
+    {
+        form.GameTypes.Remove(gameType);
+        UpdateFilteredGameTypes();
+    }
+
+    private void OnGameTypeKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            AddGameType();
+        }
+        else
+        {
+            UpdateFilteredGameTypes();
+        }
     }
 
     private void InitializeEditContext()
@@ -105,7 +143,7 @@ public partial class EditBoardGame : IDisposable
                     MinPlayers = vm.MinPlayers ?? 1,
                     MaxPlayers = vm.MaxPlayers ?? Math.Max(vm.MinPlayers ?? 1, 1),
                     DurationMinutes = vm.DurationMinutes ?? 5,
-                    GameType = vm.GameType ?? string.Empty
+                    GameTypes = vm.GameTypes?.ToList() ?? []
                 };
                 InitializeEditContext();
                 ClearServerErrors();
@@ -137,7 +175,7 @@ public partial class EditBoardGame : IDisposable
                     MinPlayers = form.MinPlayers,
                     MaxPlayers = form.MaxPlayers,
                     DurationMinutes = form.DurationMinutes,
-                    GameType = form.GameType
+                    GameTypes = form.GameTypes
                 };
                 await BoardGamesService.UpdateAsync(Id!.Value, request, _cts?.Token ?? CancellationToken.None);
             }
@@ -149,7 +187,7 @@ public partial class EditBoardGame : IDisposable
                     MinPlayers = form.MinPlayers,
                     MaxPlayers = form.MaxPlayers,
                     DurationMinutes = form.DurationMinutes,
-                    GameType = form.GameType
+                    GameTypes = form.GameTypes
                 };
                 await BoardGamesService.CreateAsync(request, _cts?.Token ?? CancellationToken.None);
             }
@@ -219,9 +257,7 @@ public partial class EditBoardGame : IDisposable
         [Range(1, 600, ErrorMessage = "Durée invalide")] 
         public int DurationMinutes { get; set; } = 30;
 
-        [Required(ErrorMessage = "Le type est requis")] 
-        [StringLength(100, ErrorMessage = "Type trop long (max 100)")]
-        public string GameType { get; set; } = string.Empty;
+        public List<string> GameTypes { get; set; } = [];
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

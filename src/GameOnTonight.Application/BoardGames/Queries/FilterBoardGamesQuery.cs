@@ -5,7 +5,7 @@ using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Queries;
 
-public sealed record FilterBoardGamesQuery(int PlayersCount, int MaxDurationMinutes, string? GameType) : IRequest<IEnumerable<BoardGameViewModel>>;
+public sealed record FilterBoardGamesQuery(int PlayersCount, int MaxDurationMinutes, IReadOnlyList<string>? GameTypes) : IRequest<IEnumerable<BoardGameViewModel>>;
 
 public sealed class FilterBoardGamesQueryValidator : AbstractValidator<FilterBoardGamesQuery>
 {
@@ -20,6 +20,10 @@ public sealed class FilterBoardGamesQueryValidator : AbstractValidator<FilterBoa
             .GreaterThanOrEqualTo(1)
             .WithName("MaxDurationMinutes")
             .WithMessage("MaxDurationMinutes must be greater than or equal to 1");
+        
+        RuleForEach(x => x.GameTypes)
+            .NotEmpty()
+            .MaximumLength(100);
     }
 }
 
@@ -34,7 +38,18 @@ public sealed class FilterBoardGamesQueryHandler : IRequestHandler<FilterBoardGa
 
     public async ValueTask<IEnumerable<BoardGameViewModel>> Handle(FilterBoardGamesQuery request, CancellationToken cancellationToken)
     {
-        var entities = await _repository.FilterGamesAsync(request.PlayersCount, request.MaxDurationMinutes, request.GameType?.Trim(), cancellationToken);
+        var trimmedGameTypes = request.GameTypes?
+            .Select(t => t?.Trim())
+            .Where(t => !string.IsNullOrEmpty(t))
+            .Cast<string>()
+            .ToList();
+        
+        var entities = await _repository.FilterGamesAsync(
+            request.PlayersCount, 
+            request.MaxDurationMinutes, 
+            trimmedGameTypes?.Count > 0 ? trimmedGameTypes : null, 
+            cancellationToken);
+        
         return entities.Select(e => new BoardGameViewModel(e)).ToList();
     }
 }

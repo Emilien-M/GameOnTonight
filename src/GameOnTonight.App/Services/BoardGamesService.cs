@@ -36,7 +36,7 @@ public class BoardGamesService : IBoardGamesService
         }
     }
 
-    public async Task<IReadOnlyList<BoardGameViewModel>> FilterAsync(int playersCount, int maxDurationMinutes, string? gameType, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BoardGameViewModel>> FilterAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -47,7 +47,7 @@ public class BoardGamesService : IBoardGamesService
                 {
                     PlayersCount = playersCount,
                     MaxDurationMinutes = maxDurationMinutes,
-                    GameType = gameType
+                    GameTypes = gameTypes?.ToArray()
                 };
             }, cancellationToken))?.AsReadOnly() ?? ReadOnlyCollection<BoardGameViewModel>.Empty;
         }
@@ -55,11 +55,11 @@ public class BoardGamesService : IBoardGamesService
         {
             // Network error - filter cached data locally
             var cachedGames = await _cacheService.GetCachedBoardGamesAsync();
-            return FilterGamesLocally(cachedGames, playersCount, maxDurationMinutes, gameType);
+            return FilterGamesLocally(cachedGames, playersCount, maxDurationMinutes, gameTypes);
         }
     }
     
-    public async Task<BoardGameViewModel?> SuggestAsync(int playersCount, int maxDurationMinutes, string? gameType, CancellationToken cancellationToken = default)
+    public async Task<BoardGameViewModel?> SuggestAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -70,7 +70,7 @@ public class BoardGamesService : IBoardGamesService
                 {
                     PlayersCount = playersCount,
                     MaxDurationMinutes = maxDurationMinutes,
-                    GameType = gameType
+                    GameTypes = gameTypes?.ToArray()
                 };
             }, cancellationToken);
         }
@@ -78,7 +78,7 @@ public class BoardGamesService : IBoardGamesService
         {
             // Network error - suggest from cached data locally
             var cachedGames = await _cacheService.GetCachedBoardGamesAsync();
-            var filtered = FilterGamesLocally(cachedGames, playersCount, maxDurationMinutes, gameType);
+            var filtered = FilterGamesLocally(cachedGames, playersCount, maxDurationMinutes, gameTypes);
             
             if (filtered.Count == 0) return null;
             
@@ -144,17 +144,17 @@ public class BoardGamesService : IBoardGamesService
         IReadOnlyList<BoardGameViewModel> games,
         int playersCount,
         int maxDurationMinutes,
-        string? gameType)
+        IReadOnlyList<string>? gameTypes)
     {
         var filtered = games.Where(g =>
             g.MinPlayers <= playersCount &&
             g.MaxPlayers >= playersCount &&
             g.DurationMinutes <= maxDurationMinutes);
 
-        if (!string.IsNullOrEmpty(gameType))
+        if (gameTypes is { Count: > 0 })
         {
             filtered = filtered.Where(g => 
-                string.Equals(g.GameType, gameType, StringComparison.OrdinalIgnoreCase));
+                g.GameTypes?.Any(gt => gameTypes.Contains(gt, StringComparer.OrdinalIgnoreCase)) == true);
         }
 
         return filtered.ToList().AsReadOnly();

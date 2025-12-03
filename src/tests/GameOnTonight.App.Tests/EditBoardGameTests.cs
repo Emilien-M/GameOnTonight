@@ -75,9 +75,9 @@ public class EditBoardGameTests : TestContext
         var durationField = cut.FindAll(".mud-input-control").FirstOrDefault(e => e.TextContent.Contains("Durée"));
         Assert.NotNull(durationField);
         
-        // MudAutocomplete for GameType
-        var gameTypeField = cut.FindAll(".mud-input-control").FirstOrDefault(e => e.TextContent.Contains("Type / Catégorie"));
-        Assert.NotNull(gameTypeField);
+        // GameTypes section (now multiple selection) - check for the label text
+        var gameTypesLabel = cut.Markup.Contains("Types / Catégories");
+        Assert.True(gameTypesLabel);
         
         // Submit button
         var submitButton = cut.Find("button[type='submit']");

@@ -12,10 +12,10 @@ public interface IBoardGameRepository : IRepository<BoardGame>
     /// </summary>
     /// <param name="playerCount">Number of players.</param>
     /// <param name="maxDuration">Maximum duration in minutes.</param>
-    /// <param name="gameType">Type of game (optional).</param>
+    /// <param name="gameTypes">Types of games (optional). Uses OR logic - matches if game has any of the specified types.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of games matching the criteria.</returns>
-    Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, string? gameType, CancellationToken cancellationToken = default);
+    Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Retrieves a random game from a list of IDs.

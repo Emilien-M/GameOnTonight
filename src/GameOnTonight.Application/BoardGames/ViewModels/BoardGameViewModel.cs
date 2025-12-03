@@ -9,7 +9,7 @@ public record BoardGameViewModel
     public int MinPlayers { get; init; }
     public int MaxPlayers { get; init; }
     public int DurationMinutes { get; init; }
-    public string GameType { get; init; } = string.Empty;
+    public IReadOnlyList<string> GameTypes { get; init; } = [];
 
     public BoardGameViewModel(BoardGame entity)
     {
@@ -18,6 +18,6 @@ public record BoardGameViewModel
         MinPlayers = entity.MinPlayers;
         MaxPlayers = entity.MaxPlayers;
         DurationMinutes = entity.DurationMinutes;
-        GameType = entity.GameType;
+        GameTypes = entity.GameTypes.Select(gt => gt.Name).ToList();
     }
 }

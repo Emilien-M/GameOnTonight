@@ -4,9 +4,12 @@ using GameOnTonight.RestClient.BoardGames;
 using GameOnTonight.RestClient.ConfirmEmail;
 using GameOnTonight.RestClient.ForgotPassword;
 using GameOnTonight.RestClient.GameSessions;
+using GameOnTonight.RestClient.GameTypes;
+using GameOnTonight.RestClient.Health;
 using GameOnTonight.RestClient.Login;
 using GameOnTonight.RestClient.Manage;
 using GameOnTonight.RestClient.Profile;
+using GameOnTonight.RestClient.Ready;
 using GameOnTonight.RestClient.Refresh;
 using GameOnTonight.RestClient.Register;
 using GameOnTonight.RestClient.ResendConfirmationEmail;
@@ -50,6 +53,16 @@ namespace GameOnTonight.RestClient
         {
             get => new global::GameOnTonight.RestClient.GameSessions.GameSessionsRequestBuilder(PathParameters, RequestAdapter);
         }
+        /// <summary>The GameTypes property</summary>
+        public global::GameOnTonight.RestClient.GameTypes.GameTypesRequestBuilder GameTypes
+        {
+            get => new global::GameOnTonight.RestClient.GameTypes.GameTypesRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The health property</summary>
+        public global::GameOnTonight.RestClient.Health.HealthRequestBuilder Health
+        {
+            get => new global::GameOnTonight.RestClient.Health.HealthRequestBuilder(PathParameters, RequestAdapter);
+        }
         /// <summary>The login property</summary>
         public global::GameOnTonight.RestClient.Login.LoginRequestBuilder Login
         {
@@ -64,6 +77,11 @@ namespace GameOnTonight.RestClient
         public global::GameOnTonight.RestClient.Profile.ProfileRequestBuilder Profile
         {
             get => new global::GameOnTonight.RestClient.Profile.ProfileRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The ready property</summary>
+        public global::GameOnTonight.RestClient.Ready.ReadyRequestBuilder Ready
+        {
+            get => new global::GameOnTonight.RestClient.Ready.ReadyRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The refresh property</summary>
         public global::GameOnTonight.RestClient.Refresh.RefreshRequestBuilder Refresh

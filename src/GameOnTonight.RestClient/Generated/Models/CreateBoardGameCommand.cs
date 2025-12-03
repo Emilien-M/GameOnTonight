@@ -16,13 +16,13 @@ namespace GameOnTonight.RestClient.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The durationMinutes property</summary>
         public int? DurationMinutes { get; set; }
-        /// <summary>The gameType property</summary>
+        /// <summary>The gameTypes property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public string? GameType { get; set; }
+        public List<string>? GameTypes { get; set; }
 #nullable restore
 #else
-        public string GameType { get; set; }
+        public List<string> GameTypes { get; set; }
 #endif
         /// <summary>The maxPlayers property</summary>
         public int? MaxPlayers { get; set; }
@@ -62,7 +62,7 @@ namespace GameOnTonight.RestClient.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "durationMinutes", n => { DurationMinutes = n.GetIntValue(); } },
-                { "gameType", n => { GameType = n.GetStringValue(); } },
+                { "gameTypes", n => { GameTypes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "maxPlayers", n => { MaxPlayers = n.GetIntValue(); } },
                 { "minPlayers", n => { MinPlayers = n.GetIntValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
@@ -76,7 +76,7 @@ namespace GameOnTonight.RestClient.Models
         {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
             writer.WriteIntValue("durationMinutes", DurationMinutes);
-            writer.WriteStringValue("gameType", GameType);
+            writer.WriteCollectionOfPrimitiveValues<string>("gameTypes", GameTypes);
             writer.WriteIntValue("maxPlayers", MaxPlayers);
             writer.WriteIntValue("minPlayers", MinPlayers);
             writer.WriteStringValue("name", Name);

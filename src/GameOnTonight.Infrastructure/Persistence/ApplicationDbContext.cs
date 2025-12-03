@@ -38,10 +38,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         builder.ApplyConfiguration(new BoardGameConfiguration());
         builder.ApplyConfiguration(new GameSessionConfiguration());
         builder.ApplyConfiguration(new GameSessionPlayerConfiguration());
+        builder.ApplyConfiguration(new GameTypeConfiguration());
     }
     
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<BoardGame> BoardGames { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
     public DbSet<GameSessionPlayer> GameSessionPlayers { get; set; }
+    public DbSet<GameType> GameTypes { get; set; }
 }

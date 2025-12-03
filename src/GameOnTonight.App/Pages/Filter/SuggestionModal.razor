@@ -42,11 +42,14 @@
                     <MudChip T="string" Color="Color.Default" Size="Size.Small">
                         @SuggestedGame.DurationMinutes min
                     </MudChip>
-                    @if (!string.IsNullOrEmpty(SuggestedGame.GameType))
+                    @if (SuggestedGame.GameTypes != null)
                     {
-                        <MudChip T="string" Color="Color.Default" Size="Size.Small">
-                            @SuggestedGame.GameType
-                        </MudChip>
+                        @foreach (var gameType in SuggestedGame.GameTypes)
+                        {
+                            <MudChip T="string" Color="Color.Default" Size="Size.Small">
+                                @gameType
+                            </MudChip>
+                        }
                     }
                 </div>
             </div>
