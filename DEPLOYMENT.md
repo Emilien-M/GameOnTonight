@@ -33,20 +33,39 @@ docker compose version
 
 ## Quick Start (5 minutes)
 
-### 1. Clone the Repository
+### Option A: Using Pre-built Images (Recommended)
+
+No need to clone the repository - just download the compose file:
 
 ```bash
+# Download docker-compose and .env template
+curl -O https://raw.githubusercontent.com/Emilien-M/GameOnTonight/master/docker-compose.ghcr.yml
+curl -O https://raw.githubusercontent.com/Emilien-M/GameOnTonight/master/.env.example
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings (see Configuration section)
+
+# Start the application
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+### Option B: Build from Source
+
+```bash
+# Clone the repository
 git clone https://github.com/Emilien-M/GameOnTonight.git
 cd GameOnTonight
-```
 
-### 2. Create Environment File
-
-```bash
+# Configure environment
 cp .env.example .env
+# Edit .env with your settings (see Configuration section)
+
+# Build and start
+docker compose up -d --build
 ```
 
-### 3. Configure Required Variables
+### Configure Required Variables
 
 Edit `.env` and set these **mandatory** values:
 
@@ -56,12 +75,6 @@ POSTGRES_PASSWORD=your_secure_database_password
 
 # Generate with: openssl rand -base64 32
 JWT_SECRET=your_32_character_minimum_secret_key
-```
-
-### 4. Start the Application
-
-```bash
-docker compose up -d
 ```
 
 ### 5. Access the Application
