@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace GameOnTonight.Api.Config;
 
@@ -22,19 +22,12 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
         var securityRequirement = new OpenApiSecurityRequirement
         {
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
+                new OpenApiSecuritySchemeReference("Bearer"),
+                []
             }
         };
 
-        document.SecurityRequirements.Add(securityRequirement);
+        document.Security.Add(securityRequirement);
 
         return Task.CompletedTask;
     }

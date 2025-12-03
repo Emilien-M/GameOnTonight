@@ -66,7 +66,7 @@ Contributions are welcome! If you want to help, here’s how you can do it:
 ## Tech Stack
 
 * **Frontend:** Blazor WebAssembly (PWA)
-* **Backend:** .NET 9 Web API (Clean Architecture)
+* **Backend:** .NET 10 Web API (Clean Architecture)
 * **Database:** PostgreSQL 16
 * **Authentication:** ASP.NET Core Identity with JWT
 * **UI Framework:** MudBlazor
