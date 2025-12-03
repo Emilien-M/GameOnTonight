@@ -84,6 +84,45 @@ builder.Services.AddValidatorsFromAssemblyContaining<SuggestBoardGameQueryValida
 
 var app = builder.Build();
 
+// Auto-migrate database if enabled
+var autoMigrate = builder.Configuration.GetValue<bool>("AUTO_MIGRATE") ||
+                  Environment.GetEnvironmentVariable("AUTO_MIGRATE")?.ToLowerInvariant() == "true";
+
+if (autoMigrate)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
+    // Skip migrations for InMemory database
+    if (!dbContext.Database.IsInMemory())
+    {
+        logger.LogInformation("AUTO_MIGRATE is enabled. Applying pending migrations...");
+        try
+        {
+            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+            var pendingList = pendingMigrations.ToList();
+            
+            if (pendingList.Count > 0)
+            {
+                logger.LogInformation("Found {Count} pending migration(s): {Migrations}", 
+                    pendingList.Count, string.Join(", ", pendingList));
+                await dbContext.Database.MigrateAsync();
+                logger.LogInformation("Database migrations applied successfully.");
+            }
+            else
+            {
+                logger.LogInformation("No pending migrations found. Database is up to date.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while applying database migrations.");
+            throw;
+        }
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -105,7 +144,7 @@ app.MapIdentityApi<IdentityUser>()
 app.MapControllers();
 
 // Health check endpoints
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = TimeProvider.System.GetUtcNow().UtcDateTime }))
     .WithTags("Health")
     .AllowAnonymous();
 

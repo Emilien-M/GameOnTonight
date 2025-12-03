@@ -260,12 +260,12 @@ docker compose up -d
 
 ### Database Migrations
 
-Migrations are applied automatically when `AUTO_MIGRATE=true` (default).
+Migrations are applied automatically when `AUTO_MIGRATE=true` (default). The API checks for pending migrations at startup and applies them automatically.
 
-For manual migration:
+To disable auto-migration, set in your `.env`:
 
 ```bash
-docker compose exec api dotnet ef database update
+AUTO_MIGRATE=false
 ```
 
 ---
