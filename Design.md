@@ -1,111 +1,111 @@
-# Design pour "Game on Tonight"
+# Design for "Game on Tonight"
 
-Ce design a pour but de créer une identité visuelle forte et une expérience utilisateur fluide pour l'application.
+This design aims to create a strong visual identity and a smooth user experience for the application.
 
-## 1. Philosophie et Ambiance Générale
+## 1. Philosophy and General Ambiance
 
-L'approche est moderne, épurée et centrée sur l'efficacité. L'utilisateur veut choisir un jeu rapidement, l'interface doit donc aller droit au but.
+The approach is modern, clean, and focused on efficiency. The user wants to choose a game quickly, so the interface must get straight to the point.
 
-- **Mobile-First** : Conçu d'abord pour les appareils mobiles, le design s'adaptera élégamment aux écrans plus grands.
+- **Mobile-First**: Designed primarily for mobile devices, the design will adapt elegantly to larger screens.
 
-- **Haut Contraste** : La palette choisie offre une excellente lisibilité. Nous utiliserons un thème sombre comme base, ce qui est immersif et agréable pour une utilisation en soirée ("Game Night").
+- **High Contrast**: The chosen palette offers excellent readability. We will use a dark theme as the base, which is immersive and pleasant for evening use ("Game Night").
 
-- **Clarté et Hiérarchie** : Chaque écran aura un objectif clair, guidant l'utilisateur grâce à l'utilisation stratégique des couleurs et de la typographie.
+- **Clarity and Hierarchy**: Each screen will have a clear objective, guiding the user through strategic use of colors and typography.
 
-## 2. Utilisation de la Palette de Couleurs
+## 2. Color Palette Usage
 
-La distribution des couleurs est la clé pour structurer l'interface et guider le regard.
+Color distribution is key to structuring the interface and guiding the eye.
 
-| Couleur | Hexadécimal | Rôle Principal | Exemples d'utilisation |
-|---------|-------------|----------------|------------------------|
-| Bleu Nuit | #14213D | Fond Principal | Arrière-plan de l'application, créant une ambiance sobre et concentrée. |
-| Orange Vif | #FCA311 | Accentuation & Actions | Boutons principaux ("Lancer la recherche"), icônes actives, liens, sélections, FAB (Floating Action Button). C'est la couleur qui dit "Agissez ici". |
-| Blanc | #FFFFFF | Texte Principal | Titres, paragraphes, et icônes sur le fond Bleu Nuit pour une lisibilité maximale. |
-| Gris Clair | #E5E5E5 | Éléments Secondaires | Texte moins important (ex: "30-45 min"), bordures subtiles, séparateurs, arrière-plan des champs de formulaire. |
-| Noir | #000000 | Contraste & Profondeur | Peut être utilisé pour les textes sur des fonds très clairs (si un mode clair est envisagé) ou pour créer des ombres subtiles pour donner de la profondeur aux éléments. |
+| Color | Hexadecimal | Primary Role | Usage Examples |
+|-------|-------------|--------------|----------------|
+| Night Blue | #14213D | Main Background | Application background, creating a sober and focused atmosphere. |
+| Bright Orange | #FCA311 | Accent & Actions | Primary buttons ("Start search"), active icons, links, selections, FAB (Floating Action Button). This is the color that says "Act here". |
+| White | #FFFFFF | Primary Text | Titles, paragraphs, and icons on the Night Blue background for maximum readability. |
+| Light Gray | #E5E5E5 | Secondary Elements | Less important text (e.g., "30-45 min"), subtle borders, separators, form field backgrounds. |
+| Black | #000000 | Contrast & Depth | Can be used for text on very light backgrounds (if a light mode is considered) or to create subtle shadows for depth effect on elements. |
 
-## 3. Typographie et Icônes
+## 3. Typography and Icons
 
-Police de caractères : **Poppins** ou **Inter**. Ce sont des polices Sans-Serif modernes, très lisibles sur écran et offrant plusieurs graisses (light, regular, medium, bold) pour bien hiérarchiser l'information.
+Font: **Poppins** or **Inter**. These are modern Sans-Serif fonts, highly readable on screen and offering multiple weights (light, regular, medium, bold) for proper information hierarchy.
 
-- **Titres (H1, H2)** : Poppins Bold (Blanc - #FFFFFF)
-- **Texte de corps** : Poppins Regular (Blanc - #FFFFFF ou Gris Clair - #E5E5E5 pour les infos secondaires)
-- **Boutons** : Poppins Medium (Blanc - #FFFFFF sur fond orange)
-- **Icônes** : Utiliser une librairie cohérente comme Lucide Icons ou Feather Icons. Elles sont légères, modernes et leur style filaire se mariera bien avec le design épuré.
+- **Headings (H1, H2)**: Poppins Bold (White - #FFFFFF)
+- **Body Text**: Poppins Regular (White - #FFFFFF or Light Gray - #E5E5E5 for secondary info)
+- **Buttons**: Poppins Medium (White - #FFFFFF on orange background)
+- **Icons**: Use a consistent library like Lucide Icons or Feather Icons. They are lightweight, modern, and their outline style will blend well with the clean design.
 
-## 4. Maquettes Conceptuelles (Description par Écran)
+## 4. Conceptual Mockups (Screen Descriptions)
 
-### a. Navigation Principale
+### a. Main Navigation
 
-Une barre de navigation fixe en bas de l'écran (Tab Bar), idéale pour le mobile :
+A fixed navigation bar at the bottom of the screen (Tab Bar), ideal for mobile:
 
-- **Filtrer** (Icône d'entonnoir) : L'écran principal et par défaut.
-- **Ludothèque** (Icône de livres/boîtes de jeu) : La liste complète des jeux.
-- **Historique** (Icône d'horloge) : L'historique des parties jouées.
-- **Profil** (Icône d'utilisateur) : Gestion du compte et des paramètres.
+- **Filter** (Funnel icon): The main and default screen.
+- **Library** (Books/game boxes icon): The complete list of games.
+- **History** (Clock icon): The history of played games.
+- **Profile** (User icon): Account and settings management.
 
-L'icône de l'onglet actif sera en Orange Vif (#FCA311), les autres en Blanc (#FFFFFF).
+The active tab icon will be in Bright Orange (#FCA311), others in White (#FFFFFF).
 
-### b. Écran d'Accueil / Filtrage
+### b. Home / Filter Screen
 
-C'est le cœur de l'application.
+This is the heart of the application.
 
-- **Titre** : "Quelle partie ce soir ?" en grand et en blanc.
-- **Champs de formulaire clairs** :
-  - Nombre de joueurs
-  - Temps disponible (en minutes)
-  - Type de jeu (un champ de sélection multiple avec des "puces" cliquables)
-- **Bouton d'action principal** : Un grand bouton orange vif (#FCA311) en bas de l'écran avec le texte "Trouver un jeu".
+- **Title**: "What game tonight?" large and in white.
+- **Clear form fields**:
+  - Number of players
+  - Available time (in minutes)
+  - Game type (a multiple selection field with clickable "chips")
+- **Main action button**: A large bright orange (#FCA311) button at the bottom of the screen with the text "Find a game".
 
-### c. Écran Ludothèque
+### c. Library Screen
 
-- **Titre** : "Ma Ludothèque"
-- **Barre de recherche** : Permet de trouver rapidement un jeu dans la collection
-- **Liste de jeux** : Chaque jeu est présenté sous forme de carte
-  - Fond de la carte : Une nuance très légèrement plus claire du fond principal pour la distinguer
-  - Contenu : Nom du jeu en Blanc, et en dessous les infos clés (nb. joueurs, durée) en Gris Clair
-- **Bouton d'ajout** : Un "Floating Action Button" (FAB) orange vif (#FCA311) en bas à droite avec une icône "+"
+- **Title**: "My Library"
+- **Search bar**: Allows quickly finding a game in the collection
+- **Game list**: Each game is presented as a card
+  - Card background: A very slightly lighter shade of the main background to distinguish it
+  - Content: Game name in White, and below the key info (player count, duration) in Light Gray
+- **Add button**: A bright orange (#FCA311) "Floating Action Button" (FAB) at the bottom right with a "+" icon
 
-### d. Écran de Résultat & Lancement
+### d. Results & Launch Screen
 
-Après avoir filtré, l'application affiche la liste des jeux compatibles (sous forme de cartes).
+After filtering, the application displays the list of compatible games (as cards).
 
-- En haut, un résumé des filtres appliqués
-- En bas, un bouton très visible : "🎉 Lancer le dé !" ou "Choisir au hasard", toujours en orange vif (#FCA311)
+- At the top, a summary of applied filters
+- At the bottom, a highly visible button: "🎉 Roll the dice!" or "Choose randomly", always in bright orange (#FCA311)
 
-### e. Modale de Résultat
+### e. Result Modal
 
-Lorsque l'application a choisi un jeu, une modale (pop-up) apparaît pour un effet "révélation" :
+When the application has chosen a game, a modal (pop-up) appears for a "reveal" effect:
 
-- Fond semi-transparent pour mettre en pause l'arrière-plan
-- Image du jeu (lorsque l'API sera intégrée)
-- "Et le jeu choisi est..."
-- **NOM DU JEU** en très grand, en orange vif (#FCA311)
-- Deux boutons : "Enregistrer la partie" et "Choisir un autre jeu"
+- Semi-transparent background to pause the backdrop
+- Game image (when the API is integrated)
+- "And the chosen game is..."
+- **GAME NAME** in very large text, in bright orange (#FCA311)
+- Two buttons: "Record the game" and "Choose another game"
 
-## 5. Composants Clés
+## 5. Key Components
 
-- **Boutons** :
-  - Primaire : Fond orange, texte blanc, coins arrondis
-  - Secondaire : Bordure grise, fond transparent, texte blanc
+- **Buttons**:
+  - Primary: Orange background, white text, rounded corners
+  - Secondary: Gray border, transparent background, white text
 
-- **Cartes (Cards)** : Coins arrondis, ombre portée très subtile pour un effet de profondeur
+- **Cards**: Rounded corners, very subtle drop shadow for depth effect
 
-- **Champs de formulaire** : Arrière-plan Gris Clair très léger, avec une bordure Orange Vif lorsqu'il est sélectionné
+- **Form Fields**: Very light Light Gray background, with Bright Orange border when selected
 
-Ce design offre une base solide, fonctionnelle et esthétiquement plaisante qui pourra évoluer avec l'ajout des fonctionnalités futures (wishlist, statistiques, etc.) tout en gardant une identité cohérente.
+This design offers a solid, functional, and aesthetically pleasing foundation that can evolve with the addition of future features (wishlist, statistics, etc.) while maintaining a consistent identity.
 
-## 6. Décisions et Clarifications (2025-10-18)
+## 6. Decisions and Clarifications (2025-10-18)
 
-- Icônes: Utiliser Lucide Icons (préférence confirmée par le Product Owner). Intégration via le package NuGet InfiniLore.Lucide (composants Blazor) — plus de CDN ni initialisation JS.
-- Barre d’onglets (Tab Bar): 4 onglets confirmés — Filtrer, Ludothèque, Historique, Profil. Les onglets « Ludothèque » et « Historique » doivent rester visibles mais désactivés tant que non implémentés.
-- Typographie: Conserver Poppins comme police par défaut.
-- Branding: Aucun logo spécifique pour le moment. Conserver les icônes/valeurs par défaut (favicon/app icon) jusqu’à nouvel ordre.
+- Icons: Use Lucide Icons (preference confirmed by the Product Owner). Integration via the InfiniLore.Lucide NuGet package (Blazor components) — no more CDN or JS initialization.
+- Tab Bar: 4 tabs confirmed — Filter, Library, History, Profile. The "Library" and "History" tabs should remain visible but disabled until implemented.
+- Typography: Keep Poppins as the default font.
+- Branding: No specific logo for now. Keep default icons/values (favicon/app icon) until further notice.
 
 
-### 6.1 Icônes Lucide — usage du composant
+### 6.1 Lucide Icons — Component Usage
 
-Utiliser le composant Blazor fourni par le package NuGet InfiniLore.Lucide.
+Use the Blazor component provided by the InfiniLore.Lucide NuGet package.
 
 Minimal:
 
@@ -113,7 +113,7 @@ Minimal:
 <LucideIcon Name="signature" />
 ```
 
-Avec options:
+With options:
 
 ```razor
 <LucideIcon Name="arrow-right"
@@ -127,5 +127,5 @@ Avec options:
 ```
 
 Notes:
-- Les icônes héritent par défaut de la couleur du texte (currentColor). Aucune surcharge CSS n'est nécessaire pour la barre d'onglets.
-- Préférer des noms d'icône en minuscules/kebab-case tels que "filter", "library", "history", "user".
+- Icons inherit the text color by default (currentColor). No CSS override is needed for the tab bar.
+- Prefer lowercase/kebab-case icon names such as "filter", "library", "history", "user".
