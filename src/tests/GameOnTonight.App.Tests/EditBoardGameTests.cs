@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Bunit;
+using Bunit.Rendering;
 using GameOnTonight.App.Pages.Library;
 using GameOnTonight.App.Services;
 using GameOnTonight.RestClient.Models;
@@ -15,12 +16,19 @@ using Xunit;
 
 namespace GameOnTonight.App.Tests;
 
-public class EditBoardGameTests : TestContext
+public class EditBoardGameTests : BunitContext, IAsyncLifetime
 {
     public EditBoardGameTests()
     {
         // Configure JSInterop to ignore all unhandled MudBlazor JS calls
         JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public new async Task DisposeAsync()
+    {
+        await base.DisposeAsync();
     }
 
     private void RegisterCommonServices(Mock<IBoardGamesService> boardGamesMock)
@@ -31,7 +39,7 @@ public class EditBoardGameTests : TestContext
         // NavigationManager is provided by bUnit automatically.
     }
 
-    private IRenderedFragment RenderWithMudProviders()
+    private IRenderedComponent<ContainerFragment> RenderWithMudProviders()
     {
         // Render MudPopoverProvider first, then EditBoardGame
         return Render(builder =>
