@@ -104,4 +104,24 @@ app.MapIdentityApi<IdentityUser>()
     .WithTags("Identity");
 app.MapControllers();
 
+// Health check endpoints
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+    .WithTags("Health")
+    .AllowAnonymous();
+
+app.MapGet("/ready", async (ApplicationDbContext dbContext) =>
+{
+    try
+    {
+        await dbContext.Database.CanConnectAsync();
+        return Results.Ok(new { status = "ready", timestamp = DateTime.UtcNow });
+    }
+    catch
+    {
+        return Results.StatusCode(503);
+    }
+})
+    .WithTags("Health")
+    .AllowAnonymous();
+
 await app.RunAsync();
