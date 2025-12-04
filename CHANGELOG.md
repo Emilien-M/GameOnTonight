@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.3.1)
+
+### Changed
+- **BREAKING**: API is now served via `/api` path on the same origin as the app
+  - Before: App at `https://domain.com/`, API at `https://domain.com:8080/`
+  - After: App at `https://domain.com/`, API at `https://domain.com/api/`
+- Nginx now acts as a reverse proxy for `/api` requests to the internal API container
+- API container is no longer directly exposed (internal only via Docker network)
+- Simplified environment variables:
+  - Removed `CORS_ORIGIN` (no longer needed - same origin)
+  - Removed `API_PORT` (API is internal only)
+  - `API_BASE_URL` now defaults to `/api` (relative path)
+
+### Added
+- Support for relative API URLs in Blazor App (e.g., `/api` instead of absolute URLs)
+- Reverse proxy configuration in nginx for `/api/*` routes
+
+### Fixed
+- CORS issues eliminated by serving app and API from the same origin
+
+### Documentation
+- Updated `DEPLOYMENT.md` with new architecture diagram
+- Simplified reverse proxy and HTTPS configuration guides
+
 ## [0.3.0](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.3.0)
 
 ### Added
@@ -79,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL database support
 - Clean Architecture structure
 
-[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Emilien-M/GameOnTonight/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0
