@@ -84,6 +84,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<SuggestBoardGameQueryValida
 
 var app = builder.Build();
 
+// Set base path for all routes (API will be accessible at /api/*)
+app.UsePathBase("/api");
+
 // Auto-migrate database if enabled
 var autoMigrate = builder.Configuration.GetValue<bool>("AUTO_MIGRATE") ||
                   Environment.GetEnvironmentVariable("AUTO_MIGRATE")?.ToLowerInvariant() == "true";
@@ -126,7 +129,6 @@ if (autoMigrate)
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-
     app.MapScalarApiReference();
 }
 

@@ -14,21 +14,35 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 });
 
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
-if (string.IsNullOrWhiteSpace(apiBaseUrl))
-{
-    throw new InvalidOperationException("Configuration key 'ApiBaseUrl' is missing or empty. Define it in wwwroot/appsettings.json (or the environment-specific file) with an absolute HTTP/HTTPS URL to your backend API. Example: https://localhost:5001/");
-}
+// Resolve API base URL - supports relative paths (e.g., "/api") or absolute URLs
+var configuredApiUrl = builder.Configuration["ApiBaseUrl"];
+string apiBaseUrl;
 
-if (!Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out var parsedApiBaseUri) ||
-    (parsedApiBaseUri.Scheme != Uri.UriSchemeHttp && parsedApiBaseUri.Scheme != Uri.UriSchemeHttps))
+if (string.IsNullOrWhiteSpace(configuredApiUrl))
 {
-    throw new InvalidOperationException($"Configuration key 'ApiBaseUrl' must be an absolute HTTP/HTTPS URL. Current value: '{apiBaseUrl}'.");
+    // Default to /api relative path when not configured
+    apiBaseUrl = $"{builder.HostEnvironment.BaseAddress.TrimEnd('/')}/api";
+}
+else if (configuredApiUrl.StartsWith("/"))
+{
+    // Relative path - combine with base address
+    apiBaseUrl = $"{builder.HostEnvironment.BaseAddress.TrimEnd('/')}{configuredApiUrl}";
+}
+else if (Uri.TryCreate(configuredApiUrl, UriKind.Absolute, out var parsedUri) &&
+         (parsedUri.Scheme == Uri.UriSchemeHttp || parsedUri.Scheme == Uri.UriSchemeHttps))
+{
+    // Absolute URL - use as-is
+    apiBaseUrl = configuredApiUrl;
+}
+else
+{
+    throw new InvalidOperationException(
+        $"Configuration key 'ApiBaseUrl' must be either a relative path (e.g., '/api') or an absolute HTTP/HTTPS URL. Current value: '{configuredApiUrl}'.");
 }
 
 builder.Services.AddHttpClient("GameOnTonightApi", client =>
 {
-    client.BaseAddress = new Uri(apiBaseUrl!);
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 
 builder.Services.AddBlazoredLocalStorage();
@@ -40,7 +54,7 @@ builder.Services.AddScoped<RefreshTokenDelegatingHandler>();
 // Configure the HttpClient with the refresh token handler
 builder.Services.AddHttpClient("GameOnTonightApiWithRefresh", client =>
 {
-    client.BaseAddress = new Uri(apiBaseUrl!);
+    client.BaseAddress = new Uri(apiBaseUrl);
 }).AddHttpMessageHandler<RefreshTokenDelegatingHandler>();
 
 builder.Services.AddScoped<GameOnTonightClientFactory>();

@@ -79,8 +79,8 @@ JWT_SECRET=your_32_character_minimum_secret_key
 
 ### 5. Access the Application
 
-- **Frontend**: http://localhost (or http://your-server-ip)
-- **API**: http://localhost:8080
+- **Application**: http://localhost (or http://your-server-ip)
+- **API**: http://localhost/api
 
 ---
 
@@ -97,10 +97,8 @@ JWT_SECRET=your_32_character_minimum_secret_key
 | `JWT_EXPIRY_MINUTES` | No | `60` | Token expiration time |
 | `JWT_ISSUER` | No | `GameOnTonight` | JWT issuer |
 | `JWT_AUDIENCE` | No | `GameOnTonightClients` | JWT audience |
-| `CORS_ORIGIN` | No | `http://localhost` | Frontend origin for CORS |
-| `API_BASE_URL` | No | `http://localhost:8080` | Public API URL |
-| `API_PORT` | No | `8080` | API exposed port |
-| `APP_PORT` | No | `80` | Frontend exposed port |
+| `API_BASE_URL` | No | `/api` | API URL (relative path or absolute URL) |
+| `APP_PORT` | No | `80` | Application exposed port |
 | `AUTO_MIGRATE` | No | `true` | Auto-apply DB migrations |
 
 ### Generate Secure Values
@@ -117,22 +115,15 @@ openssl rand -base64 24
 
 ## Advanced Deployment
 
-### Custom Ports
+### Custom Port
 
-To use different ports, update your `.env`:
+To use a different port, update your `.env`:
 
 ```bash
-API_PORT=3000
 APP_PORT=8000
-API_BASE_URL=http://your-server:3000
 ```
 
-### Production with Custom Domain
-
-```bash
-CORS_ORIGIN=https://games.yourdomain.com
-API_BASE_URL=https://api.games.yourdomain.com
-```
+The application will be available at `http://your-server:8000` and the API at `http://your-server:8000/api`.
 
 ### View Logs
 
@@ -151,20 +142,23 @@ docker compose logs -f postgres
 ```bash
 docker compose ps
 
-# Check API health
-curl http://localhost:8080/health
+# Check App health (includes nginx)
+curl http://localhost/health
+
+# Check API health (via reverse proxy)
+curl http://localhost/api/health
 
 # Check API readiness (includes database)
-curl http://localhost:8080/ready
+curl http://localhost/api/ready
 ```
 
 ---
 
 ## Reverse Proxy Setup
 
-### Nginx Configuration
+The application already includes an nginx reverse proxy that routes `/api` requests to the API container. If you're running behind an external reverse proxy (e.g., for HTTPS), use this configuration:
 
-If you're running behind Nginx, use this configuration:
+### Nginx Configuration
 
 ```nginx
 # /etc/nginx/sites-available/gameontonight
@@ -172,24 +166,9 @@ server {
     listen 80;
     server_name games.yourdomain.com;
 
-    # Frontend
+    # Proxy all requests to the Docker container
     location / {
         proxy_pass http://localhost:80;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-
-server {
-    listen 80;
-    server_name api.games.yourdomain.com;
-
-    # API
-    location / {
-        proxy_pass http://localhost:8080;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -208,17 +187,11 @@ Add labels to your `docker-compose.override.yml`:
 
 ```yaml
 services:
-  api:
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`api.games.yourdomain.com`)"
-      - "traefik.http.services.api.loadbalancer.server.port=8080"
-
   app:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`games.yourdomain.com`)"
-      - "traefik.http.services.app.loadbalancer.server.port=80"
+      - "traefik.http.routers.gameontonight.rule=Host(`games.yourdomain.com`)"
+      - "traefik.http.services.gameontonight.loadbalancer.server.port=80"
 ```
 
 ---
@@ -231,19 +204,10 @@ services:
 # Install Certbot
 sudo apt install certbot python3-certbot-nginx
 
-# Get certificates
-sudo certbot --nginx -d games.yourdomain.com -d api.games.yourdomain.com
+# Get certificate for your domain
+sudo certbot --nginx -d games.yourdomain.com
 
 # Auto-renewal is configured automatically
-```
-
-### Update Environment
-
-After enabling HTTPS, update your `.env`:
-
-```bash
-CORS_ORIGIN=https://games.yourdomain.com
-API_BASE_URL=https://api.games.yourdomain.com
 ```
 
 Then restart:
@@ -350,8 +314,11 @@ docker compose logs postgres
 The API might still be starting. Check:
 
 ```bash
-# Wait for health check
-docker compose exec api curl http://localhost:8080/ready
+# Wait for health check (via reverse proxy)
+curl http://localhost/api/ready
+
+# Or directly inside the container
+docker compose exec api curl http://localhost:8080/api/ready
 ```
 
 ### Reset Everything
@@ -377,18 +344,39 @@ docker stats
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Docker Network                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
-│  │    App      │  │    API      │  │   PostgreSQL    │  │
-│  │   (Nginx)   │  │  (.NET 10)  │  │      (16)       │  │
-│  │   :80       │──│   :8080     │──│     :5432       │  │
-│  └─────────────┘  └─────────────┘  └─────────────────┘  │
-│        │                │                   │           │
-└────────┼────────────────┼───────────────────┼───────────┘
-         │                │                   │
-    Exposed          Exposed            Internal only
-    Port 80         Port 8080
+┌───────────────────────────────────────────────────────┐
+│                    Docker Network                     │
+│                                                       │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │               App Container (Nginx)             │  │
+│  │  ┌──────────────────┐  ┌───────────────────────┐│  │
+│  │  │  /               │  │  /api → proxy_pass    ││  │
+│  │  │  Blazor WASM     │  │  to API container     ││  │
+│  │  │  Static Files    │  │  (internal:8080)      ││  │
+│  │  └──────────────────┘  └───────────────────────┘│  │
+│  └─────────────────────────────────────────────────┘  │
+│        │                         │                    │
+│        │ Exposed :80             │ Internal           │
+│        │                         ▼                    │
+│        │                ┌─────────────────┐           │
+│        │                │   API (.NET)    │           │
+│        │                │   :8080         │           │
+│        │                └────────┬────────┘           │
+│        │                         │                    │
+│        │                         ▼                    │
+│        │                ┌─────────────────┐           │
+│        │                │  PostgreSQL     │           │
+│        │                │   :5432         │           │
+│        │                └─────────────────┘           │
+│        │                   Internal only              │
+└────────┼──────────────────────────────────────────────┘
+         │
+    Single exposed port
+    (80 or custom APP_PORT)
+
+URL Structure:
+  - https://games.yourdomain.com/       → Blazor WASM App
+  - https://games.yourdomain.com/api/   → .NET API (via reverse proxy)
 ```
 
 ---

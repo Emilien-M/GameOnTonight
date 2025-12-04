@@ -8,8 +8,8 @@ set -e
 
 CONFIG_FILE="/usr/share/nginx/html/appsettings.json"
 
-# Default API URL if not set
-API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
+# Default API URL - use relative path /api (served via nginx reverse proxy)
+API_BASE_URL="${API_BASE_URL:-/api}"
 
 # Create or update appsettings.json with the API URL
 echo "{\"ApiBaseUrl\": \"${API_BASE_URL}\"}" > "$CONFIG_FILE"

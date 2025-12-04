@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{1296
 		..\.gitignore = ..\.gitignore
 		..\Design.md = ..\Design.md
 		..\GUIDELINES.md = ..\GUIDELINES.md
+		..\DEPLOYMENT.md = ..\DEPLOYMENT.md
+		..\CHANGELOG.md = ..\CHANGELOG.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOnTonight.Api", "GameOnTonight.Api\GameOnTonight.Api.csproj", "{33FC552C-E487-4EDC-97E6-A25EA1E69B29}"
