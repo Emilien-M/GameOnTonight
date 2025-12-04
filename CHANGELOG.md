@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.3.0)
+
+### Added
+- Game Types feature: board games can now have multiple types (many-to-many relationship)
+- New `GameTypesController` with full CRUD endpoints
+- Chip-based suggestions UI for selecting game types in board game editor
+
+### Changed
+- **BREAKING**: Upgraded to .NET 10
+  - Updated all 9 .csproj files to `net10.0`
+  - Updated Dockerfiles to use .NET SDK 10.0 and ASP.NET 10.0-alpine
+  - Updated GitHub Actions CI to use dotnet-version 10.0.x
+- Filter logic now uses OR (match any selected type) instead of AND
+- Replaced MudAutocomplete with MudTextField + chip suggestions in EditBoardGame
+- Updated Library, FindForm, Result, and SuggestionModal to display multiple types
+
+### Updated
+- FluentValidation: 12.0.0 → 12.1.1
+- System.IdentityModel.Tokens.Jwt: 8.14.0 → 8.15.0
+- Scalar.AspNetCore: 2.9.0 → 2.11.0
+- InfiniLore.Lucide: 0.548.0 → 0.555.0
+- MudBlazor: 8.13.0 → 8.15.0
+- bunit: 1.40.0 → 2.1.1
+- Microsoft.NET.Test.Sdk: 17.12.0 → 18.0.1
+- coverlet.collector: 6.0.2 → 6.0.4
+- xunit: 2.9.2 → 2.9.3
+- xunit.runner.visualstudio: 2.8.2 → 3.1.5
+- Npgsql.EntityFrameworkCore.PostgreSQL: 9.x → 10.0.0
+
+### Fixed
+- BearerSecuritySchemeTransformer for OpenAPI breaking changes in .NET 10
+- bunit 2.x breaking changes: `TestContext` → `BunitContext`, `IRenderedFragment` → `IRenderedComponent`
+- Added `IAsyncLifetime` for async disposal compatibility with bunit 2.x + MudBlazor
+
+### Documentation
+- Translated Design.md to English for consistency
+- Removed obsolete Spec.md file
+
 ## [0.2.0 First Release](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0)
 
 ### Added
@@ -41,5 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL database support
 - Clean Architecture structure
 
-[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Emilien-M/GameOnTonight/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0
