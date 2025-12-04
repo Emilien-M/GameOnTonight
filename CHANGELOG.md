@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0 First Release](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0)
+
 ### Added
 - Docker support for self-hosting (API and App Dockerfiles)
 - Production docker-compose.yml with PostgreSQL, API, and App services
@@ -26,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed hardcoded JWT secret
 - Added `.env` files to `.gitignore`
 
-## [0.1.0] - 2024-XX-XX
+## [0.1.0]
 
 ### Added
 - Initial release
@@ -39,5 +41,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL database support
 - Clean Architecture structure
 
-[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0
