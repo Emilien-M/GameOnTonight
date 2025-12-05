@@ -130,11 +130,50 @@ public class AuthService : IAuthService
         var token = await GetTokenAsync();
         return !string.IsNullOrEmpty(token);
     }
+
+    public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword)
+    {
+        try
+        {
+            var client = await CreateAuthenticatedClientAsync();
+            if (client == null)
+            {
+                return false;
+            }
+
+            var infoRequest = new InfoRequest
+            {
+                OldPassword = oldPassword,
+                NewPassword = newPassword
+            };
+
+            await client.Manage.Info.PostAsync(infoRequest);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
     
     private GameOnTonightClient CreateUnauthenticatedClient()
     {
         var httpClient = _httpClientFactory.CreateClient("GameOnTonightApi");
         var authProvider = new AnonymousAuthenticationProvider();
+        var adapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
+        return new GameOnTonightClient(adapter);
+    }
+
+    private async Task<GameOnTonightClient?> CreateAuthenticatedClientAsync()
+    {
+        var token = await GetTokenAsync();
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        var httpClient = _httpClientFactory.CreateClient("GameOnTonightApi");
+        var authProvider = new BearerTokenAuthenticationProvider(() => Task.FromResult<string?>(token));
         var adapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
         return new GameOnTonightClient(adapter);
     }

@@ -1,0 +1,84 @@
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Modifier le pseudo</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField 
+                @bind-Value="DisplayName"
+                Label="Pseudo"
+                Variant="Variant.Outlined"
+                Required="true"
+                RequiredError="Le pseudo est requis"
+                MaxLength="100"
+                Counter="100"
+                Immediate="true"
+                Validation="@(new Func<string, string?>(ValidateDisplayName))"
+                Class="mt-2" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Annuler</MudButton>
+        <MudButton 
+            Color="Color.Primary" 
+            Variant="Variant.Filled"
+            OnClick="Submit"
+            Disabled="@(!_isValid || _isSubmitting)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Enregistrement...</MudText>
+            }
+            else
+            {
+                <MudText>Enregistrer</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string DisplayName { get; set; } = string.Empty;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _isSubmitting;
+
+    private string? ValidateDisplayName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Le pseudo est requis";
+        
+        if (value.Length < 2)
+            return "Le pseudo doit contenir au moins 2 caractères";
+        
+        if (value.Length > 100)
+            return "Le pseudo ne peut pas dépasser 100 caractères";
+        
+        return null;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        
+        if (!_isValid)
+            return;
+
+        _isSubmitting = true;
+        StateHasChanged();
+
+        // Small delay to show loading state
+        await Task.Delay(100);
+        
+        MudDialog.Close(DialogResult.Ok(DisplayName.Trim()));
+    }
+}

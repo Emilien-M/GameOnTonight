@@ -1,66 +1,171 @@
 @page "/profile"
-@inject GameOnTonightClientFactory ClientFactory
+@using GameOnTonight.App.Components
+@using GameOnTonight.RestClient.Models
+@using Microsoft.Kiota.Abstractions.Serialization
+@inject IProfileService ProfileService
 @inject IAuthService AuthService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudText Typo="Typo.h3" Class="mb-4">Mon Profil</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">Mon Profil</MudText>
 
-@if (isLoading)
+@if (_isLoading)
 {
     <MudProgressCircular Indeterminate="true" />
 }
-else if (profile != null)
+else if (_profile != null)
 {
-    <MudPaper Class="pa-4 mb-4">
-        <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>Informations du profil</strong></MudText>
-        <MudText Typo="Typo.body2" Style="font-family: monospace; white-space: pre-wrap;">
-            @System.Text.Json.JsonSerializer.Serialize(profile, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })
-        </MudText>
+    <!-- Profile Header -->
+    <MudPaper Class="pa-6 mb-6" Elevation="2">
+        <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Center">
+            <MudAvatar Size="Size.Large" Style="width: 80px; height: 80px; font-size: 2rem;" Color="Color.Primary">
+                @_profile.AvatarInitials
+            </MudAvatar>
+            <MudStack Spacing="1" Justify="Justify.Center">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudText Typo="Typo.h5">@_profile.DisplayName</MudText>
+                    <MudIconButton 
+                        Icon="@Icons.Material.Filled.Edit" 
+                        Size="Size.Small" 
+                        Color="Color.Default"
+                        OnClick="OpenEditProfileDialog"
+                        aria-label="Modifier le pseudo" />
+                </MudStack>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                    Membre @_profile.MemberSince
+                </MudText>
+            </MudStack>
+        </MudStack>
     </MudPaper>
+
+    <!-- Statistics Cards -->
+    <MudText Typo="Typo.h6" Class="mb-3">Statistiques</MudText>
+    <MudGrid Class="mb-6">
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 text-center" Elevation="1">
+                <LucideIcon Name="gamepad-2" Size="28" Class="mb-2 mud-text-secondary" />
+                <MudText Typo="Typo.h4" Color="Color.Primary">@GetUntypedInt(_profile.TotalGames)</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Jeux</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 text-center" Elevation="1">
+                <LucideIcon Name="dice-5" Size="28" Class="mb-2 mud-text-secondary" />
+                <MudText Typo="Typo.h4" Color="Color.Primary">@GetUntypedInt(_profile.TotalSessions)</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Parties</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 text-center" Elevation="1">
+                <LucideIcon Name="trophy" Size="28" Class="mb-2 mud-text-secondary" />
+                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatWinRate(GetUntypedDouble(_profile.WinRate))</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Victoires</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Class="pa-4 text-center" Elevation="1">
+                <LucideIcon Name="star" Size="28" Class="mb-2 mud-text-secondary" />
+                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatRating(GetUntypedDouble(_profile.AverageRating))</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Note moyenne</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Last Game Session -->
+    <MudText Typo="Typo.h6" Class="mb-3">Dernière partie</MudText>
+    @if (GetLastSession() != null)
+    {
+        var lastSession = GetLastSession()!;
+        <MudPaper Class="pa-4 mb-6" Elevation="1">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudAvatar Color="Color.Secondary" Size="Size.Medium">
+                        <LucideIcon Name="gamepad-2" Size="20" />
+                    </MudAvatar>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle1">@lastSession.GameName</MudText>
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                            @GetUntypedInt(lastSession.PlayerCount) joueurs • @lastSession.TimeAgo
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+                @if (GetLastSessionRating() > 0)
+                {
+                    <MudRating ReadOnly="true" SelectedValue="@GetLastSessionRating()" Size="Size.Small" />
+                }
+            </MudStack>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-4 mb-6" Elevation="1">
+            <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                Aucune partie jouée pour le moment
+            </MudText>
+        </MudPaper>
+    }
+
+    <!-- Settings Section -->
+    <MudText Typo="Typo.h6" Class="mb-3">Paramètres</MudText>
+    <MudPaper Class="mb-4" Elevation="1">
+        <MudList T="string" Dense="true">
+            <MudListItem Icon="@Icons.Material.Filled.Lock" IconColor="Color.Default" OnClick="OpenChangePasswordDialog">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                    <MudText>Changer le mot de passe</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Class="mud-text-secondary" />
+                </MudStack>
+            </MudListItem>
+        </MudList>
+    </MudPaper>
+
+    <!-- Logout Button -->
+    <MudButton 
+        Variant="Variant.Outlined" 
+        Color="Color.Error" 
+        FullWidth="true" 
+        OnClick="HandleLogout" 
+        Disabled="@_isLoggingOut"
+        StartIcon="@Icons.Material.Filled.Logout"
+        Class="mt-4">
+        @(_isLoggingOut ? "Déconnexion..." : "Se déconnecter")
+    </MudButton>
 }
-else if (!string.IsNullOrEmpty(errorMessage))
+else if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
 }
-
-<MudDivider Class="my-4" />
-
-<MudButton Variant="Variant.Outlined" 
-           Color="Color.Error" 
-           FullWidth="true" 
-           OnClick="HandleLogout" 
-           Disabled="@isLoggingOut"
-           StartIcon="@Icons.Material.Filled.Logout">
-    @(isLoggingOut ? "Déconnexion..." : "Se déconnecter")
-</MudButton>
 
 @code {
-    private object? profile;
-    private bool isLoading = true;
-    private string? errorMessage;
-    private bool isLoggingOut;
+    private ProfileViewModel? _profile;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private bool _isLoggingOut;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadProfileAsync();
+    }
+
+    private async Task LoadProfileAsync()
+    {
         try
         {
-            // Check if user is authenticated
+            _isLoading = true;
+            _errorMessage = null;
+
             if (!await AuthService.IsAuthenticatedAsync())
             {
                 Navigation.NavigateTo("/login");
                 return;
             }
 
-            var client = ClientFactory.CreateClient();
-            
-            // Call the profile endpoint
-            profile = await client.Profile.GetAsync();
+            _profile = await ProfileService.GetProfileAsync();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading profile: {ex.Message}";
+            _errorMessage = $"Erreur lors du chargement du profil: {ex.Message}";
             
-            // If 401 error, redirect to login
             if (ex.Message.Contains("401"))
             {
                 await AuthService.LogoutAsync();
@@ -69,14 +174,73 @@ else if (!string.IsNullOrEmpty(errorMessage))
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenEditProfileDialog()
+    {
+        var parameters = new DialogParameters<EditProfileDialog>
+        {
+            { x => x.DisplayName, _profile?.DisplayName ?? string.Empty }
+        };
+
+        var options = new DialogOptions 
+        { 
+            CloseButton = true, 
+            MaxWidth = MaxWidth.Small, 
+            FullWidth = true 
+        };
+
+        var dialog = await DialogService.ShowAsync<EditProfileDialog>("Modifier le pseudo", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: string newDisplayName })
+        {
+            await UpdateDisplayNameAsync(newDisplayName);
+        }
+    }
+
+    private async Task UpdateDisplayNameAsync(string newDisplayName)
+    {
+        try
+        {
+            var updatedProfile = await ProfileService.UpdateProfileAsync(newDisplayName);
+            if (updatedProfile != null)
+            {
+                _profile = updatedProfile;
+                Snackbar.Add("Pseudo mis à jour avec succès", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors de la mise à jour: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OpenChangePasswordDialog()
+    {
+        var options = new DialogOptions 
+        { 
+            CloseButton = true, 
+            MaxWidth = MaxWidth.Small, 
+            FullWidth = true 
+        };
+
+        var dialog = await DialogService.ShowAsync<ChangePasswordDialog>("Changer le mot de passe", options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            Snackbar.Add("Mot de passe modifié avec succès", Severity.Success);
         }
     }
 
     private async Task HandleLogout()
     {
-        if (isLoggingOut) return;
-        isLoggingOut = true;
+        if (_isLoggingOut) return;
+        _isLoggingOut = true;
+        
         try
         {
             await AuthService.LogoutAsync();
@@ -84,7 +248,54 @@ else if (!string.IsNullOrEmpty(errorMessage))
         }
         finally
         {
-            isLoggingOut = false;
+            _isLoggingOut = false;
         }
+    }
+
+    private static string FormatWinRate(double? winRate)
+    {
+        return winRate.HasValue ? $"{winRate.Value:0}%" : "-";
+    }
+
+    private static string FormatRating(double? rating)
+    {
+        return rating.HasValue ? $"{rating.Value:0.0}" : "-";
+    }
+
+    private LastSessionViewModel? GetLastSession()
+    {
+        return _profile?.LastSession?.LastSessionViewModel;
+    }
+
+    private int GetLastSessionRating()
+    {
+        var lastSession = GetLastSession();
+        return lastSession != null ? GetUntypedInt(lastSession.Rating) : 0;
+    }
+
+    private static int GetUntypedInt(UntypedNode? node)
+    {
+        if (node is UntypedInteger intNode)
+            return intNode.GetValue();
+        if (node is UntypedLong longNode)
+            return (int)longNode.GetValue();
+        if (node is UntypedString strNode && int.TryParse(strNode.GetValue(), out var parsed))
+            return parsed;
+        return 0;
+    }
+
+    private static double? GetUntypedDouble(UntypedNode? node)
+    {
+        if (node is UntypedDouble doubleNode)
+            return doubleNode.GetValue();
+        if (node is UntypedDecimal decimalNode)
+            return (double)decimalNode.GetValue();
+        if (node is UntypedFloat floatNode)
+            return floatNode.GetValue();
+        if (node is UntypedInteger intNode)
+            return intNode.GetValue();
+        if (node is UntypedString strNode && double.TryParse(strNode.GetValue(), out var parsed))
+            return parsed;
+        return null;
     }
 }

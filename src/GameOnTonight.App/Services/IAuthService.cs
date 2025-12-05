@@ -8,4 +8,5 @@ public interface IAuthService
     Task LogoutAsync();
     Task<string?> GetTokenAsync();
     Task<bool> IsAuthenticatedAsync();
+    Task<bool> ChangePasswordAsync(string oldPassword, string newPassword);
 }

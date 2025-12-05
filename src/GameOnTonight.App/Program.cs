@@ -62,6 +62,7 @@ builder.Services.AddScoped<IOfflineCacheService, OfflineCacheService>();
 builder.Services.AddScoped<IBoardGamesService, BoardGamesService>();
 builder.Services.AddScoped<IGameSessionsService, GameSessionsService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IErrorService, ErrorService>();
 builder.Services.AddScoped<ISearchResultService, SearchResultService>();
 builder.Services.AddLucideIcons();

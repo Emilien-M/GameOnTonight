@@ -1,19 +1,40 @@
+using FluentValidation;
 using GameOnTonight.Application.Profiles.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
 using Mediator;
 
-namespace GameOnTonight.Application.Profiles.Queries;
+namespace GameOnTonight.Application.Profiles.Commands;
 
-public sealed record GetUserProfileQuery : IRequest<ProfileViewModel>;
+/// <summary>
+/// Command to update the user's profile display name.
+/// </summary>
+public sealed record UpdateProfileCommand(string DisplayName) : IRequest<ProfileViewModel>;
 
-public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, ProfileViewModel>
+/// <summary>
+/// Validator for UpdateProfileCommand.
+/// </summary>
+public sealed class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileCommand>
+{
+    public UpdateProfileCommandValidator()
+    {
+        RuleFor(x => x.DisplayName)
+            .NotEmpty().WithMessage("Le pseudo est requis")
+            .MinimumLength(2).WithMessage("Le pseudo doit contenir au moins 2 caractères")
+            .MaximumLength(50).WithMessage("Le pseudo ne peut pas dépasser 50 caractères");
+    }
+}
+
+/// <summary>
+/// Handler for UpdateProfileCommand.
+/// </summary>
+public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, ProfileViewModel>
 {
     private readonly IProfileRepository _profileRepository;
     private readonly IBoardGameRepository _boardGameRepository;
     private readonly IGameSessionRepository _sessionRepository;
 
-    public GetUserProfileQueryHandler(
+    public UpdateProfileCommandHandler(
         IProfileRepository profileRepository,
         IBoardGameRepository boardGameRepository,
         IGameSessionRepository sessionRepository)
@@ -23,22 +44,29 @@ public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQ
         _sessionRepository = sessionRepository;
     }
     
-    public async ValueTask<ProfileViewModel> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
+    public async ValueTask<ProfileViewModel> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
-        // 1. Get profile
-        var profile = await _profileRepository.GetAsync(cancellationToken) ?? new Profile("");
+        var profile = await _profileRepository.GetAsync(cancellationToken);
 
-        // 2. Get statistics
+        if (profile == null)
+        {
+            // Create profile if it doesn't exist
+            profile = new Profile(request.DisplayName);
+            await _profileRepository.AddAsync(profile, cancellationToken);
+        }
+        else
+        {
+            profile.UpdateDisplayName(request.DisplayName);
+            await _profileRepository.UpdateAsync(profile, cancellationToken);
+        }
+        
+        // Retrieve stats to return complete ViewModel
         var games = await _boardGameRepository.GetAllAsync(cancellationToken);
         var sessions = await _sessionRepository.GetSessionHistoryAsync();
         
         var gamesList = games.ToList();
         var sessionsList = sessions.ToList();
         
-        var totalGames = gamesList.Count;
-        var totalSessions = sessionsList.Count;
-        
-        // 3. Calculate average rating
         var ratingsWithValue = sessionsList
             .Where(s => s.Rating.HasValue)
             .Select(s => s.Rating!.Value)
@@ -47,19 +75,17 @@ public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQ
             ? Math.Round(ratingsWithValue.Average(), 1) 
             : (double?)null;
 
-        // 4. Get last session
-        var lastSession = sessionsList.FirstOrDefault(); // Already ordered by descending date
+        var lastSession = sessionsList.FirstOrDefault();
 
-        // 5. Build ViewModel
         return new ProfileViewModel
         {
             DisplayName = profile.DisplayName,
             CreatedAt = profile.CreatedAt,
             MemberSince = GetMemberSince(profile.CreatedAt),
             AvatarInitials = GetInitials(profile.DisplayName),
-            TotalGames = totalGames,
-            TotalSessions = totalSessions,
-            WinRate = null, // V1: not implemented
+            TotalGames = gamesList.Count,
+            TotalSessions = sessionsList.Count,
+            WinRate = null,
             AverageRating = averageRating,
             LastSession = lastSession != null ? new LastSessionViewModel
             {

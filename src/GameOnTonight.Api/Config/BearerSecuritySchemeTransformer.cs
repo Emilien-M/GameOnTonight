@@ -17,6 +17,10 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
         };
 
         document.Components ??= new OpenApiComponents();
+        if (document.Components.SecuritySchemes == null)
+        {
+            document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>();
+        }
         document.Components.SecuritySchemes.Add("Bearer", securityScheme);
 
         var securityRequirement = new OpenApiSecurityRequirement
@@ -27,6 +31,7 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
             }
         };
 
+        document.Security ??= [];
         document.Security.Add(securityRequirement);
 
         return Task.CompletedTask;
