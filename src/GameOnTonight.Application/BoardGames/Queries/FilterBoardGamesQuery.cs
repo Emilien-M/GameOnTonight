@@ -1,6 +1,7 @@
 using FluentValidation;
 using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Queries;
@@ -30,10 +31,12 @@ public sealed class FilterBoardGamesQueryValidator : AbstractValidator<FilterBoa
 public sealed class FilterBoardGamesQueryHandler : IRequestHandler<FilterBoardGamesQuery, IEnumerable<BoardGameViewModel>>
 {
     private readonly IBoardGameRepository _repository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public FilterBoardGamesQueryHandler(IBoardGameRepository repository)
+    public FilterBoardGamesQueryHandler(IBoardGameRepository repository, ICurrentUserService currentUserService)
     {
         _repository = repository;
+        _currentUserService = currentUserService;
     }
 
     public async ValueTask<IEnumerable<BoardGameViewModel>> Handle(FilterBoardGamesQuery request, CancellationToken cancellationToken)
@@ -50,6 +53,7 @@ public sealed class FilterBoardGamesQueryHandler : IRequestHandler<FilterBoardGa
             trimmedGameTypes?.Count > 0 ? trimmedGameTypes : null, 
             cancellationToken);
         
-        return entities.Select(e => new BoardGameViewModel(e)).ToList();
+        var userId = _currentUserService.UserId;
+        return entities.Select(e => new BoardGameViewModel(e, userId)).ToList();
     }
 }

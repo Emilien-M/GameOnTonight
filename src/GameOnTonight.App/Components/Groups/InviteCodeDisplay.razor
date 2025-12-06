@@ -1,0 +1,168 @@
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<MudPaper Class="@GetPaperClass()" Elevation="@Elevation">
+    <div class="d-flex flex-column align-center gap-3">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">@Title</MudText>
+        }
+        
+        <MudText Typo="Typo.h4" Class="font-monospace" Style="letter-spacing: 2px;">
+            @FormatCode(Code)
+        </MudText>
+        
+        <div class="d-flex gap-2 flex-wrap justify-center">
+            <MudButton Variant="Variant.Outlined" 
+                       StartIcon="@Icons.Material.Filled.ContentCopy"
+                       OnClick="CopyToClipboardAsync"
+                       Size="Size.Small">
+                Copier
+            </MudButton>
+            
+            @if (ShowShareButton && _canShare)
+            {
+                <MudButton Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Share"
+                           OnClick="ShareAsync"
+                           Size="Size.Small">
+                    Partager
+                </MudButton>
+            }
+        </div>
+        
+        @if (ExpiresAt.HasValue)
+        {
+            <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                @GetExpirationText()
+            </MudText>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    /// <summary>
+    /// Code d'invitation à afficher.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Date d'expiration du code.
+    /// </summary>
+    [Parameter]
+    public DateTime? ExpiresAt { get; set; }
+    
+    /// <summary>
+    /// Titre optionnel au-dessus du code.
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+    
+    /// <summary>
+    /// Nom du groupe pour le partage.
+    /// </summary>
+    [Parameter]
+    public string? GroupName { get; set; }
+    
+    /// <summary>
+    /// Afficher le bouton de partage (si supporté par le navigateur).
+    /// </summary>
+    [Parameter]
+    public bool ShowShareButton { get; set; } = true;
+    
+    /// <summary>
+    /// Élévation du MudPaper.
+    /// </summary>
+    [Parameter]
+    public int Elevation { get; set; } = 2;
+    
+    /// <summary>
+    /// Classes CSS supplémentaires.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    private bool _canShare;
+    
+    private string GetPaperClass() => string.IsNullOrEmpty(Class) ? "pa-4" : $"pa-4 {Class}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Vérifier si le Web Share API est disponible
+        _canShare = await JS.InvokeAsync<bool>("eval", "navigator.share !== undefined");
+    }
+
+    /// <summary>
+    /// Formate le code avec des tirets pour la lisibilité.
+    /// </summary>
+    private static string FormatCode(string code)
+    {
+        if (string.IsNullOrEmpty(code) || code.Length < 16)
+            return code;
+        
+        // Format: XXXX-XXXX-XXXX-XXXX
+        return $"{code[..4]}-{code[4..8]}-{code[8..12]}-{code[12..]}";
+    }
+
+    /// <summary>
+    /// Copie le code dans le presse-papiers.
+    /// </summary>
+    private async Task CopyToClipboardAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Code);
+            Snackbar.Add("Code copié dans le presse-papiers", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Impossible de copier le code", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Partage le code via Web Share API.
+    /// </summary>
+    private async Task ShareAsync()
+    {
+        var shareText = string.IsNullOrEmpty(GroupName)
+            ? $"Rejoins mon groupe avec ce code : {Code}"
+            : $"Rejoins le groupe \"{GroupName}\" avec ce code : {Code}";
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.share", new
+            {
+                title = "Code d'invitation GameOnTonight",
+                text = shareText
+            });
+        }
+        catch
+        {
+            // L'utilisateur a annulé ou erreur - pas de feedback nécessaire
+        }
+    }
+
+    /// <summary>
+    /// Retourne le texte d'expiration.
+    /// </summary>
+    private string GetExpirationText()
+    {
+        if (!ExpiresAt.HasValue)
+            return string.Empty;
+        
+        var remaining = ExpiresAt.Value - DateTime.UtcNow;
+        
+        if (remaining.TotalDays > 1)
+            return $"Expire dans {(int)remaining.TotalDays} jours";
+        
+        if (remaining.TotalHours > 1)
+            return $"Expire dans {(int)remaining.TotalHours} heures";
+        
+        if (remaining.TotalMinutes > 0)
+            return $"Expire dans {(int)remaining.TotalMinutes} minutes";
+        
+        return "Expiré";
+    }
+}

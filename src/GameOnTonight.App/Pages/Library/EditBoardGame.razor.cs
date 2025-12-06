@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using GameOnTonight.App.Services;
+using GameOnTonight.RestClient.Models;
 
 namespace GameOnTonight.App.Pages.Library;
 
 public partial class EditBoardGame : IDisposable
 {
+    private readonly IGroupContextService _groupContextService;
+
     [Parameter]
     public int? Id { get; set; }
 
@@ -26,16 +29,41 @@ public partial class EditBoardGame : IDisposable
     private IReadOnlyList<string> _gameTypes = [];
     private string? _newGameType;
     private IEnumerable<string> _filteredGameTypes = [];
+    private bool _isGroupLoading;
 
     private BoardGameForm form = new();
     private EditContext _editContext = default!;
     private ValidationMessageStore _messageStore = default!;
+    private IReadOnlyList<GroupViewModel> _groups = [];
     private CancellationTokenSource? _cts;
 
-    protected override void OnInitialized()
+    public EditBoardGame(IGroupContextService groupContextService)
+    {
+        _groupContextService = groupContextService;
+    }
+    
+    protected override async Task OnInitializedAsync()
     {
         _cts = new CancellationTokenSource();
+        await LoadGroupsAsync();
         InitializeEditContext();
+    }
+
+    private async Task LoadGroupsAsync()
+    {
+        _isGroupLoading = true;
+        try
+        {
+            _groups = await _groupContextService.GetUserGroupsAsync();
+        }
+        catch
+        {
+            _groups = [];
+        }
+        finally
+        {
+            _isGroupLoading = false;
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -137,13 +165,15 @@ public partial class EditBoardGame : IDisposable
             var vm = await BoardGamesService.GetByIdAsync(id, cancellationToken);
             if (vm != null)
             {
+                var minPlayers = vm.MinPlayers ?? 1;
                 form = new BoardGameForm
                 {
                     Name = vm.Name ?? string.Empty,
-                    MinPlayers = vm.MinPlayers ?? 1,
-                    MaxPlayers = vm.MaxPlayers ?? Math.Max(vm.MinPlayers ?? 1, 1),
+                    MinPlayers = minPlayers,
+                    MaxPlayers = vm.MaxPlayers ?? Math.Max(minPlayers, 1),
                     DurationMinutes = vm.DurationMinutes ?? 5,
-                    GameTypes = vm.GameTypes?.ToList() ?? []
+                    GameTypes = vm.GameTypes?.ToList() ?? [],
+                    SelectedGroupId = vm.GroupId
                 };
                 InitializeEditContext();
                 ClearServerErrors();
@@ -168,7 +198,7 @@ public partial class EditBoardGame : IDisposable
         {
             if (IsEdit)
             {
-                var request = new GameOnTonight.RestClient.Models.UpdateBoardGameCommand
+                var request = new UpdateBoardGameCommand
                 {
                     Id = Id,
                     Name = form.Name,
@@ -181,7 +211,7 @@ public partial class EditBoardGame : IDisposable
             }
             else
             {
-                var request = new GameOnTonight.RestClient.Models.CreateBoardGameCommand
+                var request = new CreateBoardGameCommand
                 {
                     Name = form.Name,
                     MinPlayers = form.MinPlayers,
@@ -189,8 +219,11 @@ public partial class EditBoardGame : IDisposable
                     DurationMinutes = form.DurationMinutes,
                     GameTypes = form.GameTypes
                 };
-                await BoardGamesService.CreateAsync(request, _cts?.Token ?? CancellationToken.None);
+                var boardGameViewModel = await BoardGamesService.CreateAsync(request, _cts?.Token ?? CancellationToken.None);
+                Id = boardGameViewModel?.Id;
             }
+
+            await ApplyGroupShare(form.SelectedGroupId);
 
             Navigation.NavigateTo("/library", forceLoad: true);
         }
@@ -222,6 +255,18 @@ public partial class EditBoardGame : IDisposable
         finally
         {
             isSubmitting = false;
+        }
+    }
+
+    private async Task ApplyGroupShare(int? groupId)
+    {
+        if (groupId != null)
+        {
+            await BoardGamesService.ShareWithGroupAsync(Id.Value, groupId.Value, _cts?.Token ?? CancellationToken.None);
+        }
+        else
+        {
+            await BoardGamesService.UnshareAsync(Id.Value, _cts?.Token ?? CancellationToken.None);
         }
     }
 
@@ -258,6 +303,7 @@ public partial class EditBoardGame : IDisposable
         public int DurationMinutes { get; set; } = 30;
 
         public List<string> GameTypes { get; set; } = [];
+        public int? SelectedGroupId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

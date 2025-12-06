@@ -2,6 +2,7 @@ using FluentValidation;
 using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Commands;
@@ -44,11 +45,16 @@ public sealed class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardG
 {
     private readonly IBoardGameRepository _repository;
     private readonly IGameTypeRepository _gameTypeRepository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CreateBoardGameCommandHandler(IBoardGameRepository repository, IGameTypeRepository gameTypeRepository)
+    public CreateBoardGameCommandHandler(
+        IBoardGameRepository repository, 
+        IGameTypeRepository gameTypeRepository,
+        ICurrentUserService currentUserService)
     {
         _repository = repository;
         _gameTypeRepository = gameTypeRepository;
+        _currentUserService = currentUserService;
     }
 
     public async ValueTask<BoardGameViewModel> Handle(CreateBoardGameCommand request, CancellationToken cancellationToken)
@@ -59,7 +65,7 @@ public sealed class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardG
             request.MaxPlayers,
             request.DurationMinutes
         );
-
+        
         // Get or create game types
         if (request.GameTypes.Count > 0)
         {
@@ -69,6 +75,6 @@ public sealed class CreateBoardGameCommandHandler : IRequestHandler<CreateBoardG
 
         await _repository.AddAsync(entity, cancellationToken);
 
-        return new BoardGameViewModel(entity);
+        return new BoardGameViewModel(entity, _currentUserService.UserId);
     }
 }

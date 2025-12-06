@@ -1,15 +1,26 @@
 @page "/library"
 @inject IBoardGamesService BoardGamesService
+@inject IGroupContextService GroupContext
 @inject NavigationManager Navigation
 @inject IErrorService ErrorService
 @inject IDialogService DialogService
 @using GameOnTonight.RestClient.Models
+@using GameOnTonight.App.Components.Groups
+@implements IDisposable
 
 <PageTitle>Ma Ludothèque</PageTitle>
 
-<MudText Typo="Typo.h3" Class="pb-3">Ma Ludothèque</MudText>
-
-
+<div class="d-flex justify-space-between align-center mb-4">
+    <div>
+        <MudText Typo="Typo.h3">Ma Ludothèque</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">
+            @GetSubtitle()
+        </MudText>
+    </div>
+    <div>
+        <GroupFilterSelector OnFilterChanged="OnFilterChangedAsync" />
+    </div>
+</div>
 
 <div class="mb-3 d-flex align-center gap-3">
     <MudTextField @bind-Value="searchText" Variant="Variant.Outlined" Label="Rechercher un jeu..." AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start" Class="flex-grow-1"></MudTextField>
@@ -30,25 +41,50 @@ else if (games.Count == 0)
 } 
 else
 {
-    <div class="row g-3">
+    <MudStack>
         
         <Virtualize Items="games" Context="game">
             <MudCard>
                 <MudCardContent>
                     <div class="d-flex flex-row justify-space-between align-items-center">
                         <div>
-                            <MudText Typo="Typo.h5">@game.Name</MudText>
-                            <MudChip T="string">
-                                @game.MinPlayers - @game.MaxPlayers joueurs
-                            </MudChip>
-                            <MudChip T="string">@game.DurationMinutes min</MudChip>
-                            @if (game.GameTypes != null)
-                            {
-                                @foreach (var gameType in game.GameTypes)
+                            <div class="d-flex align-center gap-2 mb-2">
+                                <MudText Typo="Typo.h5">@game.Name</MudText>
+                                @if (game.GroupId != null && !string.IsNullOrEmpty(game.GroupName))
                                 {
-                                    <MudChip T="string">@gameType</MudChip>
+                                    <MudChip T="string" Size="Size.Small">@game.GroupName</MudChip>
                                 }
+                            </div>
+                            <div>
+                                <MudChip T="string">
+                                    @game.MinPlayers - @game.MaxPlayers joueurs
+                                </MudChip>
+                                <MudChip T="string">@game.DurationMinutes min</MudChip>
+                                @if (game.GameTypes != null)
+                                {
+                                    @foreach (var gameType in game.GameTypes)
+                                    {
+                                        <MudChip T="string">@gameType</MudChip>
+                                    }
+                                }
+                            </div>
+                            @if (game.GroupId != null)
+                            {
+                                <MudText Typo="Typo.subtitle2">
+                                    <div class="d-flex align-center gap-1">
+                                        <LucideIcon Name="user"></LucideIcon>
+                                        @if (game.IsOwner == true)
+                                        {
+                                            <span>Propriétaire</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Partagé</span>
+                                        }
+                                    </div>
+                                </MudText>
                             }
+                            
                         </div>
                         <div class="d-flex gap-2 flex-shrink-0">
                             <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => Edit(game.Id))"></MudIconButton>
@@ -59,18 +95,40 @@ else
             </MudCard>
         </Virtualize>
         
-    </div>
+    </MudStack>
 }
 
 @code {
     private List<BoardGameViewModel> games = new();
     private bool isLoading;
     private string? errorMessage;
-    private string searchText;
+    private string searchText = string.Empty;
+    private int? _selectedGroupId;
 
     protected override async Task OnInitializedAsync()
     {
+        // Synchroniser avec le contexte global
+        _selectedGroupId = GroupContext.SelectedGroupId;
+        
+        // S'abonner aux changements
+        GroupContext.OnFilterChanged += OnFilterChanged;
+        
         await LoadAsync();
+    }
+
+    private void OnFilterChanged()
+    {
+        _selectedGroupId = GroupContext.SelectedGroupId;
+        InvokeAsync(async () =>
+        {
+            await LoadAsync();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        GroupContext.OnFilterChanged -= OnFilterChanged;
     }
 
     private async Task LoadAsync()
@@ -79,7 +137,7 @@ else
         errorMessage = null;
         try
         {
-            var items = await BoardGamesService.GetAllAsync();
+            var items = await BoardGamesService.GetAllAsync(_selectedGroupId);
             games = items.ToList();
         }
         catch (OperationCanceledException)
@@ -94,6 +152,23 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private async Task OnFilterChangedAsync((GroupFilterMode Mode, int? GroupId, string? GroupName) filter)
+    {
+        _selectedGroupId = filter.GroupId;
+        await LoadAsync();
+    }
+
+    private string GetSubtitle()
+    {
+        var count = games.Count;
+        return _selectedGroupId switch
+        {
+            null => $"Tous les jeux ({count} jeux)",
+            0 => $"Mes jeux personnels ({count} jeux)",
+            _ => $"Jeux du groupe sélectionné ({count} jeux)"
+        };
     }
 
     private void CreateNew()
@@ -129,7 +204,8 @@ else
 
     private async Task ConfirmDeleteAsync(BoardGameViewModel game)
     {
-        if (!game.Id.HasValue) return;
+        var gameId = game.Id;
+        if (gameId is null) return;
 
         var parameters = new DialogParameters<ConfirmDeleteDialog>
         {
@@ -148,7 +224,7 @@ else
 
         if (result is { Canceled: false })
         {
-            await DeleteAsync(game.Id);
+            await DeleteAsync(gameId);
         }
     }
 }

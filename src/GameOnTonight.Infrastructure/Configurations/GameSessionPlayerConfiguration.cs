@@ -38,6 +38,15 @@ public class GameSessionPlayerConfiguration : BaseConfiguration<GameSessionPlaye
         builder.Property(p => p.Position)
             .IsRequired(false);
 
+        builder.Property(p => p.GroupMemberId)
+            .IsRequired(false);
+
+        // Configure relationship to GroupMember
+        builder.HasOne(p => p.GroupMember)
+            .WithMany()
+            .HasForeignKey(p => p.GroupMemberId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(p => p.GameSessionId);
     }
 }

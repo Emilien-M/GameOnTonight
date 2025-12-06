@@ -1,0 +1,142 @@
+@page "/groups"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using GameOnTonight.RestClient.Models
+@inject IGroupsService GroupsService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Mes Groupes - Game On Tonight</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+    
+    <div class="d-flex justify-space-between align-center mb-4">
+        <div>
+            <MudText Typo="Typo.h4">Mes Groupes</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                Gérez vos groupes de jeu et invitez vos amis
+            </MudText>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <MudButton 
+                Variant="Variant.Outlined" 
+                Color="Color.Default"
+                StartIcon="@Icons.Material.Filled.GroupAdd"
+                OnClick="NavigateToJoin">
+                Rejoindre
+            </MudButton>
+            
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Primary"
+                StartIcon="@Icons.Material.Filled.Add"
+                OnClick="NavigateToCreate">
+                Créer un groupe
+            </MudButton>
+        </div>
+    </div>
+    
+    @if (_isLoading)
+    {
+        <MudGrid>
+            @for (int i = 0; i < 3; i++)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="180px" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else if (_groups.Count == 0)
+    {
+        <MudPaper Class="pa-8 text-center" Elevation="0">
+            <LucideIcon Name="users" Size="64" Class="mb-4 mud-text-secondary" />
+            <MudText Typo="Typo.h6" Class="mb-2">Aucun groupe</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary mb-4">
+                Créez votre premier groupe pour partager votre collection avec vos amis.
+            </MudText>
+            <div class="d-flex justify-center gap-2">
+                <MudButton 
+                    Variant="Variant.Outlined" 
+                    Color="Color.Default"
+                    StartIcon="@Icons.Material.Filled.GroupAdd"
+                    OnClick="NavigateToJoin">
+                    Rejoindre un groupe
+                </MudButton>
+                <MudButton 
+                    Variant="Variant.Filled" 
+                    Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    OnClick="NavigateToCreate">
+                    Créer un groupe
+                </MudButton>
+            </div>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var group in _groups)
+            {
+                var groupId = group.Id;
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="group-card cursor-pointer" @onclick="() => NavigateToGroup(groupId)">
+                        <MudCardContent>
+                            <div class="d-flex align-center gap-3 mb-3">
+                                <MudAvatar Color="@GetGroupColor(groupId ?? 0)" Size="Size.Large">
+                                    <LucideIcon Name="users" Size="24" />
+                                </MudAvatar>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <MudText Typo="Typo.h6" Class="text-truncate">
+                                        @group.Name
+                                    </MudText>
+                                    @if (group.IsOwner == true)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Text">
+                                            Propriétaire
+                                        </MudChip>
+                                    }
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrWhiteSpace(group.Description))
+                            {
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary text-truncate mb-3">
+                                    @group.Description
+                                </MudText>
+                            }
+                            
+                            <div class="d-flex justify-space-between align-center">
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mud-text-secondary" />
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                                        @(group.MemberCount ?? 0) membres
+                                    </MudText>
+                                </div>
+                            </div>
+                        </MudCardContent>
+                        
+                        <MudCardActions Class="justify-end">
+                            <MudIconButton 
+                                Icon="@Icons.Material.Filled.ArrowForward" 
+                                Size="Size.Small"
+                                Color="Color.Primary" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    
+</MudContainer>
+
+<style>
+    .group-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .group-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+</style>

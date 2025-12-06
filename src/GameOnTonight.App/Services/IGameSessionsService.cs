@@ -4,8 +4,11 @@ namespace GameOnTonight.App.Services;
 
 public interface IGameSessionsService
 {
-    Task<IReadOnlyList<GameSessionViewModel>> GetHistoryAsync(int? count = null, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<GameSessionViewModel>> GetHistoryAsync(int? count = null, int? groupId = null, CancellationToken cancellationToken = default);
     Task<GameSessionViewModel?> CreateAsync(CreateGameSessionCommand command, CancellationToken cancellationToken = default);
     Task<GameSessionViewModel?> UpdateAsync(int id, UpdateGameSessionCommand command, CancellationToken cancellationToken = default);
     Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+    Task<GameSessionViewModel?> ShareWithGroupAsync(int sessionId, int groupId, CancellationToken cancellationToken = default);
+    Task<GameSessionViewModel?> UnshareAsync(int sessionId, CancellationToken cancellationToken = default);
+    Task<GameSessionPlayerViewModel?> LinkPlayerToGroupMemberAsync(int sessionId, int playerId, int groupMemberId, CancellationToken cancellationToken = default);
 }

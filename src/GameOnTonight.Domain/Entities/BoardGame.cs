@@ -5,7 +5,7 @@ namespace GameOnTonight.Domain.Entities;
 /// <summary>
 /// Represents a game in a user's collection.
 /// </summary>
-public class BoardGame : UserOwnedEntity
+public class BoardGame : ShareableUserOwnedEntity
 {
     private readonly List<GameType> _gameTypes = new();
 

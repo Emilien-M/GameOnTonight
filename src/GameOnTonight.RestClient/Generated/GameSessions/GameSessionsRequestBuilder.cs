@@ -48,7 +48,7 @@ namespace GameOnTonight.RestClient.GameSessions
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public GameSessionsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/GameSessions{?count*}", pathParameters)
+        public GameSessionsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/GameSessions{?count*,groupId*}", pathParameters)
         {
         }
         /// <summary>
@@ -56,7 +56,7 @@ namespace GameOnTonight.RestClient.GameSessions
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public GameSessionsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/GameSessions{?count*}", rawUrl)
+        public GameSessionsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/GameSessions{?count*,groupId*}", rawUrl)
         {
         }
         /// <returns>A List&lt;global::GameOnTonight.RestClient.Models.GameSessionViewModel&gt;</returns>
@@ -89,7 +89,7 @@ namespace GameOnTonight.RestClient.GameSessions
         public async Task<global::GameOnTonight.RestClient.Models.GameSessionViewModel> PostAsync(global::GameOnTonight.RestClient.Models.CreateGameSessionCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
@@ -125,7 +125,7 @@ namespace GameOnTonight.RestClient.GameSessions
         public RequestInformation ToPostRequestInformation(global::GameOnTonight.RestClient.Models.CreateGameSessionCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.POST, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json, text/plain;q=0.9");
@@ -148,6 +148,8 @@ namespace GameOnTonight.RestClient.GameSessions
         {
             [QueryParameter("count")]
             public int? Count { get; set; }
+            [QueryParameter("groupId")]
+            public int? GroupId { get; set; }
         }
         /// <summary>
         /// Configuration for the request such as headers, query parameters, and middleware options.

@@ -24,8 +24,22 @@ namespace GameOnTonight.RestClient.Models
 #else
         public string BoardGameName { get; set; }
 #endif
+        /// <summary>The groupId property</summary>
+        public int? GroupId { get; set; }
+        /// <summary>The groupName property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? GroupName { get; set; }
+#nullable restore
+#else
+        public string GroupName { get; set; }
+#endif
         /// <summary>The id property</summary>
         public int? Id { get; set; }
+        /// <summary>The isOwner property</summary>
+        public bool? IsOwner { get; set; }
+        /// <summary>The isShared property</summary>
+        public bool? IsShared { get; set; }
         /// <summary>The notes property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -70,7 +84,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
         public static global::GameOnTonight.RestClient.Models.GameSessionViewModel CreateFromDiscriminatorValue(IParseNode parseNode)
         {
-            _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
+            if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::GameOnTonight.RestClient.Models.GameSessionViewModel();
         }
         /// <summary>
@@ -83,7 +97,11 @@ namespace GameOnTonight.RestClient.Models
             {
                 { "boardGameId", n => { BoardGameId = n.GetIntValue(); } },
                 { "boardGameName", n => { BoardGameName = n.GetStringValue(); } },
+                { "groupId", n => { GroupId = n.GetIntValue(); } },
+                { "groupName", n => { GroupName = n.GetStringValue(); } },
                 { "id", n => { Id = n.GetIntValue(); } },
+                { "isOwner", n => { IsOwner = n.GetBoolValue(); } },
+                { "isShared", n => { IsShared = n.GetBoolValue(); } },
                 { "notes", n => { Notes = n.GetStringValue(); } },
                 { "photoUrl", n => { PhotoUrl = n.GetStringValue(); } },
                 { "playedAt", n => { PlayedAt = n.GetDateTimeOffsetValue(); } },
@@ -98,10 +116,14 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public virtual void Serialize(ISerializationWriter writer)
         {
-            _ = writer ?? throw new ArgumentNullException(nameof(writer));
+            if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteIntValue("boardGameId", BoardGameId);
             writer.WriteStringValue("boardGameName", BoardGameName);
+            writer.WriteIntValue("groupId", GroupId);
+            writer.WriteStringValue("groupName", GroupName);
             writer.WriteIntValue("id", Id);
+            writer.WriteBoolValue("isOwner", IsOwner);
+            writer.WriteBoolValue("isShared", IsShared);
             writer.WriteStringValue("notes", Notes);
             writer.WriteStringValue("photoUrl", PhotoUrl);
             writer.WriteDateTimeOffsetValue("playedAt", PlayedAt);

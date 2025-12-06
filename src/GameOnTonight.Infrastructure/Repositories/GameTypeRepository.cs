@@ -13,8 +13,8 @@ public class GameTypeRepository : Repository<GameType>, IGameTypeRepository
 {
     private readonly ICurrentUserService _currentUserService;
 
-    public GameTypeRepository(ApplicationDbContext context, ICurrentUserService currentUserService)
-        : base(context, currentUserService)
+    public GameTypeRepository(ApplicationDbContext context, ICurrentUserService currentUserService, IEntityValidationService entityValidationService) 
+        : base(context, currentUserService, entityValidationService)
     {
         _currentUserService = currentUserService;
     }

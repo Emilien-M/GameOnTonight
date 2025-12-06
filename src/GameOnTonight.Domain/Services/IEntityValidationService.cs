@@ -11,5 +11,5 @@ public interface IEntityValidationService
     /// Validates a collection of entities and throws an exception if domain errors are detected.
     /// </summary>
     /// <param name="entities">Collection of entities to validate.</param>
-    void ValidateEntities(IEnumerable<BaseEntity> entities);
+    void ValidateEntities(params BaseEntity[] entities);
 }

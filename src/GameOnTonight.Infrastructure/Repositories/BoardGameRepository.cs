@@ -8,39 +8,43 @@ namespace GameOnTonight.Infrastructure.Repositories;
 
 /// <summary>
 /// Implementation of the repository for the BoardGame entity.
+/// Inherits from ShareableRepository to include games shared via groups.
 /// </summary>
-public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
+public class BoardGameRepository : ShareableRepository<BoardGame>, IBoardGameRepository
 {
-    private readonly ICurrentUserService _currentUserService;
-
-    public BoardGameRepository(ApplicationDbContext context, ICurrentUserService currentUserService) 
-        : base(context, currentUserService)
+    public BoardGameRepository(
+        ApplicationDbContext context, 
+        ICurrentUserService currentUserService,
+        IGroupRepository groupRepository,
+        IEntityValidationService entityValidationService) 
+        : base(context, currentUserService, groupRepository, entityValidationService)
     {
-        _currentUserService = currentUserService;
     }
 
     public new async Task<BoardGame?> GetByIdAsync(object id, CancellationToken cancellationToken = default)
     {
-        var entity = await DbSet
-            .Include(g => g.GameTypes)
-            .FirstOrDefaultAsync(g => g.Id == (int)id && g.UserId == _currentUserService.UserId, cancellationToken);
+        var query = await GetShareableQueryAsync(cancellationToken);
         
-        return entity;
+        return await query
+            .Include(g => g.GameTypes)
+            .Include(g => g.Group)
+            .FirstOrDefaultAsync(g => g.Id == (int)id, cancellationToken);
     }
 
     public new async Task<IEnumerable<BoardGame>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await DbSet
+        var query = await GetShareableQueryAsync(cancellationToken);
+        
+        return await query
             .Include(g => g.GameTypes)
-            .Where(g => g.UserId == _currentUserService.UserId)
+            .Include(g => g.Group)
             .ToListAsync(cancellationToken);
     }
 
     public new async Task<(IEnumerable<BoardGame> Items, int TotalCount)> GetAllPaginatedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var query = DbSet
-            .Include(g => g.GameTypes)
-            .Where(g => g.UserId == _currentUserService.UserId);
+        var query = await GetShareableQueryAsync(cancellationToken);
+        query = query.Include(g => g.GameTypes);
         
         var totalCount = await query.CountAsync(cancellationToken);
         
@@ -54,11 +58,12 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
 
     public async Task<IEnumerable<BoardGame>> FilterGamesAsync(int playerCount, int maxDuration, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default)
     {
+        var baseQuery = await GetShareableQueryAsync(cancellationToken);
+        
         // Commence par le filtre de base sur le nombre de joueurs et la durée
-        var query = DbSet
+        var query = baseQuery
             .Include(g => g.GameTypes)
             .Where(g => 
-                g.UserId == _currentUserService.UserId &&
                 g.MinPlayers <= playerCount && 
                 g.MaxPlayers >= playerCount && 
                 g.DurationMinutes <= maxDuration);
@@ -80,10 +85,12 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
             return null;
         }
 
-        // Récupère tous les jeux correspondant aux IDs spécifiés et appartenant à l'utilisateur
-        var games = await DbSet
+        var baseQuery = await GetShareableQueryAsync(cancellationToken);
+        
+        // Récupère tous les jeux correspondant aux IDs spécifiés et accessibles par l'utilisateur
+        var games = await baseQuery
             .Include(g => g.GameTypes)
-            .Where(g => idList.Contains(g.Id) && g.UserId == _currentUserService.UserId)
+            .Where(g => idList.Contains(g.Id))
             .ToListAsync(cancellationToken);
 
         if (!games.Any())
@@ -98,8 +105,12 @@ public class BoardGameRepository : Repository<BoardGame>, IBoardGameRepository
 
     public async Task<IEnumerable<string>> GetDistinctGameTypesAsync(CancellationToken cancellationToken = default)
     {
-        return await Context.Set<GameType>()
-            .Where(gt => gt.UserId == _currentUserService.UserId)
+        var baseQuery = await GetShareableQueryAsync(cancellationToken);
+        
+        // Récupère les types de jeux des jeux accessibles par l'utilisateur (possédés + partagés)
+        return await baseQuery
+            .Include(g => g.GameTypes)
+            .SelectMany(g => g.GameTypes)
             .Select(gt => gt.Name)
             .Distinct()
             .OrderBy(name => name)

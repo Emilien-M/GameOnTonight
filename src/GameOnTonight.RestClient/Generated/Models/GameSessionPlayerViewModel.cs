@@ -14,6 +14,16 @@ namespace GameOnTonight.RestClient.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>The groupMemberDisplayName property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? GroupMemberDisplayName { get; set; }
+#nullable restore
+#else
+        public string GroupMemberDisplayName { get; set; }
+#endif
+        /// <summary>The groupMemberId property</summary>
+        public int? GroupMemberId { get; set; }
         /// <summary>The id property</summary>
         public int? Id { get; set; }
         /// <summary>The isWinner property</summary>
@@ -44,7 +54,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
         public static global::GameOnTonight.RestClient.Models.GameSessionPlayerViewModel CreateFromDiscriminatorValue(IParseNode parseNode)
         {
-            _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
+            if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::GameOnTonight.RestClient.Models.GameSessionPlayerViewModel();
         }
         /// <summary>
@@ -55,6 +65,8 @@ namespace GameOnTonight.RestClient.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "groupMemberDisplayName", n => { GroupMemberDisplayName = n.GetStringValue(); } },
+                { "groupMemberId", n => { GroupMemberId = n.GetIntValue(); } },
                 { "id", n => { Id = n.GetIntValue(); } },
                 { "isWinner", n => { IsWinner = n.GetBoolValue(); } },
                 { "playerName", n => { PlayerName = n.GetStringValue(); } },
@@ -68,7 +80,9 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public virtual void Serialize(ISerializationWriter writer)
         {
-            _ = writer ?? throw new ArgumentNullException(nameof(writer));
+            if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteStringValue("groupMemberDisplayName", GroupMemberDisplayName);
+            writer.WriteIntValue("groupMemberId", GroupMemberId);
             writer.WriteIntValue("id", Id);
             writer.WriteBoolValue("isWinner", IsWinner);
             writer.WriteStringValue("playerName", PlayerName);

@@ -22,9 +22,9 @@ public class BoardGamesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<BoardGameViewModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<BoardGameViewModel>>> GetAll()
+    public async Task<ActionResult<IEnumerable<BoardGameViewModel>>> GetAll([FromQuery] int? groupId = null)
     {
-        var result = await _mediator.Send(new GetAllBoardGamesQuery());
+        var result = await _mediator.Send(new GetAllBoardGamesQuery(groupId));
         return Ok(result);
     }
 
@@ -100,5 +100,36 @@ public class BoardGamesController : ControllerBase
         var success = await _mediator.Send(new DeleteBoardGameCommand(id));
         if (!success) return NotFound();
         return NoContent();
+    }
+
+    /// <summary>
+    /// Shares a board game with a group.
+    /// </summary>
+    /// <param name="id">ID of the board game to share.</param>
+    /// <param name="groupId">ID of the group to share with.</param>
+    [HttpPost("{id:int}/share")]
+    [ProducesResponseType(typeof(BoardGameViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BoardGameViewModel>> Share([FromRoute] int id, [FromQuery] int groupId)
+    {
+        var result = await _mediator.Send(new ShareBoardGameCommand(id, groupId));
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Unshares a board game from its group (makes it private).
+    /// </summary>
+    /// <param name="id">ID of the board game to unshare.</param>
+    [HttpPost("{id:int}/unshare")]
+    [ProducesResponseType(typeof(BoardGameViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BoardGameViewModel>> Unshare([FromRoute] int id)
+    {
+        var result = await _mediator.Send(new UnshareBoardGameCommand(id));
+        return Ok(result);
     }
 }

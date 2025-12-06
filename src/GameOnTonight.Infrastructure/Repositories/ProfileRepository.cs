@@ -8,8 +8,8 @@ namespace GameOnTonight.Infrastructure.Repositories;
 
 public class ProfileRepository : Repository<Profile>, IProfileRepository
 {
-    public ProfileRepository(ApplicationDbContext context, ICurrentUserService currentUserService) 
-        : base(context, currentUserService)
+    public ProfileRepository(ApplicationDbContext context, ICurrentUserService currentUserService, IEntityValidationService entityValidationService) 
+        : base(context, currentUserService, entityValidationService)
     {
     }
 

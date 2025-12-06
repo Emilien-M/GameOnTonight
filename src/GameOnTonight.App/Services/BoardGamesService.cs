@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using GameOnTonight.RestClient.BoardGames;
 using GameOnTonight.RestClient.BoardGames.Filter;
+using GameOnTonight.RestClient.BoardGames.Item.Share;
 using GameOnTonight.RestClient.BoardGames.Suggest;
 using GameOnTonight.RestClient.Models;
 
@@ -16,32 +18,45 @@ public class BoardGamesService : IBoardGamesService
         _cacheService = cacheService;
     }
 
-    public async Task<IReadOnlyList<BoardGameViewModel>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BoardGameViewModel>> GetAllAsync(int? groupId = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var client = _clientFactory.CreateClient();
-            var items = await client.BoardGames.GetAsync(cancellationToken: cancellationToken);
+            var items = await client.BoardGames.GetAsync(config =>
+            {
+                config.QueryParameters = new BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters
+                {
+                    GroupId = groupId
+                };
+            }, cancellationToken: cancellationToken);
             var result = items ?? new List<BoardGameViewModel>();
             
-            // Cache the result for offline use
-            await _cacheService.SetCachedBoardGamesAsync(result);
+            // Cache the result for offline use (only when no filter)
+            if (!groupId.HasValue)
+            {
+                await _cacheService.SetCachedBoardGamesAsync(result);
+            }
             
             return result;
         }
         catch (HttpRequestException)
         {
-            // Network error - try to return cached data
-            return await _cacheService.GetCachedBoardGamesAsync();
+            // Network error - try to return cached data (only when no filter)
+            if (!groupId.HasValue)
+            {
+                return await _cacheService.GetCachedBoardGamesAsync();
+            }
+            throw;
         }
     }
 
-    public async Task<IReadOnlyList<BoardGameViewModel>> FilterAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BoardGameViewModel>> FilterAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, int? groupId = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var client = _clientFactory.CreateClient();
-            return (await client.BoardGames.Filter.GetAsync(config =>
+            var result = (await client.BoardGames.Filter.GetAsync(config =>
             {
                 config.QueryParameters = new FilterRequestBuilder.FilterRequestBuilderGetQueryParameters
                 {
@@ -50,6 +65,14 @@ public class BoardGamesService : IBoardGamesService
                     GameTypes = gameTypes?.ToArray()
                 };
             }, cancellationToken))?.AsReadOnly() ?? ReadOnlyCollection<BoardGameViewModel>.Empty;
+            
+            // Filter by group if specified
+            if (groupId.HasValue)
+            {
+                result = result.Where(g => g.GroupId == groupId.Value).ToList().AsReadOnly();
+            }
+            
+            return result;
         }
         catch (HttpRequestException)
         {
@@ -59,10 +82,19 @@ public class BoardGamesService : IBoardGamesService
         }
     }
     
-    public async Task<BoardGameViewModel?> SuggestAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, CancellationToken cancellationToken = default)
+    public async Task<BoardGameViewModel?> SuggestAsync(int playersCount, int maxDurationMinutes, IReadOnlyList<string>? gameTypes, int? groupId = null, CancellationToken cancellationToken = default)
     {
         try
         {
+            // If groupId is specified, get filtered results and pick randomly
+            if (groupId.HasValue)
+            {
+                var filtered = await FilterAsync(playersCount, maxDurationMinutes, gameTypes, groupId, cancellationToken);
+                if (filtered.Count == 0) return null;
+                var randomIndex = Random.Shared.Next(filtered.Count);
+                return filtered[randomIndex];
+            }
+            
             var client = _clientFactory.CreateClient();
             return await client.BoardGames.Suggest.GetAsync(config =>
             {
@@ -138,6 +170,24 @@ public class BoardGamesService : IBoardGamesService
     {
         var client = _clientFactory.CreateClient();
         await client.BoardGames[id].DeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<BoardGameViewModel?> ShareWithGroupAsync(int boardGameId, int groupId, CancellationToken cancellationToken = default)
+    {
+        var client = _clientFactory.CreateClient();
+        return await client.BoardGames[boardGameId].Share.PostAsync(config =>
+        {
+            config.QueryParameters = new ShareRequestBuilder.ShareRequestBuilderPostQueryParameters
+            {
+                GroupId = groupId
+            };
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task<BoardGameViewModel?> UnshareAsync(int boardGameId, CancellationToken cancellationToken = default)
+    {
+        var client = _clientFactory.CreateClient();
+        return await client.BoardGames[boardGameId].Unshare.PostAsync(cancellationToken: cancellationToken);
     }
     
     private static IReadOnlyList<BoardGameViewModel> FilterGamesLocally(

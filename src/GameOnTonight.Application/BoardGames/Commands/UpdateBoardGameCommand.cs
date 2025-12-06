@@ -1,6 +1,7 @@
 using FluentValidation;
 using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Commands;
@@ -47,11 +48,16 @@ public sealed class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardG
 {
     private readonly IBoardGameRepository _repository;
     private readonly IGameTypeRepository _gameTypeRepository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateBoardGameCommandHandler(IBoardGameRepository repository, IGameTypeRepository gameTypeRepository)
+    public UpdateBoardGameCommandHandler(
+        IBoardGameRepository repository, 
+        IGameTypeRepository gameTypeRepository,
+        ICurrentUserService currentUserService)
     {
         _repository = repository;
         _gameTypeRepository = gameTypeRepository;
+        _currentUserService = currentUserService;
     }
 
     public async ValueTask<BoardGameViewModel?> Handle(UpdateBoardGameCommand request, CancellationToken cancellationToken)
@@ -77,6 +83,6 @@ public sealed class UpdateBoardGameCommandHandler : IRequestHandler<UpdateBoardG
 
         await _repository.UpdateAsync(entity, cancellationToken);
 
-        return new BoardGameViewModel(entity);
+        return new BoardGameViewModel(entity, _currentUserService.UserId);
     }
 }

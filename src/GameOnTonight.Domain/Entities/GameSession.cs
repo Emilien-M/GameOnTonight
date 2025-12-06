@@ -6,7 +6,7 @@ namespace GameOnTonight.Domain.Entities;
 /// <summary>
 /// Represents a played game session.
 /// </summary>
-public class GameSession : UserOwnedEntity
+public class GameSession : ShareableUserOwnedEntity
 {
     /// <summary>
     /// ID of the game to which this session refers.

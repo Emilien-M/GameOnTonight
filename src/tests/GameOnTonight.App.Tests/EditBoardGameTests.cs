@@ -36,6 +36,15 @@ public class EditBoardGameTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<IErrorService, ErrorService>();
         Services.AddSingleton<IBoardGamesService>(boardGamesMock.Object);
+        
+        // Register IGroupContextService mock
+        var groupContextMock = new Mock<IGroupContextService>();
+        groupContextMock.Setup(g => g.SelectedGroupId).Returns((int?)null);
+        groupContextMock.Setup(g => g.SelectedGroupName).Returns((string?)null);
+        groupContextMock.Setup(g => g.GetUserGroupsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<GroupViewModel>());
+        Services.AddSingleton(groupContextMock.Object);
+        
         // NavigationManager is provided by bUnit automatically.
     }
 

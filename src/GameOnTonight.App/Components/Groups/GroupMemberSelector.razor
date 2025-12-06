@@ -1,0 +1,211 @@
+@using GameOnTonight.RestClient.Models
+@inject IGroupsService GroupsService
+
+<MudAutocomplete T="PlayerSelection"
+                 Value="_selectedPlayer"
+                 ValueChanged="OnSelectionChangedAsync"
+                 SearchFunc="SearchPlayersAsync"
+                 ToStringFunc="@(p => p?.DisplayName ?? "")"
+                 Label="@Label"
+                 Placeholder="@Placeholder"
+                 Variant="Variant.Outlined"
+                 Dense="true"
+                 Clearable="true"
+                 ResetValueOnEmptyText="true"
+                 CoerceText="true"
+                 CoerceValue="false"
+                 Disabled="@Disabled"
+                 Class="@Class">
+    <ItemTemplate Context="player">
+        @if (player.IsGroupMember)
+        {
+            <div class="d-flex align-center gap-2 py-1">
+                <MudAvatar Size="Size.Small" Color="Color.Secondary">
+                    @player.Initials
+                </MudAvatar>
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.body2">@player.DisplayName</MudText>
+                    @if (player.IsCurrentUser)
+                    {
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">(vous)</MudText>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-center gap-2 py-1">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small" Color="Color.Default" />
+                <MudText Typo="Typo.body2">"@player.DisplayName" (invité)</MudText>
+            </div>
+        }
+    </ItemTemplate>
+    
+    <NoItemsTemplate>
+        <MudText Class="pa-2" Typo="Typo.body2">
+            Tapez un nom pour ajouter un invité
+        </MudText>
+    </NoItemsTemplate>
+</MudAutocomplete>
+
+@code {
+    /// <summary>
+    /// ID du groupe pour charger les membres. Si null, seul le texte libre est disponible.
+    /// </summary>
+    [Parameter]
+    public int? GroupId { get; set; }
+    
+    /// <summary>
+    /// Label du champ.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Joueur";
+    
+    /// <summary>
+    /// Placeholder du champ.
+    /// </summary>
+    [Parameter]
+    public string Placeholder { get; set; } = "Rechercher ou saisir un nom...";
+    
+    /// <summary>
+    /// Valeur sélectionnée.
+    /// </summary>
+    [Parameter]
+    public PlayerSelection? Value { get; set; }
+    
+    /// <summary>
+    /// Callback quand la sélection change.
+    /// </summary>
+    [Parameter]
+    public EventCallback<PlayerSelection?> ValueChanged { get; set; }
+    
+    /// <summary>
+    /// ID de l'utilisateur courant (pour marquer "vous").
+    /// </summary>
+    [Parameter]
+    public string? CurrentUserId { get; set; }
+    
+    /// <summary>
+    /// Désactiver le composant.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+    
+    /// <summary>
+    /// Classes CSS supplémentaires.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    // État interne
+    private PlayerSelection? _selectedPlayer;
+    private IReadOnlyList<GroupMemberViewModel> _groupMembers = [];
+    private int? _lastLoadedGroupId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Recharger les membres si le groupe change
+        if (GroupId.HasValue && GroupId != _lastLoadedGroupId)
+        {
+            await LoadMembersAsync();
+        }
+        
+        // Sync avec la valeur externe
+        _selectedPlayer = Value;
+    }
+
+    private async Task LoadMembersAsync()
+    {
+        if (!GroupId.HasValue) return;
+        
+        try
+        {
+            _groupMembers = await GroupsService.GetMembersAsync(GroupId.Value);
+            _lastLoadedGroupId = GroupId;
+        }
+        catch
+        {
+            _groupMembers = [];
+        }
+    }
+
+    private async Task<IEnumerable<PlayerSelection>> SearchPlayersAsync(string searchText, CancellationToken cancellationToken)
+    {
+        var results = new List<PlayerSelection>();
+        
+        // Si texte vide, retourner tous les membres du groupe
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            if (GroupId.HasValue && _groupMembers.Count > 0)
+            {
+                results.AddRange(_groupMembers.Select(m => new PlayerSelection
+                {
+                    DisplayName = m.DisplayName ?? m.UserId ?? "Membre",
+                    GroupMemberId = m.Id,
+                    UserId = m.UserId,
+                    IsGroupMember = true,
+                    IsCurrentUser = m.UserId == CurrentUserId
+                }));
+            }
+            return results;
+        }
+        
+        var searchLower = searchText.ToLowerInvariant();
+        
+        // Chercher dans les membres du groupe
+        if (GroupId.HasValue && _groupMembers.Count > 0)
+        {
+            var matchingMembers = _groupMembers
+                .Where(m => (m.DisplayName?.ToLowerInvariant().Contains(searchLower) ?? false) ||
+                           (m.UserId?.ToLowerInvariant().Contains(searchLower) ?? false))
+                .Select(m => new PlayerSelection
+                {
+                    DisplayName = m.DisplayName ?? m.UserId ?? "Membre",
+                    GroupMemberId = m.Id,
+                    UserId = m.UserId,
+                    IsGroupMember = true,
+                    IsCurrentUser = m.UserId == CurrentUserId
+                });
+            
+            results.AddRange(matchingMembers);
+        }
+        
+        // Toujours proposer le texte saisi comme option "invité"
+        if (!results.Any(r => r.DisplayName?.Equals(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            results.Add(new PlayerSelection
+            {
+                DisplayName = searchText,
+                IsGroupMember = false,
+                IsCurrentUser = false
+            });
+        }
+        
+        return results;
+    }
+
+    private async Task OnSelectionChangedAsync(PlayerSelection? selection)
+    {
+        _selectedPlayer = selection;
+        await ValueChanged.InvokeAsync(selection);
+    }
+    
+    /// <summary>
+    /// Réinitialise la sélection.
+    /// </summary>
+    public void Clear()
+    {
+        _selectedPlayer = null;
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Recharge les membres du groupe.
+    /// </summary>
+    public async Task RefreshMembersAsync()
+    {
+        _lastLoadedGroupId = null;
+        await LoadMembersAsync();
+        StateHasChanged();
+    }
+}

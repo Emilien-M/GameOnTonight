@@ -2,6 +2,7 @@ using GameOnTonight.Application.BoardGames.Commands;
 using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using NSubstitute;
 using Xunit;
 
@@ -11,13 +12,17 @@ public class CreateBoardGameCommandHandlerTests
 {
     private readonly IBoardGameRepository _repository;
     private readonly IGameTypeRepository _gameTypeRepository;
+    private readonly ICurrentUserService _currentUserService;
     private readonly CreateBoardGameCommandHandler _handler;
+    private const string TestUserId = "test-user-id";
 
     public CreateBoardGameCommandHandlerTests()
     {
         _repository = Substitute.For<IBoardGameRepository>();
         _gameTypeRepository = Substitute.For<IGameTypeRepository>();
-        _handler = new CreateBoardGameCommandHandler(_repository, _gameTypeRepository);
+        _currentUserService = Substitute.For<ICurrentUserService>();
+        _currentUserService.UserId.Returns(TestUserId);
+        _handler = new CreateBoardGameCommandHandler(_repository, _gameTypeRepository, _currentUserService);
     }
 
     [Fact]

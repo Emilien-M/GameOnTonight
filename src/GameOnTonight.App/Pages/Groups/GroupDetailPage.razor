@@ -1,0 +1,203 @@
+@page "/groups/{GroupId:int}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using GameOnTonight.RestClient.Models
+@using GameOnTonight.App.Components.Groups
+@inject IGroupsService GroupsService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>@(_group?.Name ?? "Groupe") - Game On Tonight</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+    
+    <MudButton 
+        Variant="Variant.Text" 
+        StartIcon="@Icons.Material.Filled.ArrowBack"
+        OnClick="NavigateBack"
+        Class="mb-4">
+        Retour aux groupes
+    </MudButton>
+    
+    @if (_isLoading)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" Class="mb-4" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+    }
+    else if (_group == null)
+    {
+        <MudAlert Severity="Severity.Error">
+            Groupe introuvable ou vous n'avez pas accès à ce groupe.
+        </MudAlert>
+    }
+    else
+    {
+        <!-- En-tête du groupe -->
+        <MudPaper Class="pa-4 mb-4">
+            <div class="d-flex justify-space-between align-start">
+                <div class="d-flex align-center gap-4">
+                    <MudAvatar Color="Color.Primary" Size="Size.Large">
+                        <LucideIcon Name="users" Size="32" />
+                    </MudAvatar>
+                    <div>
+                        <MudText Typo="Typo.h5">@_group.Name</MudText>
+                        @if (!string.IsNullOrWhiteSpace(_group.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                                @_group.Description
+                            </MudText>
+                        }
+                        <div class="d-flex gap-4 mt-2">
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">@_members.Count membres</MudText>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                @if (_group.IsOwner == true)
+                {
+                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                        Propriétaire
+                    </MudChip>
+                }
+            </div>
+        </MudPaper>
+        
+        <!-- Onglets -->
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+            
+            <!-- Onglet Membres -->
+            <MudTabPanel Text="Membres" Icon="@Icons.Material.Filled.People">
+                <MudText Typo="Typo.h6" Class="mb-4">Membres du groupe</MudText>
+
+                @if (_members.Count == 0)
+                {
+                    <MudText Class="mud-text-secondary">Aucun membre dans ce groupe.</MudText>
+                }
+                else
+                {
+                    <MudList T="GroupMemberViewModel" Dense="true">
+                        @foreach (var member in _members)
+                        {
+                            <MudListItem>
+                                <div class="d-flex align-center justify-space-between w-100">
+                                    <div class="d-flex align-center gap-3">
+                                        <MudAvatar Size="Size.Small" Color="Color.Secondary">
+                                            @GetInitials(member.DisplayName)
+                                        </MudAvatar>
+                                        <div>
+                                            <MudText Typo="Typo.body1">@member.DisplayName</MudText>
+                                            <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                                                @GetRoleDisplayName(member.Role)
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (_group.IsOwner == true && member.Role != 0)
+                                    {
+                                        <MudIconButton 
+                                            Icon="@Icons.Material.Filled.PersonRemove" 
+                                            Color="Color.Error"
+                                            Size="Size.Small"
+                                            OnClick="@(() => RemoveMemberAsync(member))" />
+                                    }
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudTabPanel>
+            
+            <!-- Onglet Invitations (propriétaire uniquement) -->
+            @if (_group.IsOwner == true)
+            {
+                <MudTabPanel Text="Invitations" Icon="@Icons.Material.Filled.Link">
+                    <div class="d-flex justify-space-between align-center mb-4">
+                        <MudText Typo="Typo.h6">Codes d'invitation</MudText>
+                        <MudButton 
+                            Variant="Variant.Filled" 
+                            Color="Color.Primary"
+                            StartIcon="@Icons.Material.Filled.Add"
+                            OnClick="CreateInviteCodeAsync">
+                            Créer un code
+                        </MudButton>
+                    </div>
+                    
+                    @if (_inviteCodes.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            Aucun code d'invitation actif. Créez-en un pour inviter des membres.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudSimpleTable>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Expire</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var inviteCode in _inviteCodes)
+                                {
+                                    <tr>
+                                        <td style="font-family: monospace;">@inviteCode.Code</td>
+                                        <td>@(inviteCode.ExpiresAt?.ToString("dd/MM/yyyy HH:mm") ?? "Jamais")</td>
+                                        <td>
+                                            <MudIconButton 
+                                                Icon="@Icons.Material.Filled.ContentCopy" 
+                                                Size="Size.Small"
+                                                OnClick="@(() => CopyCodeAsync(inviteCode.Code))" />
+                                            <MudIconButton 
+                                                Icon="@Icons.Material.Filled.Delete" 
+                                                Color="Color.Error"
+                                                Size="Size.Small"
+                                                OnClick="@(() => RevokeCodeAsync(inviteCode))" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
+                    }
+                </MudTabPanel>
+            }
+            
+            <!-- Onglet Quitter/Supprimer -->
+            <MudTabPanel Text="@(_group.IsOwner == true ? "Supprimer" : "Quitter")" Icon="@Icons.Material.Filled.ExitToApp">
+                @if (_group.IsOwner == true)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mb-4">
+                        <MudText>Attention : supprimer ce groupe est irréversible. Tous les membres seront retirés.</MudText>
+                    </MudAlert>
+                    <MudButton 
+                        Variant="Variant.Filled" 
+                        Color="Color.Error"
+                        OnClick="DeleteGroupAsync"
+                        Disabled="_isDeleting">
+                        Supprimer le groupe
+                    </MudButton>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Class="mb-4">
+                        <MudText>Vous êtes sur le point de quitter ce groupe. Vous ne pourrez plus voir les jeux partagés.</MudText>
+                    </MudAlert>
+                    <MudButton 
+                        Variant="Variant.Filled" 
+                        Color="Color.Warning"
+                        OnClick="LeaveGroupAsync"
+                        Disabled="_isLeaving">
+                        Quitter le groupe
+                    </MudButton>
+                }
+            </MudTabPanel>
+            
+        </MudTabs>
+    }
+    
+</MudContainer>

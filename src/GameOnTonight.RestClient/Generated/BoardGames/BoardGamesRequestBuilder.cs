@@ -72,7 +72,7 @@ namespace GameOnTonight.RestClient.BoardGames
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public BoardGamesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames", pathParameters)
+        public BoardGamesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames{?groupId*}", pathParameters)
         {
         }
         /// <summary>
@@ -80,7 +80,7 @@ namespace GameOnTonight.RestClient.BoardGames
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public BoardGamesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames", rawUrl)
+        public BoardGamesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/BoardGames{?groupId*}", rawUrl)
         {
         }
         /// <returns>A List&lt;global::GameOnTonight.RestClient.Models.BoardGameViewModel&gt;</returns>
@@ -88,11 +88,11 @@ namespace GameOnTonight.RestClient.BoardGames
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<List<global::GameOnTonight.RestClient.Models.BoardGameViewModel>?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<List<global::GameOnTonight.RestClient.Models.BoardGameViewModel>?> GetAsync(Action<RequestConfiguration<global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<List<global::GameOnTonight.RestClient.Models.BoardGameViewModel>> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<List<global::GameOnTonight.RestClient.Models.BoardGameViewModel>> GetAsync(Action<RequestConfiguration<global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -112,7 +112,7 @@ namespace GameOnTonight.RestClient.BoardGames
         public async Task<global::GameOnTonight.RestClient.Models.BoardGameViewModel> PostAsync(global::GameOnTonight.RestClient.Models.CreateBoardGameCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             return await RequestAdapter.SendAsync<global::GameOnTonight.RestClient.Models.BoardGameViewModel>(requestInfo, global::GameOnTonight.RestClient.Models.BoardGameViewModel.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
@@ -120,11 +120,11 @@ namespace GameOnTonight.RestClient.BoardGames
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -144,7 +144,7 @@ namespace GameOnTonight.RestClient.BoardGames
         public RequestInformation ToPostRequestInformation(global::GameOnTonight.RestClient.Models.CreateBoardGameCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.POST, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json, text/plain;q=0.9");
@@ -160,12 +160,20 @@ namespace GameOnTonight.RestClient.BoardGames
         {
             return new global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder(rawUrl, RequestAdapter);
         }
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        #pragma warning disable CS1591
+        public partial class BoardGamesRequestBuilderGetQueryParameters 
+        #pragma warning restore CS1591
+        {
+            [QueryParameter("groupId")]
+            public int? GroupId { get; set; }
+        }
         /// <summary>
         /// Configuration for the request such as headers, query parameters, and middleware options.
         /// </summary>
         [Obsolete("This class is deprecated. Please use the generic RequestConfiguration class generated by the generator.")]
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-        public partial class BoardGamesRequestBuilderGetRequestConfiguration : RequestConfiguration<DefaultQueryParameters>
+        public partial class BoardGamesRequestBuilderGetRequestConfiguration : RequestConfiguration<global::GameOnTonight.RestClient.BoardGames.BoardGamesRequestBuilder.BoardGamesRequestBuilderGetQueryParameters>
         {
         }
         /// <summary>

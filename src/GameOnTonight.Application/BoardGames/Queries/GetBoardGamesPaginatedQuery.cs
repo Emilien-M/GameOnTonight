@@ -2,6 +2,7 @@ using FluentValidation;
 using GameOnTonight.Application.BoardGames.ViewModels;
 using GameOnTonight.Application.Common;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.BoardGames.Queries;
@@ -25,17 +26,20 @@ public sealed class GetBoardGamesPaginatedQueryValidator : AbstractValidator<Get
 public sealed class GetBoardGamesPaginatedQueryHandler : IRequestHandler<GetBoardGamesPaginatedQuery, PaginatedResultViewModel<BoardGameViewModel>>
 {
     private readonly IBoardGameRepository _repository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetBoardGamesPaginatedQueryHandler(IBoardGameRepository repository)
+    public GetBoardGamesPaginatedQueryHandler(IBoardGameRepository repository, ICurrentUserService currentUserService)
     {
         _repository = repository;
+        _currentUserService = currentUserService;
     }
 
     public async ValueTask<PaginatedResultViewModel<BoardGameViewModel>> Handle(GetBoardGamesPaginatedQuery request, CancellationToken cancellationToken)
     {
         var (items, totalCount) = await _repository.GetAllPaginatedAsync(request.Page, request.PageSize, cancellationToken);
         
-        var viewModels = items.Select(e => new BoardGameViewModel(e)).ToList();
+        var userId = _currentUserService.UserId;
+        var viewModels = items.Select(e => new BoardGameViewModel(e, userId)).ToList();
         
         var paginatedResult = new PaginatedResult<BoardGameViewModel>(viewModels, request.Page, request.PageSize, totalCount);
         

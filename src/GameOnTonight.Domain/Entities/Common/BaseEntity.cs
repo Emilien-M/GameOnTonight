@@ -46,6 +46,11 @@ public abstract class BaseEntity
     {
         _domainErrors.Add(new DomainError(message, propertyName));
     }
+    
+    protected void AddDomainError(DomainError error)
+    {
+        AddDomainError(error.Name, error.Message);
+    }
 
     /// <summary>
     /// Validates a string property to ensure it is not null or empty.

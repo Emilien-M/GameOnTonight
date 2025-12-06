@@ -61,7 +61,7 @@ namespace GameOnTonight.RestClient.Profile
         public async Task<global::GameOnTonight.RestClient.Models.ProfileViewModel> PutAsync(global::GameOnTonight.RestClient.Models.UpdateProfileCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPutRequestInformation(body, requestConfiguration);
             return await RequestAdapter.SendAsync<global::GameOnTonight.RestClient.Models.ProfileViewModel>(requestInfo, global::GameOnTonight.RestClient.Models.ProfileViewModel.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
@@ -93,7 +93,7 @@ namespace GameOnTonight.RestClient.Profile
         public RequestInformation ToPutRequestInformation(global::GameOnTonight.RestClient.Models.UpdateProfileCommand body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
-            _ = body ?? throw new ArgumentNullException(nameof(body));
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.PUT, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json, text/plain;q=0.9");

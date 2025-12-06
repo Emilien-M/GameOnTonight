@@ -2,6 +2,7 @@ using FluentValidation;
 using GameOnTonight.Application.GameSessions.ViewModels;
 using GameOnTonight.Domain.Entities;
 using GameOnTonight.Domain.Repositories;
+using GameOnTonight.Domain.Services;
 using Mediator;
 
 namespace GameOnTonight.Application.GameSessions.Commands;
@@ -79,13 +80,16 @@ public sealed class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGame
 {
     private readonly IGameSessionRepository _sessionRepository;
     private readonly IBoardGameRepository _boardGameRepository;
+    private readonly ICurrentUserService _currentUserService;
 
     public UpdateGameSessionCommandHandler(
         IGameSessionRepository sessionRepository,
-        IBoardGameRepository boardGameRepository)
+        IBoardGameRepository boardGameRepository,
+        ICurrentUserService currentUserService)
     {
         _sessionRepository = sessionRepository;
         _boardGameRepository = boardGameRepository;
+        _currentUserService = currentUserService;
     }
 
     public async ValueTask<GameSessionViewModel?> Handle(UpdateGameSessionCommand request, CancellationToken cancellationToken)
@@ -134,6 +138,6 @@ public sealed class UpdateGameSessionCommandHandler : IRequestHandler<UpdateGame
 
         await _sessionRepository.UpdateAsync(session, cancellationToken);
 
-        return new GameSessionViewModel(session);
+        return new GameSessionViewModel(session, _currentUserService.UserId);
     }
 }

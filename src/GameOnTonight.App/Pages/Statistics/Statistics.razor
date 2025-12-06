@@ -97,6 +97,10 @@ else
                     <MudTh Style="text-align: center">Taux de victoire</MudTh>
                 </HeaderContent>
                 <RowTemplate>
+                    @{
+                        var wins = context.Wins ?? 0;
+                        var winRate = context.WinRate ?? 0;
+                    }
                     <MudTd DataLabel="Joueur">
                         <div class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
@@ -105,9 +109,9 @@ else
                     </MudTd>
                     <MudTd DataLabel="Parties" Style="text-align: center">@context.GamesPlayed</MudTd>
                     <MudTd DataLabel="Victoires" Style="text-align: center">
-                        @if (context.Wins > 0)
+                        @if (wins > 0)
                         {
-                            <MudChip T="string" Color="Color.Success" Size="Size.Small">@context.Wins</MudChip>
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">@wins</MudChip>
                         }
                         else
                         {
@@ -115,12 +119,12 @@ else
                         }
                     </MudTd>
                     <MudTd DataLabel="Taux de victoire" Style="text-align: center">
-                        <MudProgressLinear Color="@GetWinRateColor(context.WinRate)" 
-                                           Value="@(context.WinRate ?? 0)" 
+                        <MudProgressLinear Color="@GetWinRateColor(winRate)" 
+                                           Value="@winRate" 
                                            Max="100"
                                            Class="my-2" 
                                            Style="min-width: 80px;" />
-                        <MudText Typo="Typo.caption">@(context.WinRate?.ToString("0.0") ?? "0")%</MudText>
+                        <MudText Typo="Typo.caption">@(winRate.ToString("0.0"))%</MudText>
                     </MudTd>
                 </RowTemplate>
             </MudTable>
@@ -135,6 +139,8 @@ else
             <div class="d-flex flex-column gap-2">
                 @foreach (var (game, index) in statistics.TopGames.Select((g, i) => (g, i)))
                 {
+                    var playCount = game.PlayCount ?? 0;
+                    var avgRating = game.AverageRating;
                     <div class="d-flex justify-space-between align-center pa-2 rounded" style="background: var(--mud-palette-background-grey);">
                         <div class="d-flex align-center gap-2">
                             <MudAvatar Color="@GetRankColor(index)" Size="Size.Small">@(index + 1)</MudAvatar>
@@ -142,11 +148,11 @@ else
                         </div>
                         <div class="d-flex align-center gap-3">
                             <MudChip T="string" Color="Color.Primary" Size="Size.Small">
-                                @game.PlayCount partie@(game.PlayCount > 1 ? "s" : "")
+                                @playCount partie@(playCount > 1 ? "s" : "")
                             </MudChip>
-                            @if (game.AverageRating.HasValue)
+                            @if (avgRating.HasValue)
                             {
-                                <MudRating SelectedValue="@((int)Math.Round(game.AverageRating.Value))" 
+                                <MudRating SelectedValue="@((int)Math.Round(avgRating.Value))" 
                                            ReadOnly="true" 
                                            Size="Size.Small"
                                            Color="Color.Warning" />
@@ -242,7 +248,7 @@ else
         return name[..(maxLength - 3)] + "...";
     }
 
-    private static Color GetWinRateColor(double? winRate)
+    private static Color GetWinRateColor(double winRate)
     {
         return winRate switch
         {

@@ -12,36 +12,47 @@ namespace GameOnTonight.Infrastructure.Repositories;
 /// </summary>
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IEntityValidationService _validationService;
-    private bool _disposed = false;
+    private IReadOnlyList<ITransactionalElement> _transactionalElements;
+    private bool _disposed;
 
-    public UnitOfWork(ApplicationDbContext context, IEntityValidationService validationService)
+    public bool IsInTransaction { get; private set;  }
+
+    public UnitOfWork(IEnumerable<ITransactionalElement> transactionalElements)
     {
-        _context = context;
-        _validationService = validationService;
+        _transactionalElements = transactionalElements.ToList();
     }
 
-    public async Task<int> SaveChangesAsync()
+    public async Task<ITransactionalElement> BeginTransactionAsync()
     {
-        ValidateEntities();
+        foreach (var transactionalElement in _transactionalElements)
+            await transactionalElement.BeginTransactionAsync();
         
-        return await _context.SaveChangesAsync();
+        IsInTransaction = true;
+        return this;
+    }
+
+    public async Task CommitAsync()
+    {
+        if (!IsInTransaction)
+            return;
+        
+        foreach (var transactionalElement in _transactionalElements)
+            await transactionalElement.CommitAsync();
+        
+        IsInTransaction = false;
+    }
+
+    public async Task RollbackAsync()
+    {
+        if (!IsInTransaction)
+            return;
+        
+        foreach (var transactionalElement in _transactionalElements)
+            await transactionalElement.RollbackAsync();
+        
+        IsInTransaction = false;
     }
     
-    /// <summary>
-    /// Ensures that all modified or added entities do not contain domain errors.
-    /// </summary>
-    private void ValidateEntities()
-    {
-        var changedEntities = _context.ChangeTracker.Entries()
-            .Where(e => e.State is EntityState.Added or EntityState.Modified 
-                   && e.Entity is BaseEntity)
-            .Select(e => (e.Entity as BaseEntity)!)
-            .ToList();
-        
-        _validationService.ValidateEntities(changedEntities);
-    }
 
     public void Dispose()
     {
@@ -53,7 +64,10 @@ public class UnitOfWork : IUnitOfWork
     {
         if (!_disposed && disposing)
         {
-            _context.Dispose();
+            foreach (var transactionalElement in _transactionalElements)
+            {
+                transactionalElement.Dispose();
+            }
         }
         _disposed = true;
     }

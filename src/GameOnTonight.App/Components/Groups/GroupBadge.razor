@@ -1,0 +1,68 @@
+@if (IsPersonal && ShowPersonalBadge)
+{
+    <MudChip T="string" 
+             Size="Size.Small" 
+             Color="Color.Default" 
+             Variant="Variant.Outlined"
+             Class="@Class">
+        <LucideIcon Name="user" Size="12" Class="mr-1" />
+        Mes jeux
+    </MudChip>
+}
+else if (!string.IsNullOrEmpty(GroupName))
+{
+    <MudChip T="string" 
+             Size="Size.Small" 
+             Color="Color.Secondary" 
+             Variant="Variant.Filled"
+             Class="@Class">
+        <LucideIcon Name="users" Size="12" Class="mr-1" />
+        @GroupName
+    </MudChip>
+    
+    @if (!string.IsNullOrEmpty(OwnerName) && !IsOwner)
+    {
+        <MudText Typo="Typo.caption" Class="mud-text-secondary ml-2">
+            par @OwnerName
+        </MudText>
+    }
+}
+
+@code {
+    /// <summary>
+    /// Indique si l'élément appartient à l'utilisateur courant (pas de GroupId).
+    /// </summary>
+    [Parameter]
+    public bool IsPersonal { get; set; }
+    
+    /// <summary>
+    /// Nom du groupe avec lequel l'élément est partagé.
+    /// </summary>
+    [Parameter]
+    public string? GroupName { get; set; }
+    
+    /// <summary>
+    /// Nom du propriétaire de l'élément.
+    /// </summary>
+    [Parameter]
+    public string? OwnerName { get; set; }
+    
+    /// <summary>
+    /// Indique si l'utilisateur courant est le propriétaire de l'élément.
+    /// </summary>
+    [Parameter]
+    public bool IsOwner { get; set; }
+    
+    /// <summary>
+    /// Afficher le badge "Mes jeux" pour les éléments personnels.
+    /// Par défaut false (on n'affiche rien pour les éléments personnels).
+    /// </summary>
+    [Parameter]
+    public bool ShowPersonalBadge { get; set; } = false;
+    
+    /// <summary>
+    /// Classes CSS supplémentaires.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+}

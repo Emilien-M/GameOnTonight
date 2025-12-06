@@ -1,5 +1,4 @@
 using GameOnTonight.Domain.Repositories;
-using Microsoft.AspNetCore.Http;
 
 namespace GameOnTonight.Api.Middlewares;
 
@@ -18,22 +17,34 @@ public sealed class UnitOfWorkMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Execute the rest of the pipeline
-        await _next(context);
-
-        // Commit only after successful execution (no exception) and for non-GET/HEAD requests
-        // It's safe to call SaveChanges even when there are no changes; EF will no-op.
-        if (!HttpMethods.IsGet(context.Request.Method) &&
-            !HttpMethods.IsHead(context.Request.Method) &&
-            !HttpMethods.IsOptions(context.Request.Method) &&
-            !HttpMethods.IsTrace(context.Request.Method) &&
-            context.Response.StatusCode < 400)
+        var uow = context.RequestServices.GetRequiredService<IUnitOfWork>();
+        var alreadyRollBack = false;
+        
+        using var transactionalElement = await uow.BeginTransactionAsync();
+        
+        try
         {
-            var uow = context.RequestServices.GetService<IUnitOfWork>();
-            if (uow is not null)
+            await _next(context);
+
+            if (!HttpMethods.IsGet(context.Request.Method) &&
+                !HttpMethods.IsHead(context.Request.Method) &&
+                !HttpMethods.IsOptions(context.Request.Method) &&
+                !HttpMethods.IsTrace(context.Request.Method) &&
+                context.Response.StatusCode < 400)
             {
-                await uow.SaveChangesAsync();
+                await transactionalElement.CommitAsync();
             }
+            else
+            {
+                alreadyRollBack = true;
+                await transactionalElement.RollbackAsync();
+            }
+        }
+        catch (Exception)
+        {
+            if (!alreadyRollBack)
+                await transactionalElement.RollbackAsync();
+            throw;
         }
     }
 }

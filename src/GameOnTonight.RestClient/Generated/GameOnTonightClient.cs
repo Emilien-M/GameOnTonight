@@ -5,6 +5,7 @@ using GameOnTonight.RestClient.ConfirmEmail;
 using GameOnTonight.RestClient.ForgotPassword;
 using GameOnTonight.RestClient.GameSessions;
 using GameOnTonight.RestClient.GameTypes;
+using GameOnTonight.RestClient.Groups;
 using GameOnTonight.RestClient.Health;
 using GameOnTonight.RestClient.Login;
 using GameOnTonight.RestClient.Manage;
@@ -57,6 +58,11 @@ namespace GameOnTonight.RestClient
         public global::GameOnTonight.RestClient.GameTypes.GameTypesRequestBuilder GameTypes
         {
             get => new global::GameOnTonight.RestClient.GameTypes.GameTypesRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The Groups property</summary>
+        public global::GameOnTonight.RestClient.Groups.GroupsRequestBuilder Groups
+        {
+            get => new global::GameOnTonight.RestClient.Groups.GroupsRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The health property</summary>
         public global::GameOnTonight.RestClient.Health.HealthRequestBuilder Health
