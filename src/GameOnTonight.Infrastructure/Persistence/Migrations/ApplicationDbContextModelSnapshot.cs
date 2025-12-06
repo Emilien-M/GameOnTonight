@@ -55,6 +55,9 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -80,6 +83,9 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupId")
+                        .HasFilter("\"GroupId\" IS NOT NULL");
+
                     b.HasIndex("Name");
 
                     b.HasIndex("UserId");
@@ -102,6 +108,9 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
@@ -132,6 +141,9 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("BoardGameId");
 
+                    b.HasIndex("GroupId")
+                        .HasFilter("\"GroupId\" IS NOT NULL");
+
                     b.HasIndex("PlayedAt");
 
                     b.HasIndex("UserId");
@@ -151,6 +163,9 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("GameSessionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("GroupMemberId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsWinner")
@@ -175,6 +190,8 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GameSessionId");
+
+                    b.HasIndex("GroupMemberId");
 
                     b.ToTable("GameSessionPlayers", (string)null);
                 });
@@ -211,6 +228,116 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("GameTypes", (string)null);
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Groups", (string)null);
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GroupInviteCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("GroupInviteCodes", (string)null);
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GroupMember", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("GroupId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("GroupMembers", (string)null);
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.Profile", b =>
@@ -456,11 +583,18 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.BoardGame", b =>
                 {
+                    b.HasOne("GameOnTonight.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSession", b =>
@@ -471,6 +605,11 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GameOnTonight.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -478,6 +617,8 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("BoardGame");
+
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSessionPlayer", b =>
@@ -488,7 +629,14 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GameOnTonight.Domain.Entities.GroupMember", "GroupMember")
+                        .WithMany()
+                        .HasForeignKey("GroupMemberId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("GameSession");
+
+                    b.Navigation("GroupMember");
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.GameType", b =>
@@ -498,6 +646,37 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GroupInviteCode", b =>
+                {
+                    b.HasOne("GameOnTonight.Domain.Entities.Group", "Group")
+                        .WithMany("InviteCodes")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.GroupMember", b =>
+                {
+                    b.HasOne("GameOnTonight.Domain.Entities.Group", "Group")
+                        .WithMany("Members")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameOnTonight.Domain.Entities.Profile", "Profile")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("GameOnTonight.Domain.Entities.Profile", b =>
@@ -568,6 +747,13 @@ namespace GameOnTonight.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("GameOnTonight.Domain.Entities.GameSession", b =>
                 {
                     b.Navigation("Players");
+                });
+
+            modelBuilder.Entity("GameOnTonight.Domain.Entities.Group", b =>
+                {
+                    b.Navigation("InviteCodes");
+
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

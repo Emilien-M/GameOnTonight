@@ -1,6 +1,7 @@
 using GameOnTonight.Domain.Repositories;
 using GameOnTonight.Domain.Services;
 using GameOnTonight.Infrastructure.Interceptors;
+using GameOnTonight.Infrastructure.Persistence;
 using GameOnTonight.Infrastructure.Repositories;
 using GameOnTonight.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,8 +32,13 @@ public static class DependencyInjection
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         services.AddScoped<IGameTypeRepository, GameTypeRepository>();
         services.AddScoped<IProfileRepository, ProfileRepository>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
         
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>(provider =>
+        {
+            var dbContext = provider.GetRequiredService<ApplicationDbContext>();
+            return new UnitOfWork([dbContext]);
+        });
         
         return services;
     }

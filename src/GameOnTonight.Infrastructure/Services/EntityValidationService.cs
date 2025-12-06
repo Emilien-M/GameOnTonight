@@ -13,7 +13,7 @@ public class EntityValidationService : IEntityValidationService
     /// Validates a collection of entities and throws an exception if domain errors are detected.
     /// </summary>
     /// <param name="entities">Collection of entities to validate.</param>
-    public void ValidateEntities(IEnumerable<BaseEntity> entities)
+    public void ValidateEntities(params BaseEntity[] entities)
     {
         var entitiesList = entities.ToList();
         if (entitiesList.Count == 0)

@@ -1,8 +1,8 @@
 {
-  "descriptionHash": "60DF2AE2663093D013223EFC88CD2AC1082BCDB001AB5CB09A8B8128CC66AFDE2F6E1D13F7EDF3730FD3B2825A43E33F144E867F1A8C5FB152267D1037D47DF9",
+  "descriptionHash": "2B2F3C481B338BB98B61C6B904325A50879E443C35A443D2296440901213CDEA27B7F6EDA67A33B0501135AA084E536DE5C62073E8AA88F8976E4D1A7AD481C9",
   "descriptionLocation": "http://localhost:5235/openapi/v1.json",
   "lockFileVersion": "1.0.0",
-  "kiotaVersion": "1.28.0",
+  "kiotaVersion": "1.29.0",
   "clientClassName": "GameOnTonightClient",
   "typeAccessModifier": "Public",
   "clientNamespaceName": "GameOnTonight.RestClient",

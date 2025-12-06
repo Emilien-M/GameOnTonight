@@ -1,5 +1,6 @@
 @page "/library/new"
 @page "/library/edit/{Id:int}"
+@using GameOnTonight.RestClient.Models
 
 <PageTitle>@(IsEdit ? "Modifier un jeu" : "Ajouter un jeu")</PageTitle>
 
@@ -86,6 +87,40 @@
                 </div>
             }
         </div>
+        
+        <MudDivider></MudDivider>
+        
+        <MudText Typo="Typo.body1">Ce jeu est actuellement : @(form.SelectedGroupId == null ? "Personnel" : "Partagé")</MudText>
+        
+        @if (_groups.Count == 0)
+        {
+            <MudText Typo="Typo.body1">Vous n'appartenez à aucun groupe, le partage n'est pas disponible.</MudText>
+        }
+        else
+        {
+            <MudSelect @bind-Value="form.SelectedGroupId"
+                       Label="Sélectionnez un groupe pour le partage"
+                       Variant="Variant.Outlined"
+                       Clearable="true"
+                       Disabled="_isGroupLoading">
+
+                @foreach (var group in _groups)
+                {
+                    <MudSelectItem Value="@group.Id">
+                        <div class="d-flex align-center gap-2">
+                            <LucideIcon Name="users" Size="16"/>
+                            <span>@group.Name</span>
+                        </div>
+                    </MudSelectItem>
+                }
+
+            </MudSelect>
+
+            @if (form.SelectedGroupId != null)
+            {
+                <MudText><LucideIcon Name="triangle-alert" Size="16"/> Les membres du groupe pourront voir ce jeu. Seul vous pourrez le supprimer</MudText>
+            }
+        }
 
         <div class="d-flex gap-2 mt-4">
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@isSubmitting">

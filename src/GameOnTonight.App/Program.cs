@@ -65,6 +65,8 @@ builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IErrorService, ErrorService>();
 builder.Services.AddScoped<ISearchResultService, SearchResultService>();
+builder.Services.AddScoped<IGroupsService, GroupsService>();
+builder.Services.AddScoped<IGroupContextService, GroupContextService>();
 builder.Services.AddLucideIcons();
 builder.Services.AddMudServices();
 

@@ -11,7 +11,13 @@ public record BoardGameViewModel
     public int DurationMinutes { get; init; }
     public IReadOnlyList<string> GameTypes { get; init; } = [];
 
-    public BoardGameViewModel(BoardGame entity)
+    // Sharing properties
+    public int? GroupId { get; init; }
+    public string? GroupName { get; init; }
+    public bool IsShared { get; init; }
+    public bool IsOwner { get; init; }
+
+    public BoardGameViewModel(BoardGame entity, string? currentUserId = null)
     {
         Id = entity.Id;
         Name = entity.Name;
@@ -19,5 +25,11 @@ public record BoardGameViewModel
         MaxPlayers = entity.MaxPlayers;
         DurationMinutes = entity.DurationMinutes;
         GameTypes = entity.GameTypes.Select(gt => gt.Name).ToList();
+
+        // Sharing properties
+        GroupId = entity.GroupId;
+        GroupName = entity.Group?.Name;
+        IsShared = entity.GroupId.HasValue;
+        IsOwner = currentUserId != null && entity.UserId == currentUserId;
     }
 }

@@ -23,13 +23,7 @@ namespace GameOnTonight.RestClient.Models
         public string AvatarInitials { get; set; }
 #endif
         /// <summary>The averageRating property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? AverageRating { get; set; }
-#nullable restore
-#else
-        public UntypedNode AverageRating { get; set; }
-#endif
+        public double? AverageRating { get; set; }
         /// <summary>The createdAt property</summary>
         public DateTimeOffset? CreatedAt { get; set; }
         /// <summary>The displayName property</summary>
@@ -43,10 +37,10 @@ namespace GameOnTonight.RestClient.Models
         /// <summary>The lastSession property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession? LastSession { get; set; }
+        public global::GameOnTonight.RestClient.Models.LastSessionViewModel? LastSession { get; set; }
 #nullable restore
 #else
-        public global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession LastSession { get; set; }
+        public global::GameOnTonight.RestClient.Models.LastSessionViewModel LastSession { get; set; }
 #endif
         /// <summary>The memberSince property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -57,29 +51,11 @@ namespace GameOnTonight.RestClient.Models
         public string MemberSince { get; set; }
 #endif
         /// <summary>The totalGames property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? TotalGames { get; set; }
-#nullable restore
-#else
-        public UntypedNode TotalGames { get; set; }
-#endif
+        public int? TotalGames { get; set; }
         /// <summary>The totalSessions property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? TotalSessions { get; set; }
-#nullable restore
-#else
-        public UntypedNode TotalSessions { get; set; }
-#endif
+        public int? TotalSessions { get; set; }
         /// <summary>The winRate property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? WinRate { get; set; }
-#nullable restore
-#else
-        public UntypedNode WinRate { get; set; }
-#endif
+        public double? WinRate { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::GameOnTonight.RestClient.Models.ProfileViewModel"/> and sets the default values.
         /// </summary>
@@ -94,7 +70,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
         public static global::GameOnTonight.RestClient.Models.ProfileViewModel CreateFromDiscriminatorValue(IParseNode parseNode)
         {
-            _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
+            if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::GameOnTonight.RestClient.Models.ProfileViewModel();
         }
         /// <summary>
@@ -106,14 +82,14 @@ namespace GameOnTonight.RestClient.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "avatarInitials", n => { AvatarInitials = n.GetStringValue(); } },
-                { "averageRating", n => { AverageRating = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
+                { "averageRating", n => { AverageRating = n.GetDoubleValue(); } },
                 { "createdAt", n => { CreatedAt = n.GetDateTimeOffsetValue(); } },
                 { "displayName", n => { DisplayName = n.GetStringValue(); } },
-                { "lastSession", n => { LastSession = n.GetObjectValue<global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession>(global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession.CreateFromDiscriminatorValue); } },
+                { "lastSession", n => { LastSession = n.GetObjectValue<global::GameOnTonight.RestClient.Models.LastSessionViewModel>(global::GameOnTonight.RestClient.Models.LastSessionViewModel.CreateFromDiscriminatorValue); } },
                 { "memberSince", n => { MemberSince = n.GetStringValue(); } },
-                { "totalGames", n => { TotalGames = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
-                { "totalSessions", n => { TotalSessions = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
-                { "winRate", n => { WinRate = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
+                { "totalGames", n => { TotalGames = n.GetIntValue(); } },
+                { "totalSessions", n => { TotalSessions = n.GetIntValue(); } },
+                { "winRate", n => { WinRate = n.GetDoubleValue(); } },
             };
         }
         /// <summary>
@@ -122,92 +98,17 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public virtual void Serialize(ISerializationWriter writer)
         {
-            _ = writer ?? throw new ArgumentNullException(nameof(writer));
+            if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("avatarInitials", AvatarInitials);
-            writer.WriteObjectValue<UntypedNode>("averageRating", AverageRating);
+            writer.WriteDoubleValue("averageRating", AverageRating);
             writer.WriteDateTimeOffsetValue("createdAt", CreatedAt);
             writer.WriteStringValue("displayName", DisplayName);
-            writer.WriteObjectValue<global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession>("lastSession", LastSession);
+            writer.WriteObjectValue<global::GameOnTonight.RestClient.Models.LastSessionViewModel>("lastSession", LastSession);
             writer.WriteStringValue("memberSince", MemberSince);
-            writer.WriteObjectValue<UntypedNode>("totalGames", TotalGames);
-            writer.WriteObjectValue<UntypedNode>("totalSessions", TotalSessions);
-            writer.WriteObjectValue<UntypedNode>("winRate", WinRate);
+            writer.WriteIntValue("totalGames", TotalGames);
+            writer.WriteIntValue("totalSessions", TotalSessions);
+            writer.WriteDoubleValue("winRate", WinRate);
             writer.WriteAdditionalData(AdditionalData);
-        }
-        /// <summary>
-        /// Composed type wrapper for classes <see cref="global::GameOnTonight.RestClient.Models.LastSessionViewModel"/>, <see cref="global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1"/>
-        /// </summary>
-        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-        public partial class ProfileViewModel_lastSession : IComposedTypeWrapper, IParsable
-        {
-            /// <summary>Composed type representation for type <see cref="global::GameOnTonight.RestClient.Models.LastSessionViewModel"/></summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-            public global::GameOnTonight.RestClient.Models.LastSessionViewModel? LastSessionViewModel { get; set; }
-#nullable restore
-#else
-            public global::GameOnTonight.RestClient.Models.LastSessionViewModel LastSessionViewModel { get; set; }
-#endif
-            /// <summary>Composed type representation for type <see cref="global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1"/></summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-            public global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1? ProfileViewModelLastSessionMember1 { get; set; }
-#nullable restore
-#else
-            public global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1 ProfileViewModelLastSessionMember1 { get; set; }
-#endif
-            /// <summary>
-            /// Creates a new instance of the appropriate class based on discriminator value
-            /// </summary>
-            /// <returns>A <see cref="global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession"/></returns>
-            /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
-            public static global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession CreateFromDiscriminatorValue(IParseNode parseNode)
-            {
-                _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
-                var mappingValue = parseNode.GetChildNode("")?.GetStringValue();
-                var result = new global::GameOnTonight.RestClient.Models.ProfileViewModel.ProfileViewModel_lastSession();
-                if("LastSessionViewModel".Equals(mappingValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    result.LastSessionViewModel = new global::GameOnTonight.RestClient.Models.LastSessionViewModel();
-                }
-                else if("".Equals(mappingValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    result.ProfileViewModelLastSessionMember1 = new global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1();
-                }
-                return result;
-            }
-            /// <summary>
-            /// The deserialization information for the current model
-            /// </summary>
-            /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
-            public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
-            {
-                if(LastSessionViewModel != null)
-                {
-                    return LastSessionViewModel.GetFieldDeserializers();
-                }
-                else if(ProfileViewModelLastSessionMember1 != null)
-                {
-                    return ProfileViewModelLastSessionMember1.GetFieldDeserializers();
-                }
-                return new Dictionary<string, Action<IParseNode>>();
-            }
-            /// <summary>
-            /// Serializes information the current object
-            /// </summary>
-            /// <param name="writer">Serialization writer to use to serialize this model</param>
-            public virtual void Serialize(ISerializationWriter writer)
-            {
-                _ = writer ?? throw new ArgumentNullException(nameof(writer));
-                if(LastSessionViewModel != null)
-                {
-                    writer.WriteObjectValue<global::GameOnTonight.RestClient.Models.LastSessionViewModel>(null, LastSessionViewModel);
-                }
-                else if(ProfileViewModelLastSessionMember1 != null)
-                {
-                    writer.WriteObjectValue<global::GameOnTonight.RestClient.Models.ProfileViewModel_lastSessionMember1>(null, ProfileViewModelLastSessionMember1);
-                }
-            }
         }
     }
 }

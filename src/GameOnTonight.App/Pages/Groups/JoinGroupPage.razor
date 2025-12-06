@@ -1,0 +1,83 @@
+@page "/groups/join"
+@page "/groups/join/{InviteCode}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@inject IGroupsService GroupsService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Rejoindre un groupe - Game On Tonight</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-4">
+    
+    <MudButton 
+        Variant="Variant.Text" 
+        StartIcon="@Icons.Material.Filled.ArrowBack"
+        OnClick="NavigateBack"
+        Class="mb-4">
+        Retour aux groupes
+    </MudButton>
+    
+    <MudPaper Class="pa-6">
+        <div class="text-center mb-6">
+            <MudAvatar Color="Color.Secondary" Size="Size.Large" Class="mb-3">
+                <LucideIcon Name="user-plus" Size="32" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5">Rejoindre un groupe</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                Entrez le code d'invitation reçu
+            </MudText>
+        </div>
+        
+        <MudTextField 
+            @bind-Value="_inviteCode"
+            Label="Code d'invitation"
+            Placeholder="Ex: ABCD1234EFGH5678"
+            Required="true"
+            Variant="Variant.Outlined"
+            OnKeyDown="HandleKeyDownAsync"
+            Disabled="@_isJoining"
+            Class="mb-4"
+            Style="text-transform: uppercase; font-family: monospace; letter-spacing: 2px;" />
+        
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">
+                @_errorMessage
+            </MudAlert>
+        }
+        
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+            <MudText Typo="Typo.body2">
+                En rejoignant un groupe, vous pourrez voir les jeux partagés par les autres membres.
+            </MudText>
+        </MudAlert>
+        
+        <div class="d-flex justify-end gap-2">
+            <MudButton 
+                Variant="Variant.Text" 
+                Color="Color.Default"
+                OnClick="NavigateBack"
+                Disabled="@_isJoining">
+                Annuler
+            </MudButton>
+            
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Primary"
+                OnClick="JoinGroupAsync"
+                Disabled="@(_isJoining || string.IsNullOrWhiteSpace(_inviteCode))">
+                @if (_isJoining)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Adhésion...</span>
+                }
+                else
+                {
+                    <span>Rejoindre le groupe</span>
+                }
+            </MudButton>
+        </div>
+    </MudPaper>
+    
+</MudContainer>

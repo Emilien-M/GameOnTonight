@@ -1,0 +1,138 @@
+@using GameOnTonight.RestClient.Models
+@inject IGroupContextService GroupContext
+
+<MudSelect T="GroupFilterOption" 
+           Value="_selectedOption" 
+           ValueChanged="OnSelectionChangedAsync"
+           Label="@Label"
+           Variant="Variant.Outlined"
+           Dense="true"
+           Disabled="_isLoading"
+           Class="@Class">
+    
+    <MudSelectItem Value="@_allOption">
+        <div class="d-flex align-center gap-2">
+            <LucideIcon Name="layers" Size="16" />
+            <span>Tous les jeux</span>
+        </div>
+    </MudSelectItem>
+    
+    <MudSelectItem Value="@_personalOption">
+        <div class="d-flex align-center gap-2">
+            <LucideIcon Name="user" Size="16" />
+            <span>Mes jeux uniquement</span>
+        </div>
+    </MudSelectItem>
+    
+    @if (_groups.Count > 0)
+    {
+        @foreach (var group in _groups)
+        {
+            var groupId = group.Id;
+            <MudSelectItem Value="@(new GroupFilterOption(GroupFilterMode.GroupOnly, groupId, group.Name))">
+                <div class="d-flex align-center gap-2">
+                    <LucideIcon Name="users" Size="16" />
+                    <span>@group.Name</span>
+                </div>
+            </MudSelectItem>
+        }
+    }
+</MudSelect>
+
+@code {
+    /// <summary>
+    /// Label du sélecteur.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Afficher";
+    
+    /// <summary>
+    /// Classes CSS supplémentaires.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Callback appelé quand la sélection change.
+    /// </summary>
+    [Parameter]
+    public EventCallback<(GroupFilterMode Mode, int? GroupId, string? GroupName)> OnFilterChanged { get; set; }
+    
+    /// <summary>
+    /// Si true, met automatiquement à jour le GroupContextService.
+    /// </summary>
+    [Parameter]
+    public bool UpdateContext { get; set; } = true;
+    
+    // Options statiques
+    private static readonly GroupFilterOption _allOption = new(GroupFilterMode.All, null, "Tous");
+    private static readonly GroupFilterOption _personalOption = new(GroupFilterMode.PersonalOnly, null, "Personnel");
+    
+    // État
+    private GroupFilterOption _selectedOption = _allOption;
+    private IReadOnlyList<GroupViewModel> _groups = [];
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGroupsAsync();
+        InitializeFromContext();
+    }
+
+    private async Task LoadGroupsAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _groups = await GroupContext.GetUserGroupsAsync();
+        }
+        catch
+        {
+            // Silently fail - the user can still use All and Personal options
+            _groups = [];
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void InitializeFromContext()
+    {
+        // Initialiser la sélection depuis le contexte actuel
+        _selectedOption = GroupContext.FilterMode switch
+        {
+            GroupFilterMode.All => _allOption,
+            GroupFilterMode.PersonalOnly => _personalOption,
+            GroupFilterMode.GroupOnly => new GroupFilterOption(
+                GroupFilterMode.GroupOnly, 
+                GroupContext.SelectedGroupId, 
+                GroupContext.SelectedGroupName ?? "Groupe"),
+            _ => _allOption
+        };
+    }
+
+    private async Task OnSelectionChangedAsync(GroupFilterOption option)
+    {
+        _selectedOption = option;
+        
+        // Mettre à jour le contexte si demandé
+        if (UpdateContext)
+        {
+            GroupContext.SetFilter(option.Mode, option.GroupId, option.GroupName);
+        }
+        
+        // Notifier le parent
+        await OnFilterChanged.InvokeAsync((option.Mode, option.GroupId, option.GroupName));
+    }
+    
+    /// <summary>
+    /// Rafraîchit la liste des groupes depuis l'API.
+    /// </summary>
+    public async Task RefreshGroupsAsync()
+    {
+        GroupContext.InvalidateGroupsCache();
+        await LoadGroupsAsync();
+        StateHasChanged();
+    }
+}

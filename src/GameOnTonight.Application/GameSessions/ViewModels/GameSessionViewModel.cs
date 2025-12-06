@@ -14,9 +14,15 @@ public record GameSessionViewModel
     public string? PhotoUrl { get; init; }
     public List<GameSessionPlayerViewModel> Players { get; init; } = new();
 
+    // Sharing properties
+    public int? GroupId { get; init; }
+    public string? GroupName { get; init; }
+    public bool IsShared { get; init; }
+    public bool IsOwner { get; init; }
+
     public GameSessionViewModel() { }
 
-    public GameSessionViewModel(GameSession entity)
+    public GameSessionViewModel(GameSession entity, string? currentUserId = null)
     {
         Id = entity.Id;
         BoardGameId = entity.BoardGameId;
@@ -27,5 +33,11 @@ public record GameSessionViewModel
         Rating = entity.Rating;
         PhotoUrl = entity.PhotoUrl;
         Players = entity.Players?.Select(p => new GameSessionPlayerViewModel(p)).ToList() ?? new();
+
+        // Sharing properties
+        GroupId = entity.GroupId;
+        GroupName = entity.Group?.Name;
+        IsShared = entity.GroupId.HasValue;
+        IsOwner = currentUserId != null && entity.UserId == currentUserId;
     }
 }

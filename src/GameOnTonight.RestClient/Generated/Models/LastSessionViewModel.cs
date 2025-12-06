@@ -25,21 +25,9 @@ namespace GameOnTonight.RestClient.Models
         /// <summary>The playedAt property</summary>
         public DateTimeOffset? PlayedAt { get; set; }
         /// <summary>The playerCount property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? PlayerCount { get; set; }
-#nullable restore
-#else
-        public UntypedNode PlayerCount { get; set; }
-#endif
+        public int? PlayerCount { get; set; }
         /// <summary>The rating property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public UntypedNode? Rating { get; set; }
-#nullable restore
-#else
-        public UntypedNode Rating { get; set; }
-#endif
+        public int? Rating { get; set; }
         /// <summary>The timeAgo property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -62,7 +50,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
         public static global::GameOnTonight.RestClient.Models.LastSessionViewModel CreateFromDiscriminatorValue(IParseNode parseNode)
         {
-            _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
+            if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::GameOnTonight.RestClient.Models.LastSessionViewModel();
         }
         /// <summary>
@@ -75,8 +63,8 @@ namespace GameOnTonight.RestClient.Models
             {
                 { "gameName", n => { GameName = n.GetStringValue(); } },
                 { "playedAt", n => { PlayedAt = n.GetDateTimeOffsetValue(); } },
-                { "playerCount", n => { PlayerCount = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
-                { "rating", n => { Rating = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
+                { "playerCount", n => { PlayerCount = n.GetIntValue(); } },
+                { "rating", n => { Rating = n.GetIntValue(); } },
                 { "timeAgo", n => { TimeAgo = n.GetStringValue(); } },
             };
         }
@@ -86,11 +74,11 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public virtual void Serialize(ISerializationWriter writer)
         {
-            _ = writer ?? throw new ArgumentNullException(nameof(writer));
+            if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("gameName", GameName);
             writer.WriteDateTimeOffsetValue("playedAt", PlayedAt);
-            writer.WriteObjectValue<UntypedNode>("playerCount", PlayerCount);
-            writer.WriteObjectValue<UntypedNode>("rating", Rating);
+            writer.WriteIntValue("playerCount", PlayerCount);
+            writer.WriteIntValue("rating", Rating);
             writer.WriteStringValue("timeAgo", TimeAgo);
             writer.WriteAdditionalData(AdditionalData);
         }

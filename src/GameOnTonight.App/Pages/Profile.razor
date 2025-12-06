@@ -1,7 +1,6 @@
 @page "/profile"
 @using GameOnTonight.App.Components
 @using GameOnTonight.RestClient.Models
-@using Microsoft.Kiota.Abstractions.Serialization
 @inject IProfileService ProfileService
 @inject IAuthService AuthService
 @inject IDialogService DialogService
@@ -45,28 +44,28 @@ else if (_profile != null)
         <MudItem xs="6" sm="3">
             <MudPaper Class="pa-4 text-center" Elevation="1">
                 <LucideIcon Name="gamepad-2" Size="28" Class="mb-2 mud-text-secondary" />
-                <MudText Typo="Typo.h4" Color="Color.Primary">@GetUntypedInt(_profile.TotalGames)</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@(_profile.TotalGames ?? 0)</MudText>
                 <MudText Typo="Typo.caption" Class="mud-text-secondary">Jeux</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="6" sm="3">
             <MudPaper Class="pa-4 text-center" Elevation="1">
                 <LucideIcon Name="dice-5" Size="28" Class="mb-2 mud-text-secondary" />
-                <MudText Typo="Typo.h4" Color="Color.Primary">@GetUntypedInt(_profile.TotalSessions)</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@(_profile.TotalSessions ?? 0)</MudText>
                 <MudText Typo="Typo.caption" Class="mud-text-secondary">Parties</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="6" sm="3">
             <MudPaper Class="pa-4 text-center" Elevation="1">
                 <LucideIcon Name="trophy" Size="28" Class="mb-2 mud-text-secondary" />
-                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatWinRate(GetUntypedDouble(_profile.WinRate))</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatWinRate(_profile.WinRate)</MudText>
                 <MudText Typo="Typo.caption" Class="mud-text-secondary">Victoires</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="6" sm="3">
             <MudPaper Class="pa-4 text-center" Elevation="1">
                 <LucideIcon Name="star" Size="28" Class="mb-2 mud-text-secondary" />
-                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatRating(GetUntypedDouble(_profile.AverageRating))</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@FormatRating(_profile.AverageRating)</MudText>
                 <MudText Typo="Typo.caption" Class="mud-text-secondary">Note moyenne</MudText>
             </MudPaper>
         </MudItem>
@@ -86,7 +85,7 @@ else if (_profile != null)
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.subtitle1">@lastSession.GameName</MudText>
                         <MudText Typo="Typo.caption" Class="mud-text-secondary">
-                            @GetUntypedInt(lastSession.PlayerCount) joueurs • @lastSession.TimeAgo
+                            @(lastSession.PlayerCount ?? 0) joueurs • @lastSession.TimeAgo
                         </MudText>
                     </MudStack>
                 </MudStack>
@@ -264,38 +263,12 @@ else if (!string.IsNullOrEmpty(_errorMessage))
 
     private LastSessionViewModel? GetLastSession()
     {
-        return _profile?.LastSession?.LastSessionViewModel;
+        return _profile?.LastSession;
     }
 
     private int GetLastSessionRating()
     {
         var lastSession = GetLastSession();
-        return lastSession != null ? GetUntypedInt(lastSession.Rating) : 0;
-    }
-
-    private static int GetUntypedInt(UntypedNode? node)
-    {
-        if (node is UntypedInteger intNode)
-            return intNode.GetValue();
-        if (node is UntypedLong longNode)
-            return (int)longNode.GetValue();
-        if (node is UntypedString strNode && int.TryParse(strNode.GetValue(), out var parsed))
-            return parsed;
-        return 0;
-    }
-
-    private static double? GetUntypedDouble(UntypedNode? node)
-    {
-        if (node is UntypedDouble doubleNode)
-            return doubleNode.GetValue();
-        if (node is UntypedDecimal decimalNode)
-            return (double)decimalNode.GetValue();
-        if (node is UntypedFloat floatNode)
-            return floatNode.GetValue();
-        if (node is UntypedInteger intNode)
-            return intNode.GetValue();
-        if (node is UntypedString strNode && double.TryParse(strNode.GetValue(), out var parsed))
-            return parsed;
-        return null;
+        return lastSession?.Rating ?? 0;
     }
 }

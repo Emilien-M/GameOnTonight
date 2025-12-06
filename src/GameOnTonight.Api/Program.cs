@@ -7,6 +7,7 @@ using GameOnTonight.Infrastructure;
 using GameOnTonight.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
 });
 
 builder.Services.AddMediator(options =>

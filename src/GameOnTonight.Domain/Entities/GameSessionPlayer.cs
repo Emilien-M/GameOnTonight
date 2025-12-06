@@ -37,6 +37,16 @@ public class GameSessionPlayer : BaseEntity
     /// </summary>
     public int? Position { get; private set; }
 
+    /// <summary>
+    /// Optional reference to a group member (if the player is a group member).
+    /// </summary>
+    public int? GroupMemberId { get; private set; }
+
+    /// <summary>
+    /// Navigation property to the group member.
+    /// </summary>
+    public virtual GroupMember? GroupMember { get; private set; }
+
     // Private constructor for EF Core
     private GameSessionPlayer() { }
 
@@ -84,5 +94,21 @@ public class GameSessionPlayer : BaseEntity
         {
             Position = position;
         }
+    }
+
+    /// <summary>
+    /// Links this player to a group member.
+    /// </summary>
+    public void LinkToGroupMember(int groupMemberId)
+    {
+        GroupMemberId = groupMemberId;
+    }
+
+    /// <summary>
+    /// Unlinks this player from any group member.
+    /// </summary>
+    public void UnlinkFromGroupMember()
+    {
+        GroupMemberId = null;
     }
 }

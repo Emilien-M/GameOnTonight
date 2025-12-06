@@ -13,8 +13,8 @@ public class GameSessionRepository : Repository<GameSession>, IGameSessionReposi
 {
     private readonly ICurrentUserService _currentUserService;
 
-    public GameSessionRepository(ApplicationDbContext context, ICurrentUserService currentUserService) 
-        : base(context, currentUserService)
+    public GameSessionRepository(ApplicationDbContext context, ICurrentUserService currentUserService, IEntityValidationService entityValidationService) 
+        : base(context, currentUserService, entityValidationService)
     {
         _currentUserService = currentUserService;
     }
@@ -25,6 +25,7 @@ public class GameSessionRepository : Repository<GameSession>, IGameSessionReposi
             .Where(s => s.UserId == _currentUserService.UserId)
             .Include(s => s.BoardGame)
             .Include(s => s.Players)
+            .Include(s => s.Group)
             .OrderByDescending(s => s.PlayedAt);
 
         if (count.HasValue)

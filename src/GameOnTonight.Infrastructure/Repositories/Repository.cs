@@ -11,17 +11,19 @@ namespace GameOnTonight.Infrastructure.Repositories;
 /// Generic implementation of the Repository Pattern with Entity Framework Core.
 /// </summary>
 /// <typeparam name="TEntity">Type of the entity.</typeparam>
-public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
 {
     protected readonly ApplicationDbContext Context;
     protected readonly DbSet<TEntity> DbSet;
     protected readonly ICurrentUserService CurrentUserService;
+    private readonly IEntityValidationService _entityValidationService;
 
-    public Repository(ApplicationDbContext context, ICurrentUserService currentUserService)
+    public Repository(ApplicationDbContext context, ICurrentUserService currentUserService, IEntityValidationService entityValidationService)
     {
         Context = context;
         DbSet = context.Set<TEntity>();
         CurrentUserService = currentUserService;
+        _entityValidationService = entityValidationService;
     }
 
     public async Task<TEntity?> GetByIdAsync(object id, CancellationToken cancellationToken = default)
@@ -90,10 +92,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        if (!CurrentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("User must be authenticated to add an entity.");
+        EnsureUserAuthenticated();
+        
+        _entityValidationService.ValidateEntities(entity);
             
-        string userId = CurrentUserService.UserId!;
+        var userId = CurrentUserService.UserId!;
             
         if (entity is IUserOwnedEntity userOwnedEntity)
         {
@@ -101,16 +104,20 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         }
         
         await DbSet.AddAsync(entity, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
-        if (!CurrentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("User must be authenticated to add entities.");
+        var entityList = entities.ToList();
+        
+        EnsureUserAuthenticated();
+        
+        _entityValidationService.ValidateEntities(entityList.ToArray<BaseEntity>());
+
+        var userId = CurrentUserService.UserId!;
             
-        string userId = CurrentUserService.UserId!;
-            
-        foreach (var entity in entities)
+        foreach (var entity in entityList)
         {
             if (entity is IUserOwnedEntity userOwnedEntity)
             {
@@ -118,56 +125,73 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
             }
         }
         
-        await DbSet.AddRangeAsync(entities, cancellationToken);
+        await DbSet.AddRangeAsync(entityList, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> RemoveAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        if (!CurrentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("User must be authenticated to delete an entity.");
-            
-        string userId = CurrentUserService.UserId!;
-            
-        if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
-            return Task.FromResult(false);
+        EnsureUserAuthenticatedAndHasPermissionAsync(entity);
+        
+        _entityValidationService.ValidateEntities(entity);
         
         DbSet.Remove(entity);
-        return Task.FromResult(true);
+        await Context.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
-    public Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    public async Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
-        if (!CurrentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("User must be authenticated to delete entities.");
-            
-        string userId = CurrentUserService.UserId!;
-            
-        var entitiesToRemove = entities
-            .OfType<IUserOwnedEntity>()
-            .Where(e => e.UserId == userId)
-            .Cast<TEntity>()
-            .ToList();
+        var entityList = entities.ToList();
         
-        if (entitiesToRemove.Count == 0)
-            return Task.FromResult(0);
+        EnsureUserAuthenticatedAndHasPermissionAsync(entityList);
         
-        DbSet.RemoveRange(entitiesToRemove);
-        return Task.FromResult(entitiesToRemove.Count);
+        _entityValidationService.ValidateEntities(entityList.ToArray<BaseEntity>());
+        
+        DbSet.RemoveRange(entityList);
+        await Context.SaveChangesAsync(cancellationToken);
+        return entityList.Count;
     }
 
-    public Task<bool> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        if (!CurrentUserService.IsAuthenticated)
-            throw new UnauthorizedAccessException("User must be authenticated to update an entity.");
-            
-        string userId = CurrentUserService.UserId!;
-            
-        if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
-            return Task.FromResult(false);
+        EnsureUserAuthenticatedAndHasPermissionAsync(entity);
+        
+        _entityValidationService.ValidateEntities(entity);
         
         DbSet.Attach(entity);
         Context.Entry(entity).State = EntityState.Modified;
-        return Task.FromResult(true);
+        await Context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private void EnsureUserAuthenticated()
+    {
+        if (!CurrentUserService.IsAuthenticated)
+            throw new UnauthorizedAccessException("User must be authenticated to update an entity.");
+    }
+    
+    private void EnsureUserAuthenticatedAndHasPermissionAsync(TEntity entity)
+    {
+        EnsureUserAuthenticated();
+            
+        var userId = CurrentUserService.UserId!;
+            
+        if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
+            throw new UnauthorizedAccessException("User does not have permission to update this entity.");
+    }
+
+    private void EnsureUserAuthenticatedAndHasPermissionAsync(IEnumerable<TEntity> entities)
+    {
+        EnsureUserAuthenticated();
+        
+        var userId = CurrentUserService.UserId!;
+            
+        foreach (var entity in entities)
+        {
+            if (entity is IUserOwnedEntity userOwnedEntity && userOwnedEntity.UserId != userId)
+                throw new UnauthorizedAccessException("User does not have permission to update this entity.");
+        }
     }
 }
 

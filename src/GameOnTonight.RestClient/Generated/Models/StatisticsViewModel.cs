@@ -60,7 +60,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
         public static global::GameOnTonight.RestClient.Models.StatisticsViewModel CreateFromDiscriminatorValue(IParseNode parseNode)
         {
-            _ = parseNode ?? throw new ArgumentNullException(nameof(parseNode));
+            if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::GameOnTonight.RestClient.Models.StatisticsViewModel();
         }
         /// <summary>
@@ -86,7 +86,7 @@ namespace GameOnTonight.RestClient.Models
         /// <param name="writer">Serialization writer to use to serialize this model</param>
         public virtual void Serialize(ISerializationWriter writer)
         {
-            _ = writer ?? throw new ArgumentNullException(nameof(writer));
+            if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteDoubleValue("averageRating", AverageRating);
             writer.WriteCollectionOfObjectValues<global::GameOnTonight.RestClient.Models.MonthlyPlayViewModel>("monthlyPlays", MonthlyPlays);
             writer.WriteCollectionOfObjectValues<global::GameOnTonight.RestClient.Models.PlayerStatViewModel>("playerStats", PlayerStats);

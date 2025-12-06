@@ -76,9 +76,17 @@ public class BoardGameConfiguration : BaseConfiguration<BoardGame>
             .WithMany()
             .HasForeignKey(g => g.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        // Configure relationship to Group for sharing
+        builder.HasOne(g => g.Group)
+            .WithMany()
+            .HasForeignKey(g => g.GroupId)
+            .OnDelete(DeleteBehavior.SetNull);
             
         builder.HasIndex(g => g.UserId);
         builder.HasIndex(g => g.Name);
         builder.HasIndex(g => new { g.MinPlayers, g.MaxPlayers });
+        builder.HasIndex(g => g.GroupId)
+            .HasFilter("\"GroupId\" IS NOT NULL");
     }
 }

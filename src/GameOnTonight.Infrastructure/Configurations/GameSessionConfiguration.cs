@@ -67,9 +67,17 @@ public class GameSessionConfiguration : BaseConfiguration<GameSession>
             .WithMany()
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        // Configure relationship to Group for sharing
+        builder.HasOne(s => s.Group)
+            .WithMany()
+            .HasForeignKey(s => s.GroupId)
+            .OnDelete(DeleteBehavior.SetNull);
             
         builder.HasIndex(s => s.UserId);
         builder.HasIndex(s => s.BoardGameId);
         builder.HasIndex(s => s.PlayedAt);
+        builder.HasIndex(s => s.GroupId)
+            .HasFilter("\"GroupId\" IS NOT NULL");
     }
 }

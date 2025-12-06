@@ -1,12 +1,25 @@
 @page "/history"
 @using GameOnTonight.RestClient.Models
+@using GameOnTonight.App.Components.Groups
 @inject IGameSessionsService GameSessionsService
+@inject IGroupContextService GroupContext
 @inject IErrorService ErrorService
 @inject IDialogService DialogService
+@implements IDisposable
 
 <PageTitle>Historique</PageTitle>
 
-<MudText Typo="Typo.h3" Class="pb-3">Historique des parties</MudText>
+<div class="d-flex justify-space-between align-center mb-4">
+    <div>
+        <MudText Typo="Typo.h3">Historique des parties</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">
+            @GetSubtitle()
+        </MudText>
+    </div>
+    <div>
+        <GroupFilterSelector OnFilterChanged="OnFilterChangedAsync" />
+    </div>
+</div>
 
 @if (isLoading)
 {
@@ -41,9 +54,16 @@ else
                             <div class="flex-grow-1">
                                 <div class="d-flex align-center gap-2">
                                     <MudText Typo="Typo.h6">@session.BoardGameName</MudText>
-                                    @if (session.Rating.HasValue)
+                                    @if (session.GroupId != null && !string.IsNullOrEmpty(session.GroupName))
                                     {
-                                        <MudRating SelectedValue="@session.Rating.Value" 
+                                        <MudChip Size="Size.Small">@session.GroupName</MudChip>
+                                    }
+                                    @{
+                                        var rating = session.Rating;
+                                    }
+                                    @if (rating.HasValue)
+                                    {
+                                        <MudRating SelectedValue="@rating.Value" 
                                                    ReadOnly="true" 
                                                    Size="Size.Small"
                                                    Color="Color.Warning" />
@@ -53,8 +73,11 @@ else
                                     <MudChip T="string" Color="Color.Default" Size="Size.Small">
                                         @session.PlayedAt?.ToString("dd/MM/yyyy")
                                     </MudChip>
+                                    @{
+                                        var playerCount = session.PlayerCount ?? 0;
+                                    }
                                     <MudChip T="string" Color="Color.Default" Size="Size.Small">
-                                        @session.PlayerCount joueur@(session.PlayerCount > 1 ? "s" : "")
+                                        @playerCount joueur@(playerCount > 1 ? "s" : "")
                                     </MudChip>
                                 </div>
                                 @if (!string.IsNullOrEmpty(session.Notes))
@@ -77,13 +100,13 @@ else
                                                          Size="Size.Small"
                                                          Icon="@(player.IsWinner == true ? Icons.Material.Filled.EmojiEvents : null)">
                                                     @player.PlayerName
-                                                    @if (player.Score.HasValue)
+                                                    @if (player.Score is { } playerScore)
                                                     {
-                                                        <span class="ml-1">(@player.Score pts)</span>
+                                                        <span class="ml-1">(@playerScore pts)</span>
                                                     }
-                                                    @if (player.Position.HasValue)
+                                                    @if (player.Position is { } playerPosition)
                                                     {
-                                                        <span class="ml-1">#@player.Position</span>
+                                                        <span class="ml-1">#@playerPosition</span>
                                                     }
                                                 </MudChip>
                                             }
@@ -120,10 +143,32 @@ else
     private IReadOnlyList<GameSessionViewModel>? sessions;
     private bool isLoading = true;
     private string? errorMessage;
+    private int? _selectedGroupId;
 
     protected override async Task OnInitializedAsync()
     {
+        // Synchroniser avec le contexte global
+        _selectedGroupId = GroupContext.SelectedGroupId;
+        
+        // S'abonner aux changements
+        GroupContext.OnFilterChanged += OnFilterChanged;
+        
         await LoadDataAsync();
+    }
+
+    private void OnFilterChanged()
+    {
+        _selectedGroupId = GroupContext.SelectedGroupId;
+        InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        GroupContext.OnFilterChanged -= OnFilterChanged;
     }
 
     private async Task LoadDataAsync()
@@ -134,7 +179,7 @@ else
 
         try
         {
-            sessions = await GameSessionsService.GetHistoryAsync();
+            sessions = await GameSessionsService.GetHistoryAsync(groupId: _selectedGroupId);
         }
         catch (Exception ex)
         {
@@ -147,19 +192,38 @@ else
         }
     }
 
+    private async Task OnFilterChangedAsync((GroupFilterMode Mode, int? GroupId, string? GroupName) filter)
+    {
+        _selectedGroupId = filter.GroupId;
+        await LoadDataAsync();
+    }
+
+    private string GetSubtitle()
+    {
+        var count = sessions?.Count ?? 0;
+        return _selectedGroupId switch
+        {
+            null => $"Toutes les parties ({count} parties)",
+            0 => $"Mes parties personnelles ({count} parties)",
+            _ => $"Parties du groupe sélectionné ({count} parties)"
+        };
+    }
+
     private async Task DeleteSessionAsync(GameSessionViewModel session)
     {
+        var sessionId = session.Id;
+        
         var result = await DialogService.ShowMessageBox(
             "Confirmation",
             $"Supprimer cette partie de {session.BoardGameName} ?",
             yesText: "Supprimer",
             cancelText: "Annuler");
 
-        if (result == true && session.Id.HasValue)
+        if (result == true && sessionId.HasValue)
         {
             try
             {
-                await GameSessionsService.DeleteAsync(session.Id.Value);
+                await GameSessionsService.DeleteAsync(sessionId.Value);
                 await LoadDataAsync();
             }
             catch (Exception ex)

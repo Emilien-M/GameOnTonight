@@ -1,0 +1,90 @@
+@page "/groups/create"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@inject IGroupsService GroupsService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Créer un groupe - Game On Tonight</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-4">
+    
+    <MudButton 
+        Variant="Variant.Text" 
+        StartIcon="@Icons.Material.Filled.ArrowBack"
+        OnClick="NavigateBack"
+        Class="mb-4">
+        Retour aux groupes
+    </MudButton>
+    
+    <MudPaper Class="pa-6">
+        <div class="text-center mb-6">
+            <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mb-3">
+                <LucideIcon Name="users" Size="32" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5">Créer un groupe</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                Rassemblez vos amis et partagez vos jeux
+            </MudText>
+        </div>
+        
+        <EditForm Model="@_model" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+            
+            <MudTextField 
+                @bind-Value="_model.Name"
+                Label="Nom du groupe"
+                Placeholder="Ex: Jeux du mercredi"
+                Required="true"
+                RequiredError="Le nom est obligatoire"
+                MaxLength="100"
+                Counter="100"
+                Immediate="true"
+                Variant="Variant.Outlined"
+                Class="mb-4" />
+            
+            <MudTextField 
+                @bind-Value="_model.Description"
+                Label="Description (optionnelle)"
+                Placeholder="Décrivez votre groupe..."
+                Lines="3"
+                MaxLength="500"
+                Counter="500"
+                Variant="Variant.Outlined"
+                Class="mb-6" />
+            
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+                <MudText Typo="Typo.body2">
+                    Vous serez automatiquement propriétaire de ce groupe et pourrez inviter des membres.
+                </MudText>
+            </MudAlert>
+            
+            <div class="d-flex justify-end gap-2">
+                <MudButton 
+                    Variant="Variant.Text" 
+                    Color="Color.Default"
+                    OnClick="NavigateBack"
+                    Disabled="@_isSubmitting">
+                    Annuler
+                </MudButton>
+                
+                <MudButton 
+                    Variant="Variant.Filled" 
+                    Color="Color.Primary"
+                    ButtonType="ButtonType.Submit"
+                    Disabled="@(_isSubmitting || string.IsNullOrWhiteSpace(_model.Name))">
+                    @if (_isSubmitting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Création...</span>
+                    }
+                    else
+                    {
+                        <span>Créer le groupe</span>
+                    }
+                </MudButton>
+            </div>
+        </EditForm>
+    </MudPaper>
+    
+</MudContainer>
