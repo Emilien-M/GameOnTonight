@@ -255,7 +255,7 @@ GameOnTonight.Api/
 These rules cover the Blazor WebAssembly (WASM) application located in GameOnTonight.App. They build upon what is already in place in the project and establish best practices to maintain a healthy and consistent codebase.
 
 ### 1. General Architecture (Blazor WASM + PWA)
-- Project type: Blazor WebAssembly .NET 10 (Sdk Microsoft.NET.Sdk.BlazorWebAssembly).
+- Project type: Blazor WebAssembly .NET 9 (Sdk Microsoft.NET.Sdk.BlazorWebAssembly).
 - PWA mode: service worker enabled and assets manifest declared via ServiceWorkerAssetsManifest (service-worker.js / service-worker.published.js).
 - HTTP communication: via HttpClient and the generated GameOnTonight.RestClient project.
 - Client storage: Blazored.LocalStorage to persist information (tokens, preferences, lightweight caches).
