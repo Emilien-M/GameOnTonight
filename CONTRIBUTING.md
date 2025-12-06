@@ -14,7 +14,7 @@ Merci de votre intérêt pour contribuer à GameOnTonight ! Ce document vous gui
 
 ## 🔧 Prérequis
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Docker](https://www.docker.com/) (pour PostgreSQL)
 - [Kiota](https://learn.microsoft.com/en-us/openapi/kiota/) (pour générer le client REST)
 - Un IDE compatible (VS Code, Rider, Visual Studio)
