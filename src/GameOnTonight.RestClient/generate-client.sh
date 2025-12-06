@@ -6,6 +6,12 @@ echo "🚀 Génération du client RestClient depuis l'OpenAPI..."
 API_URL="http://localhost:5235/openapi/v1.json"
 OUTPUT_PATH="./Generated"
 
+# Install and restore des outils .NET (kiota)
+echo "🔧 Installation des outils .NET..."
+dotnet tool update microsoft.openapi.kiota --version 1.29.0
+echo " Restauration des outils .NET..."
+dotnet tool restore
+
 # Vérifiez que l'API est accessible
 echo "📡 Vérification de l'accessibilité de l'API..."
 
@@ -26,7 +32,7 @@ fi
 # Génération du client avec Kiota
 echo "⚙️  Génération du client avec Kiota..."
 
-kiota generate \
+dotnet kiota generate \
     --language CSharp \
     --openapi "$API_URL" \
     --class-name GameOnTonightClient \
