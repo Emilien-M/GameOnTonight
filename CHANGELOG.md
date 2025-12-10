@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.4.0)
+
+### Added
+- Groups feature: Create, manage, and join groups with invite codes 
+  - Invite members, transfer ownership, leave or remove members 
+  - Full API, UI pages, and components for group management
+- Sharing functionality: Share board games and game sessions with groups 
+  - Link game session players to group members
+
+### Changed
+- Profile page redesigned: Stats cards (total games, sessions, win rate, rating), last played session, settings with password change 
+- Board game and session queries now support group filtering
+
+### Fixed
+- Reverted .NET 10 upgrade (back to .NET 9)
+- Kiota tool setup in generate-client script
+
 ## [0.3.1](https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.3.1)
 
 ### Changed
@@ -103,7 +120,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL database support
 - Clean Architecture structure
 
-[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Emilien-M/GameOnTonight/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Emilien-M/GameOnTonight/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Emilien-M/GameOnTonight/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Emilien-M/GameOnTonight/releases/tag/v0.2.0
